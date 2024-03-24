@@ -1,3 +1,5 @@
+import asyncio
+
 from http.cookies import SimpleCookie
 from aiohttp import ClientSession
 
@@ -21,10 +23,16 @@ class ThirdPartyBiliBiliCrawler(CrawlerInterface):
         self.client = BLiveClient(CrawlerInterface.room_id, session=self.session)
         self.client.set_handler(Handler(receive_callback));
     
-    # Notice: 这里需要使用异步的方式进行启动
-    async def start(self):
-        self.client.start()
-        await self.client.join()
+   
+    def start(self):
+        async def start_client():
+            self.client.start()
+            await self.client.join();
+        
+        # 由于此处需要使用 await 的方式 join
+        # 为了将其封装在非异步函数中，需要使用以下的方式
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(start_client())
 
     def stop(self):
         self.client.stop()

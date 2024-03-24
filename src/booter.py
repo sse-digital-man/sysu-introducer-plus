@@ -1,5 +1,3 @@
-from threading import Thread
-
 from core.basic_core import BasicCore as Core
 from message import Message, MessageKind
 from interface.live import LiveCrawler
@@ -23,9 +21,9 @@ class Booter:
         self.__core = Core()
 
 
-    async def start(self):
+    def start(self):
         self.__core.start()
-        await self.__live_crawler.start()
+        self.__live_crawler.start()
 
 
     def stop(self):
