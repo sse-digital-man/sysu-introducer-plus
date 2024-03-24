@@ -66,6 +66,9 @@ class BaseHandler(HandlerInterface):
     一个简单的消息处理器实现，带消息分发和消息类型转换。继承并重写_on_xxx方法即可实现自己的处理器
     """
 
+    def __init__(self, ignored_unknown_cmd: bool=False):
+        self.ignored_unknown_cmd = ignored_unknown_cmd
+
     def __danmu_msg_callback(self, client: ws_base.WebSocketClientBase, command: dict):
         return self._on_danmaku(client, web_models.DanmakuMessage.from_command(command['info']))
 
@@ -118,6 +121,10 @@ class BaseHandler(HandlerInterface):
             cmd = cmd[:pos]
 
         if cmd not in self._CMD_CALLBACK_DICT:
+            # 忽略未知的指令
+            if self.ignored_unknown_cmd:
+                return;
+
             # 只有第一次遇到未知cmd时打日志
             if cmd not in logged_unknown_cmds:
                 logger.warning('room=%d unknown cmd=%s, command=%s', client.room_id, cmd, command)
