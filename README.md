@@ -1,5 +1,12 @@
 # 中大介绍官 Plus
 
+## 开发文档
+
+-   外部接口
+    -   直播爬虫：[live.md](./docs/interface/live.md)
+-   内部模块：
+    -   大语言模型：[llm.md](./docs/module/llm.md)
+
 ## 架构说明
 
 本项目本质上是个大型的服务端，
@@ -59,34 +66,3 @@
     目前本项目仅支持 `Bilibili` 平台。
 
 -   `View Interface`: `Core`处理的结果会通过该接口传递给 UE5 或 Unity。
-
-## 技术模块
-
-### 1. 直播弹幕爬虫
-
-本项目**同一时间仅支持监听一个直播间**，
-目前仅支持 Bilibili 直播间的使用。
-当然，后续可能会实现同时监听多个直播间，
-目前因为技术原因只选择该直播间进行实现。
-
-在该部分中，我们通过 `Crawler` 对象类进行封装，
-它主要接受一个回调函数 `receive_callback`，
-当爬虫接收到了直播间传输过来的消息之后，它会进行处理和封装，
-然后通过回调函数将消息 `Message` 传输到内核中。
-其中回调函数的定义如下。
-
-```python
-# 回调函数暂时只接受字符串
-def receive_callback(text: str):
-    ...
-```
-
-#### Bilibili
-
-目前该直播平台提供两种监听的方式：官方的开放平台与第三方。
-前者需要通过[开放平台](https://openhome.bilibili.com/)申请 key，
-然后使用提供的 API 进行调用。
-后者则是使用 Github 的开源项目 [blivedm](https://github.com/xfgryujk/blivedm)
-对直播弹幕进行爬取。
-
-> 由于开放平台的 key 没有申请下来，目前仅支持第三方的爬虫。
