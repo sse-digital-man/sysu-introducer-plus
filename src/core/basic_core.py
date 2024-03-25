@@ -3,6 +3,7 @@ import time
 
 from message import Message
 from core.msg_queue.fifo_queue import FIFOQueue as MessageQueue
+from module.llm.bot import Bot
 
 class BasicCore:
     def __init__(self):
@@ -11,6 +12,8 @@ class BasicCore:
 
         self.__handle_thread = Thread(target=self.__handle)
         
+        self.__bot: Bot = Bot()
+
     
     # 线程循环处理消息队列（需要开启多线程）
     def __handle(self):
@@ -22,16 +25,20 @@ class BasicCore:
                 continue
 
             message = self.__msg_queue.pop()
-
-            # 处理逻辑
             print("receive:", message.content)
+
+            response = self.__bot.talk(message.content)
+            print("answer:", response)
 
     def start(self):
         print("数字人内核启动")
 
+        # 验证 LLM 是否正常
+        if not self.__bot.check():
+            raise RuntimeError("数字人启动失败")
+        
         self.__handle_thread.start()
 
-        # 验证 LLM 是否正常
 
         # 检测 TTS 是否正常
 
