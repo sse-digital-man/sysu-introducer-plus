@@ -1,0 +1,11 @@
+live:
+    # 监听的直播间号
+    roomId:
+
+module:
+    llm:
+        gpt:
+            apiKey: ""
+            # 配置 openai 的 base URL
+            # https://github.com/chatanywhere/GPT_API_free
+            url: ""
