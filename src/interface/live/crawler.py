@@ -1,8 +1,10 @@
 from abc import ABCMeta, abstractmethod
 
+from utils.config import LiveConfig
+
 
 class CrawlerInterface(metaclass=ABCMeta):
-    room_id = 407149
+    room_id = LiveConfig.ROOM_ID
 
     def __init__(self, receive_callback):
         """
