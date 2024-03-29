@@ -1,0 +1,27 @@
+{
+    "system": {
+        "interface": {
+            "live": {
+                "bilibili": {
+                    "roomId": 0
+                }
+            }
+        },
+        "module": {
+            "llm": {
+                "gpt": {
+                    "apiKey": "",
+                    "url": ""
+                }
+            }
+        }
+    },
+    "use": {
+        "interface": {},
+        "module": {
+            "llm": {
+                "kind": "debug"
+            }
+        }
+    }
+}

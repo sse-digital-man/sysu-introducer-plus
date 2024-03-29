@@ -1,33 +1,40 @@
-import yaml
+import json
 
-def load_config(config_path: str):
-    try:
-        with open(config_path, 'r') as f:
-            return yaml.load(f, yaml.CLoader)
-    except FileNotFoundError:
-        # return 
-        print(f"{config_path} not found")
-        exit()
+CONFIG_PATH = 'config.json'
 
-CONFIG_PATH = './config.yaml'
+class Config:
+    _data = None
 
-config = load_config(CONFIG_PATH)
+    def __init__(self):
+        if Config._data == None:
+            Config.reload()
 
+    @staticmethod
+    def reload():
+        with open(CONFIG_PATH, 'r', encoding='UTF-8') as f:
+            Config._data = json.load(f)
+        
+    def get(self, *keys):
+        result = Config._data
+        for key in keys:
+            result = result[key]
+            if result is None:
+                return None
 
-def is_loaded() -> bool:
-    print(config)
-    return config != None
+        return result
+
+    def get_system_interface(self, *keys):
+        return self.get('system', 'interface', *keys)
+    
+    def get_system_module(self, *keys):
+        return self.get('system', 'module', *keys)
+    
+    def get_use_interface(self, *keys):
+        return self.get('use', 'interface', *keys)
+    
+    def get_use_module(self, *keys):
+        return self.get('use', 'module', *keys)
         
 
 
-class LiveConfig:
-    ROOM_ID = config['live']['roomId']
-    
-class LLMConfig:
-    __LLM_CONFIG = config['module']['llm']
-
-    __GPT_CONFIG = __LLM_CONFIG['gpt']
-    
-    GPT_API_KEY = __GPT_CONFIG['apiKey']
-    GPT_BASE_URL = __GPT_CONFIG['url'] \
-        if (__GPT_CONFIG['url']) != '' else None
+config = Config()
