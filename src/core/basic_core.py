@@ -9,10 +9,10 @@ class BasicCore:
     def __init__(self):
         # 初始化消息队列
         self.__msg_queue = MessageQueue()
-
-        self.__handle_thread = Thread(target=self.__handle)
-        
         self.__bot: Bot = Bot()
+
+        self.__is_running = False
+        self.__handle_thread = None
 
     
     # 线程循环处理消息队列（需要开启多线程）
@@ -20,6 +20,11 @@ class BasicCore:
         # ...
         while True:
             time.sleep(0.5)
+
+            # 当 Core 停止后，处理线程也需要停止
+            if not self.__is_running:
+                self.__msg_queue.clear()
+                break
 
             if self.__msg_queue.empty():
                 continue
@@ -30,24 +35,30 @@ class BasicCore:
             response = self.__bot.talk(message.content)
             print("answer:", response)
 
+        
+
     def start(self):
         print("数字人内核启动")
 
         # 验证 LLM 是否正常
-        if not self.__bot.check():
-            raise RuntimeError("数字人启动失败")
-        
+        flag, error = self.__bot.check()
+        if not flag:
+            raise RuntimeError("LLM 模块监测失败：" + repr(error))
+                
+        self.__handle_thread = Thread(target=self.__handle)
         self.__handle_thread.start()
 
 
         # 检测 TTS 是否正常
 
         # 检测 View 是否正常
-        pass
+
+        self.__is_running = True
 
     def stop(self):
+        self.__is_running = False
         # 关闭以上所有服务
-        pass
+        self.__handle_thread.join()
 
     def send(self, text: Message):
         self.__msg_queue.push(text)
