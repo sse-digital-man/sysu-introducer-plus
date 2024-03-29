@@ -1,11 +1,9 @@
 from abc import ABCMeta, abstractmethod
 
-from utils.config import LiveConfig
+from utils.config import config
 
 
 class CrawlerInterface(metaclass=ABCMeta):
-    room_id = LiveConfig.ROOM_ID
-
     def __init__(self, receive_callback):
         """
 
@@ -21,3 +19,12 @@ class CrawlerInterface(metaclass=ABCMeta):
     @abstractmethod
     def stop(self):
         ...
+
+    @property
+    def _room_id(self) -> int:
+        """这里需要使用动态加载的方式，读取房间号
+
+        Returns:
+            int: 房间号
+        """
+        return config.get_system_interface("live", "bilibili", "roomId")

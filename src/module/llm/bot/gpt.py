@@ -2,7 +2,7 @@ import openai
 from typing import List
 
 from .base import BasicBot
-from utils.config import LLMConfig
+from utils.config import config
 
 # Migration Guide: https://github.com/openai/openai-python/discussions/742
 
@@ -11,13 +11,28 @@ class GPTBot(BasicBot):
 
     def __init__(self):
         super().__init__()
+        api_key, url = GPTBot.__get_config()
 
         self.client = openai.OpenAI(
-            api_key=LLMConfig.GPT_API_KEY,
-            base_url=LLMConfig.GPT_BASE_URL
+            api_key=api_key,
+            base_url=url,
+            timeout=5
         )
-    
-    # 
+
+    def _load_config(self):
+        api_key, url = GPTBot.__get_config()
+
+        self.client.api_key = api_key
+        self.client.base_url = url
+
+        print(self.client.api_key)
+        print(self.client.base_url)
+
+    @staticmethod
+    def __get_config():
+        info = config.get_system_module("llm", "gpt")
+        return info['apiKey'], info['url']
+
     def _single_call(self, query: str) -> str:
         messages = [
             {

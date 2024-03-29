@@ -80,6 +80,9 @@ class BLiveClient(ws_base.WebSocketClientBase):
         当前登录的用户ID，未登录则为0，调用init_room后初始化
         """
         return self._uid
+    
+    def set_room_id(self, room_id: int):
+        self._tmp_room_id = room_id
 
     async def init_room(self):
         """

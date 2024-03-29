@@ -1,12 +1,16 @@
 from abc import ABCMeta, abstractmethod
-from typing import List
+from typing import List, Tuple
 
 class BasicBot(metaclass=ABCMeta):
-    system_prompt = "你现在是一名主播，请回答观众问题。"
+    system_prompt = "你现在是一名主播，请回答观众问题，请将回答控制在10字以内。"
 
     def __init__(self):
         pass
     
+    # 用于重新加载配置信息
+    @abstractmethod
+    def _load_config(self):
+        ...
 
     # 单条消息的调用（只能输入一条 query）
     @abstractmethod
@@ -27,7 +31,7 @@ class BasicBot(metaclass=ABCMeta):
         return self._single_call(query)
     
     
-    def check(self) -> bool:
+    def check(self) -> Tuple[bool, Exception]:
         """如果调用后不会报错且能够正常返回，则检验正常
 
         Returns:
@@ -35,6 +39,6 @@ class BasicBot(metaclass=ABCMeta):
         """
         try:
             response = self._single_call("hello")
-            return response != None
-        except:
-            return False
+            return (response != None, None) 
+        except Exception as e:
+            return (False, e)
