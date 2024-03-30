@@ -1,13 +1,44 @@
 # 中大介绍官 Plus
 
+## 使用说明
+
+1. 使用 `pip install -r requirements.txt` 安装项目依赖
+2. 在 `config.json` 中配置相关的依赖文件
+3. 运行 `app.py`/`cli.py` 运行本程序
+    > 前者是运行 Web Server，后者则是通过命令行的方式运行。
+    > 目前仅提供命令行的运行方式。
+
+## 文件介绍
+
+```lua
+.
+├── docs
+└── src
+    ├── core
+    │   ├── msg_queue   -- 消息队列
+    │   └── basic_core  -- 实现最基础的内核
+    ├── module
+    │   ├── llm         -- LLM 模块
+    │   └── tts         -- TTS 模块
+    ├── interface
+    │   ├── live        -- 直播监听接口
+    │   └── view        -- View 层接口
+    ├── utils
+    │   └── config      -- 配置文件
+    ├── booter.py       -- 引导程序
+    ├── app.py          -- Webui 控制器
+    └── cli.py          -- cli 控制器
+```
+
 ## 开发文档
 
--   外部接口
-    -   直播爬虫：[live.md](./docs/interface/live.md)
--   内部模块：
+-   配置文件：[config.md](./docs/config.md)
+-   内部模块 module
     -   大语言模型：[llm.md](./docs/module/llm.md)
+-   外部接口 interface
+    -   直播爬虫：[live.md](./docs/interface/live.md)
 
-## 架构说明
+## 架构架构
 
 本项目本质上是个大型的服务端，
 管理员/运营人员可以通过 Webui 编写的 `Controller` 管理和控制数字人的启动和关闭。
