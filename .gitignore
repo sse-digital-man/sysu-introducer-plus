@@ -13,3 +13,8 @@ static
 
 # 向量数据库
 data/vectorstores
+
+# fastText 模型
+cc.zh.300.bin
+
+data/chromadb

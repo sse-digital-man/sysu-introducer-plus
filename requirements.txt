@@ -11,6 +11,8 @@ yarl~=1.9.3
 # llm module
 openai
 elasticsearch
+chromadb
+gensim
 
 # llm-vector-searcher
 langchain
