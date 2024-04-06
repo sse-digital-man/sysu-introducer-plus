@@ -2,6 +2,7 @@ import openai
 from typing import List
 
 from .base import BasicBot
+from ..bot_kind import BotKind
 from utils.config import config
 
 # Migration Guide: https://github.com/openai/openai-python/discussions/742
@@ -10,7 +11,7 @@ class GPTBot(BasicBot):
     model_type = "gpt-3.5-turbo"
 
     def __init__(self):
-        super().__init__()
+        super().__init__(BotKind.GPT)
         api_key, url = GPTBot.__get_config()
 
         self.client = openai.OpenAI(
