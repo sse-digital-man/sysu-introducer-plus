@@ -53,8 +53,7 @@ class Bot:
 使用 openai sdk 进行调用 GPT3.5。
 
 -   `apiKey`: 调用 API 所需要的秘钥
--   `url`: openai 代理的链接
-    > 具体使用说明可以参考：github.com/chatanywhere/GPT_API_free
+-   `url`: openai 代理的链接。具体使用说明可以参考 [GPT_API_free](http://github.com/chatanywhere/GPT_API_free)
 
 #### Virtual
 
