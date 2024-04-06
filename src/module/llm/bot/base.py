@@ -7,8 +7,7 @@ class BasicBot(metaclass=ABCMeta):
     system_prompt = "你现在是一名主播，请回答观众问题，请将回答控制在10字以内。"
 
     def __init__(self, kind: BotKind):
-        self.kind = kind
-        self.kind_text = kind.value
+        self.__kind = kind
         pass
     
     # 用于重新加载配置信息
@@ -54,4 +53,4 @@ class BasicBot(metaclass=ABCMeta):
         
     @property
     def kind(self) -> BotKind:
-        return self.kind
+        return self.__kind
