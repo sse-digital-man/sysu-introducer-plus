@@ -18,7 +18,7 @@ print("Connected to Redis.")
 # 第一步：数据源的收集和整理
 # 从本地.json文件获取数据
 print("Loading data from local file...")
-local_file_path = "src/data/baidu.json"
+local_file_path = "data/baidu.json"
 with open(local_file_path, "r", encoding="utf-8") as f:
     data = json.load(f)
 
