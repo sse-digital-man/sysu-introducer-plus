@@ -4,14 +4,9 @@ import random as ra
 from .base import BasicBot
 from ..bot_kind import BotKind
 
-from utils.config import config
+from ....utils.config import config
 
-RANDOM_ANSWERS = [
-    "欢迎欢迎",
-    "见到你很高兴",
-    "谢谢夸奖",
-    "你说得对"
-]
+RANDOM_ANSWERS = ["欢迎欢迎", "见到你很高兴", "谢谢夸奖", "你说得对"]
 
 
 class VirtualBot(BasicBot):
@@ -29,8 +24,8 @@ class VirtualBot(BasicBot):
     def _load_config(self):
         info = config.get_system_module("llm", self.kind.value)
 
-        self.__delay = info['delay'] / 1000
-        self.__is_random = info['isRandom']
+        self.__delay = info["delay"] / 1000
+        self.__is_random = info["isRandom"]
 
         if self.__delay < 0:
             raise ValueError("delay must be not negative")
@@ -42,4 +37,3 @@ class VirtualBot(BasicBot):
             return ra.sample(RANDOM_ANSWERS, 1)[0]
         else:
             return f"我回答了 {query}"
-

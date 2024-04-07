@@ -1,18 +1,9 @@
 import openai
 from typing import List
-import numpy as np
-import sys
-import os
-
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
-)
-
-from src.data import data_collection
 
 from .base import BasicBot
 from ..bot_kind import BotKind
-from utils.config import config
+from ....utils.config import config
 
 # Migration Guide: https://github.com/openai/openai-python/discussions/742
 
@@ -41,27 +32,9 @@ class GPTBot(BasicBot):
         return info["apiKey"], info["url"]
 
     def _single_call(self, query: str) -> str:
-        new_question_embedding = data_collection.model[query]
-
-        closest_text = None
-        closest_distance = float("inf")
-        for text in data_collection.r.hkeys("knowledge_base_embeddings"):
-            text_embedding = np.frombuffer(
-                data_collection.r.hget("knowledge_base_embeddings", text),
-                dtype=np.float32,
-            )
-            distance = np.linalg.norm(new_question_embedding - text_embedding)
-            if distance < closest_distance:
-                closest_distance = distance
-                closest_text = text
-
         messages = [
             {"role": "system", "content": BasicBot.system_prompt},
-            {
-                "role": "user",
-                # "content": query
-                "content": closest_text.decode("utf-8"),
-            },
+            {"role": "user", "content": query},
         ]
 
         response = self.client.chat.completions.create(
