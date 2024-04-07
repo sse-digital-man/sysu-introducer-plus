@@ -3,10 +3,12 @@
 ## 使用说明
 
 1. 使用 `pip install -r requirements.txt` 安装项目依赖
-2. 在 `config.json` 中配置相关的依赖文件
-3. 运行 `app.py`/`cli.py` 运行本程序
+2. 复制`config.example.json`到`config.json`（仍在项目根目录中），并按照需求配置其相关文件。
+3. **保证工作路径在项目根目录**，通过`src/app.py`/`src/cli.py` 运行本程序
     > 前者是运行 Web Server，后者则是通过命令行的方式运行。
     > 目前仅提供命令行的运行方式。
+
+> 本项目中的所有相对路径都是根据项目的根目录 `sysu-introducer-plus`。
 
 ## 文件介绍
 

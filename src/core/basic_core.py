@@ -3,7 +3,7 @@ import time
 
 from message import Message
 from core.msg_queue.fifo_queue import FIFOQueue as MessageQueue
-from module.llm.bot import Bot
+from module.llm import Bot
 
 class BasicCore:
     def __init__(self):

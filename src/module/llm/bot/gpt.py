@@ -11,6 +11,7 @@ sys.path.insert(
 from src.data import data_collection
 
 from .base import BasicBot
+from ..bot_kind import BotKind
 from utils.config import config
 
 # Migration Guide: https://github.com/openai/openai-python/discussions/742
@@ -20,7 +21,7 @@ class GPTBot(BasicBot):
     model_type = "gpt-3.5-turbo"
 
     def __init__(self):
-        super().__init__()
+        super().__init__(BotKind.GPT)
         api_key, url = GPTBot.__get_config()
 
         self.client = openai.OpenAI(api_key=api_key, base_url=url, timeout=5)
