@@ -17,7 +17,7 @@ class BasicBot(metaclass=ABCMeta):
 
     # 单条消息的调用（只能输入一条 query）
     @abstractmethod
-    def _single_call(self, query: str) -> str:
+    def _single_call(self, query: str, use_system_prompt: bool) -> str:
         ...
 
     ''' 多条消息的调用（可以通过上下文输入）
@@ -31,7 +31,7 @@ class BasicBot(metaclass=ABCMeta):
     #     ...
     
     def talk(self, query: str) -> str:
-        return self._single_call(query)
+        return self._single_call(query, False)
     
     
     def check(self) -> Tuple[bool, Exception]:
@@ -46,7 +46,7 @@ class BasicBot(metaclass=ABCMeta):
         try:
             self._load_config()
 
-            response = self._single_call("hello")
+            response = self._single_call("hello", False)
             return (response != None, None) 
         except Exception as e:
             return (False, e)

@@ -35,7 +35,7 @@ class VirtualBot(BasicBot):
         if self.__delay < 0:
             raise ValueError("delay must be not negative")
 
-    def _single_call(self, query: str) -> str:
+    def _single_call(self, query: str, use_system_prompt: bool) -> str:
         time.sleep(self.__delay)
 
         if self.__is_random:

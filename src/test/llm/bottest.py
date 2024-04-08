@@ -1,5 +1,7 @@
+import sys; sys.path.append("./src")
 from module.llm.bot.gpt import GPTBot
 import time
+
 if __name__ == '__main__':
     bot = GPTBot()
     while True:
@@ -7,5 +9,5 @@ if __name__ == '__main__':
         start = time.perf_counter()
         res = bot.talk(user_input)
         end = time.perf_counter()
-        print("----time:", end-start)
+        print("----time:", end - start)
         print("----回答为:", res,"\n\n")

@@ -44,6 +44,21 @@ class Bot:
 为了增强大模型的知识库，我们将进行两方面的工作：**知识库构建** 和 **知识检索**。
 对于前者，目前是使用人工进行搭建。
 
+## Elasticsearch 安装与配置
+目前，使用elasticsearch搭建外部知识库，使用前请本地安装并开启Elasticsearch
+
+1. 下载并安装,网站:https://www.elastic.co/cn/downloads/elasticsearch
+
+2. 设置：在安装目录下,在config/elasticsearch.yml将SSL禁用，设置如下
+    ```yml
+    # Enable security features
+    xpack.security.enabled: false
+    xpack.security.enrollment.enabled: false
+    ```
+
+3. 建立索引：在安装目录下,点击bin/elasticsearch.bat运行Elasticsearch，使用src/index/index.js建立数据索引
+
+
 ## LLM 类型与配置
 
 目前本项目支持如下几种 LLM，介绍与配置信息如下。
