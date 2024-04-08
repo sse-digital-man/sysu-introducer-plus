@@ -1,6 +1,6 @@
 from enum import Enum
 
 
-class BotKind(Enum):
+class CallerKind(Enum):
     GPT = "gpt"
     Virtual = "virtual"
