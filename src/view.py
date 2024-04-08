@@ -9,15 +9,16 @@ info = config.get_use_interface("view")
 def run_command():
     command = [
         "python", "main.py",
-        "--character", info["character"],
-        "--output_size", info["output_size"],
-        "--simplify", info["simplify"],
-        "--output_webcam", info["output_webcam"],
-        "--model", info["model"],
+        "--character", str(info["character"]),
+        "--output_size", str(info["output_size"]),
+        "--simplify", str(info["simplify"]),
+        "--output_webcam", str(info["output_webcam"]),
+        "--model", str(info["model"]),
         "--anime4k",
-        "--sleep", info["sleep"],
-        "--port", info["port"]
+        "--sleep", str(info["sleep"]),
+        "--port", str(info["port"])
     ]
     subprocess.run(command)
-
-run_command()
+    
+if __name__ == '__main__':
+    run_command()
