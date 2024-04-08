@@ -471,7 +471,7 @@ class FlaskAPI(Resource):
         parser.add_argument('beat', default=2)
         parser.add_argument('img', default=None)
         json_args = parser.parse_args()
-
+        
         try:
             global alive
             if json_args['type'] == "speak":
