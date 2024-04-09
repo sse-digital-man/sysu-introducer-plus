@@ -1,0 +1,3 @@
+[submodule "src/interface/view/EasyAIVtuber"]
+	path = src/interface/view/EasyAIVtuber
+	url = https://github.com/sse-digital-man/EasyAIVtuber.git
