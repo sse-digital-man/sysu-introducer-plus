@@ -1,18 +1,18 @@
 import time
 import random as ra
 
-from .base import BasicBot
-from ..bot_kind import BotKind
+from .base import CallerInterface
+from ..caller_kind import CallerKind
 
 from ....utils.config import config
 
 RANDOM_ANSWERS = ["欢迎欢迎", "见到你很高兴", "谢谢夸奖", "你说得对"]
 
 
-class VirtualBot(BasicBot):
+class VirtualCaller(CallerInterface):
 
     def __init__(self):
-        super().__init__(BotKind.Virtual)
+        super().__init__(CallerKind.Virtual)
 
         # 调研延迟 (单位为 ms)
         self.__delay: int
@@ -21,7 +21,7 @@ class VirtualBot(BasicBot):
         # 2. false: 输出我回答了 XXX
         self.__is_random: bool
 
-    def _load_config(self):
+    def load_config(self):
         info = config.get_system_module("llm", self.kind.value)
 
         self.__delay = info["delay"] / 1000
@@ -30,7 +30,7 @@ class VirtualBot(BasicBot):
         if self.__delay < 0:
             raise ValueError("delay must be not negative")
 
-    def _single_call(self, query: str) -> str:
+    def single_call(self, query: str, with_system_prompt: bool=True) -> str:
         time.sleep(self.__delay)
 
         if self.__is_random:
