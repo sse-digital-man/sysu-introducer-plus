@@ -1,40 +1,16 @@
-"""
-先运行main.bat
-"""
-import requests
+import sys
+sys.path.append("./src")
+from interface.view import view
 
-# # # 根据音频说话
-# data = {
-#     "type": "speak",
-#     "speech_path": "D:/codefile/sysu-introducer-plus/src/interface/view/data/speech/uri_speech_0.wav"  # 修改为你的语音音频路径
-# }
+# res = view.speack("D:/codefile/sysu-introducer-plus/src/interface/view/data/speech/uri_speech_0.wav")
 
-# # 根据音频节奏摇
-# data = {
-#     "type": "rhythm",
-#     "music_path": "D:/codefile/sysu-introducer-plus/src/interface/view/data/music/Noisy Radio - Chipi Chipi Chapa Chapa.flac",  # 修改为你的音频路径
-#     "beat": 1
-# }
+# res = view.sing("D:/codefile/sysu-introducer-plus/src/interface/view/data/song/不分手的恋爱-汪苏泷.MP3", "D:/codefile/sysu-introducer-plus/src/interface/view/data/song/不分手的恋爱-汪苏泷_voice.MP3", mouth_offset=0.5, beat=2)
 
-# # 根据音频和人声唱歌
-# data = {
-#     "type": "sing",
-#     "music_path": "D:/codefile/sysu-introducer-plus/src/interface/view/data/song/不分手的恋爱-汪苏泷.MP3",  # 修改为原曲路径
-#     "voice_path": "D:/codefile/sysu-introducer-plus/src/interface/view/data/song/不分手的恋爱-汪苏泷_voice.MP3",  # 修改为人声音频路径
-#     "mouth_offset": 0.0,
-#     "beat": 2
-# }
+# res = view.swing(
+    # "D:/codefile/sysu-introducer-plus/src/interface/view/data/music/Noisy Radio - Chipi Chipi Chapa Chapa.flac")
 
-# 停止所有动作
-data = {
-    "type": "stop",
-}
+# res = view.stop_move()
 
-# # 换皮肤
-# data = {
-#     "type": "change_img",
-#     "img": 'D:/codefile/sysu-introducer-plus/src/interface/view/data/images/lambda_01.png'
-# }
+# print(res)
 
-res = requests.post('http://127.0.0.1:7888/alive', json=data)
-print(res.json())
+view.start()
