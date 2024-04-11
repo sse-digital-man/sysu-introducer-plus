@@ -1,5 +1,4 @@
 from gensim.models.fasttext import load_facebook_vectors
-import redis
 import json
 import re
 
@@ -10,10 +9,9 @@ print("Loading FastText model...")
 model = load_facebook_vectors("cc.zh.300.bin")
 print("FastText model loaded.")
 
-# 创建 Redis 连接
-print("Connecting to Redis...")
-r = redis.Redis(host="localhost", port=6379, db=0)
-print("Connected to Redis.")
+# 创建一个字典来保存词嵌入
+knowledge_base_embeddings = {}
+
 
 # 第一步：数据源的收集和整理
 # 从本地.json文件获取数据
@@ -33,7 +31,7 @@ for text in knowledge_base:
     # 使用 FastText 模型生成词嵌入
     text_embedding = model[text]
 
-    # 将词嵌入存储在 Redis 中
-    r.hset("knowledge_base_embeddings", text, text_embedding.tobytes())
+    # 将词嵌入存储在字典中
+    knowledge_base_embeddings[text] = text_embedding.tobytes()
 
 print("Data collection finished.")
