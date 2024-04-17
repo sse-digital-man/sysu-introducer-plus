@@ -5,6 +5,10 @@
                 "bilibili": {
                     "roomId": 0
                 }
+            },
+            "virtual": {
+                "delay": 1000,
+                "messages_path": "./data/test_messages.txt"
             }
         },
         "module": {
@@ -30,6 +34,9 @@
                 "model": "standard_half",
                 "sleep": 20,
                 "port": 7888
+            },
+            "live": {
+                "kind": "virtual"
             }
         },
         "module": {
