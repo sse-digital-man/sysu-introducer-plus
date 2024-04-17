@@ -1,4 +1,3 @@
-import os
 import subprocess
 import requests
 
@@ -20,9 +19,10 @@ class EasyAIVtuber:
         pass
 
     def start(self):
-        os.chdir("src\\interface\\view\\EasyAIVtuber")
+        program_path = "src/interface/view/EasyAIVtuber/" + "main.py"
+        
         command = [
-            "python", "main.py",
+            "python", program_path,
             "--character", str(self.character),
             "--output_size", str(self.output_size),
             "--simplify", str(self.simplify),
