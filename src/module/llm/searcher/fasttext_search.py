@@ -1,4 +1,4 @@
-from chromadb import PersistentClient
+from chromadb import Client
 from gensim.models.fasttext import load_facebook_vectors
 from typing import List
 import json
@@ -19,7 +19,7 @@ class FTSearcher:
             model_path: FastText模型的路径。
             local_file_path: 从本地文件加载数据的路径。
         """
-        self.client = PersistentClient(path=database_path)
+        self.client = Client()
         self.model = load_facebook_vectors(model_path)
 
         # 从本地文件加载数据
@@ -32,6 +32,10 @@ class FTSearcher:
 
         # 按句子拆分本地文件的文本
         knowledge_base = re.split("。|！|？", file_text)
+
+        # 创建集合
+        collection_id = "fasttext"
+        self.collection = self.client.create_collection(name=collection_id)
 
         # 将句子的FastText嵌入添加到数据库
         self.add_to_database(knowledge_base)
@@ -50,30 +54,10 @@ class FTSearcher:
 
         # 确保集合存在
 
-        collection_id = "fasttext"
-        collection_names = [
-            collection.name for collection in self.client.list_collections()
-        ]
-        print(collection_names)
-        if collection_id not in collection_names:
-            self.client.create_collection(collection_id)
-
-        # 再次检查集合是否存在
-        collection_names = [
-            collection.name for collection in self.client.list_collections()
-        ]
-        print(collection_names)
-
-        # 等待一段时间
-        import time
-
-        time.sleep(1)
-
-        self.client._add(
-            collection_id=collection_id,
+        self.collection.add(
             embeddings=embeddings,
+            documents=texts,
             ids=[str(i) for i in range(len(texts))],
-            documents=embeddings,
         )
 
     def search(self, query: str, size: int) -> List[str]:
@@ -88,8 +72,12 @@ class FTSearcher:
             最相似文本的列表。
         """
         # 为查询生成FastText嵌入
-        query_embedding = self.model.get_vector(query)
-        result = self.client.query(query_texts=query_embedding, n_results=size)
+        # query_embedding = self.model.get_vector(query)
+        # result = self.collection.query(
+        #     query_embeddings=[query_embedding], n_results=size
+        # )
+
+        result = self.collection.query(query_texts=[query], n_results=size)
 
         # 返回最相似的文本
         return result["documents"]

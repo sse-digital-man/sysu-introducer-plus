@@ -1,4 +1,4 @@
-from utils.config import config
+from ....utils.config import config
 
 from ..caller_kind import CallerKind
 
