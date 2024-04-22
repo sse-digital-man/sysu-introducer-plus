@@ -13,9 +13,10 @@ class TestFTSearcher(unittest.TestCase):
         self.searcher = FTSearcher(database_path, model_path, local_file_path)
 
     def test_search(self):
-        query = "This is a query."
-        size = 2
+        query = "中山大学校史."
+        size = 5
         results = self.searcher.search(query, size)
+        print(results)
         self.assertEqual(len(results), size)  # 检查结果的数量是否正确
         self.assertIsInstance(results[0], str)  # 检查结果是否是字符串
 
