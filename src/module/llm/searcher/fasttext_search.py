@@ -1,9 +1,8 @@
-from chromadb import Client
+import chromadb
 from gensim.models.fasttext import load_facebook_vectors
 from typing import List
 import json
-import re
-
+import time
 
 class FTSearcher:
     """
@@ -19,7 +18,11 @@ class FTSearcher:
             model_path: FastText模型的路径。
             local_file_path: 从本地文件加载数据的路径。
         """
-        self.client = Client()
+        self.client = chromadb.Client()
+        # 创建集合
+        collection_id = "fasttext"
+        self.collection = self.client.create_collection(name=collection_id)
+
         self.model = load_facebook_vectors(model_path)
 
         # 从本地文件加载数据
@@ -27,38 +30,27 @@ class FTSearcher:
         with open(local_file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        # 将所有文档连接成一个长字符串
-        file_text = " ".join([item["document"] for item in data.values()])
+        self.documents = []
+        self.metadatas = []
 
-        # 按句子拆分本地文件的文本
-        knowledge_base = re.split("。|！|？", file_text)
+        for key, value in data.items():
+            self.documents.append(value["document"])
+            metadata_str = value["metadata"]
+            metadata_dict = {key: True for key in metadata_str.split(",")}
+            self.metadatas.append(metadata_dict)
 
-        # 创建集合
-        collection_id = "fasttext"
-        self.collection = self.client.create_collection(name=collection_id)
-
-        # 将句子的FastText嵌入添加到数据库
-        self.add_to_database(knowledge_base)
-
-        print("数据收集完成。")
-
-    def add_to_database(self, texts: List[str]):
-        """
-        将给定文本的FastText嵌入添加到数据库。
-
-        参数:
-            texts: 文本列表。
-        """
-        # 为文本生成FastText嵌入
-        embeddings = [self.model.get_vector(text) for text in texts]
-
-        # 确保集合存在
+        self.embeddings = [
+            self.model.get_vector(text).tolist() for text in self.documents
+        ]
 
         self.collection.add(
-            embeddings=embeddings,
-            documents=texts,
-            ids=[str(i) for i in range(len(texts))],
+            embeddings=self.embeddings,
+            documents=self.documents,
+            metadatas=self.metadatas,
+            ids=[str(i) for i in range(len(self.documents))],
         )
+
+        print("数据收集完成。")
 
     def search(self, query: str, size: int) -> List[str]:
         """
@@ -71,13 +63,11 @@ class FTSearcher:
         返回:
             最相似文本的列表。
         """
-        # 为查询生成FastText嵌入
-        # query_embedding = self.model.get_vector(query)
-        # result = self.collection.query(
-        #     query_embeddings=[query_embedding], n_results=size
-        # )
-
-        result = self.collection.query(query_texts=[query], n_results=size)
-
+        start = time.time()
+        query_embedding = self.model.get_vector(query).tolist()
+        results = self.collection.query(
+            query_embeddings=[query_embedding], n_results=size
+        )
+        print("Query time:", time.time() - start)
         # 返回最相似的文本
-        return result["documents"]
+        return results["documents"][0]
