@@ -18,39 +18,12 @@ class FTSearcher:
             model_path: FastText模型的路径。
             local_file_path: 从本地文件加载数据的路径。
         """
-        self.client = chromadb.Client()
-        # 创建集合
+
+        self.client = chromadb.PersistentClient(database_path)
         collection_id = "fasttext"
-        self.collection = self.client.create_collection(name=collection_id)
+        self.collection = self.client.get_collection(name=collection_id)
 
         self.model = load_facebook_vectors(model_path)
-
-        # 从本地文件加载数据
-        print("从本地文件加载数据...")
-        with open(local_file_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        self.documents = []
-        self.metadatas = []
-
-        for key, value in data.items():
-            self.documents.append(value["document"])
-            metadata_str = value["metadata"]
-            metadata_dict = {key: True for key in metadata_str.split(",")}
-            self.metadatas.append(metadata_dict)
-
-        self.embeddings = [
-            self.model.get_vector(text).tolist() for text in self.documents
-        ]
-
-        self.collection.add(
-            embeddings=self.embeddings,
-            documents=self.documents,
-            metadatas=self.metadatas,
-            ids=[str(i) for i in range(len(self.documents))],
-        )
-
-        print("数据收集完成。")
 
     def search(self, query: str, size: int) -> List[str]:
         """
