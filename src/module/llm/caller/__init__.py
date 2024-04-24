@@ -1,6 +1,6 @@
 from utils.config import config
 
-from ..caller_kind import CallerKind
+from ..kind import CallerKind
 
 from .base import CallerInterface
 from .gpt import GPTCaller

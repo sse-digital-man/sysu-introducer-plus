@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import List, Tuple
 
-from ..caller_kind import CallerKind
+from ..kind import CallerKind
 
 class CallerInterface(metaclass=ABCMeta):
     # Notice: 在抽象类中仅提供一个默认的 Prompt，不同的 LLM 可能需要分别优化

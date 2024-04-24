@@ -1,7 +1,7 @@
 {
     "system": {
         "interface": {
-            "live": {
+            "crawler": {
                 "bilibili": {
                     "roomId": 0
                 }
@@ -35,7 +35,7 @@
                 "sleep": 20,
                 "port": 7888
             },
-            "live": {
+            "crawler": {
                 "kind": "virtual"
             }
         },

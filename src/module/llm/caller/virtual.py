@@ -2,7 +2,7 @@ import time
 import random as ra
 
 from .base import CallerInterface
-from ..caller_kind import CallerKind
+from ..kind import CallerKind
 
 from utils.config import config
 

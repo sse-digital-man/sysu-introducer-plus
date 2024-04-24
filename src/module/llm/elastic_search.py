@@ -1,4 +1,4 @@
-from .base import BotInterface
+from .interface import BotInterface
 from ..searcher.elastic_search import ESSearcher
 
 class ESBot(BotInterface):

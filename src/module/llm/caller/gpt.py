@@ -2,7 +2,7 @@ import openai
 from typing import List
 
 from .base import CallerInterface
-from ..caller_kind import CallerKind
+from ..kind import CallerKind
 from utils.config import config
 
 # Migration Guide: https://github.com/openai/openai-python/discussions/742

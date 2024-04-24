@@ -1,17 +1,27 @@
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 from typing import Tuple
 
-from ..caller import Caller 
-from ..caller_kind import CallerKind
+from .caller import Caller 
+from .kind import CallerKind, SearcherKind
+from ..interface import ModuleInterface
 
 
-class BotInterface(metaclass=ABCMeta):
+LLM = "llm"
+
+class BotInterface(ModuleInterface):
     system_prompt = "你现在是一名主播，请回答观众问题，请将回答控制在10字以内。"
 
-    def __init__(self):
-        self._caller = Caller()
+    def __init__(self, name: str):
+        super().__init__(LLM, name)
+
+    def _load_config(self):
         pass
-    
+
+    def _load_sub_modules(self):
+        self._add_sub_modules({
+            "caller": Caller(),
+        })
+
     @abstractmethod
     def talk(self, query: str) -> str:
         return self._caller.single_call(query)

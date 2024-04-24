@@ -1,8 +1,8 @@
 import sys; sys.path.append("./src/interface/live")
 
 from utils.config import config
-from crawler import CrawlerInterface
-from .crawler_kind import CrawlerKind
+from .interface import CrawlerInterface, CrawlerCallback
+from .kind import CrawlerKind
 from .bilibili import BilibiliCrawler
 from .virtual import VirtualCrawler
 
@@ -12,11 +12,9 @@ map = {
     CrawlerKind.Virtual: VirtualCrawler
 }
 
-def LiveCrawler(receive_callback) -> CrawlerInterface:
+def LiveCrawler(receive_callback: CrawlerCallback) -> CrawlerInterface:
     kind_text = config.get_use_module('llm', 'kind')
 
-    print(kind_text)
-        
     try:
         kind = CrawlerKind(kind_text)
     except:
