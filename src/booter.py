@@ -4,7 +4,7 @@ from core.basic_core import BasicCore as Core
 from message import Message, MessageKind
 
 from module.interface import ModuleInterface
-from module.live import LiveCrawler, CrawlerInterface
+from module.crawler import LiveCrawler, CrawlerInterface
 from module.llm import Bot
 
 '''
