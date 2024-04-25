@@ -1,6 +1,7 @@
 from enum import Enum
 
 from booter import Booter
+from utils.args import args
 
 booter = Booter()
 
@@ -16,7 +17,8 @@ def check_cmd(text: str) -> CommandKind:
         return None
 
 def main():
-    # booter.start()
+    if args.auto:
+        booter.start()
 
     while True:
         try:
