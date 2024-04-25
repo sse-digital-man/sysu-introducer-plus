@@ -14,7 +14,7 @@ from module.llm import Bot
 '''
 class Booter(ModuleInterface):
     def __init__(self):
-        super().__init__("booter", "main")
+        super().__init__("booter")
 
     def _load_config(self):
         pass

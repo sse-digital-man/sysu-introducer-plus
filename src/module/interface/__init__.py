@@ -1,22 +1,33 @@
 from abc import ABCMeta, abstractmethod
-from contextlib import contextmanager
-from typing import Dict, Self
+from typing import Dict, Self, Callable
+from threading import Thread
 
 from utils.config import config
 
+VIRTUAL = "virtual"
+BASIC = "basic"
+
 class ModuleInterface(metaclass=ABCMeta):
-    def __init__(self, kind: str, name: str):
+    def __init__(self, name: str, kind: str=BASIC):
         """ 初始化函数
 
         Args:
-            kind (str): 模块类型
-            name (str): 模块具体的名称
+            name (str): 模块名称
+            kind (str): 模块具体对应的类型
+            runKind (str): 
         """
+        # 模块的基本信息
         self.__is_running = False
-        self.__kind = kind
         self.__name = name
+        self.__kind = kind
 
+        # start 函数的逻辑（每个模块需要自定义）
+        self._startup_func = None
+        self._startup_thread = None
+
+        # 子模块相关的属性
         self.__sub_modules: Dict[str, ModuleInterface] = {}
+        self.__height = 0
 
     # 该函数主要由模块管理器统一进行管理，统一进行更新
     @abstractmethod
@@ -24,7 +35,7 @@ class ModuleInterface(metaclass=ABCMeta):
         # 需要每次更新配置文件以保证最新
         pass
 
-    # 封装加载何种子模块
+    # 封装子模块类型
     def _load_sub_modules(self):
         pass
 
@@ -35,11 +46,15 @@ class ModuleInterface(metaclass=ABCMeta):
         ...
 
     # 启动模块单元
-    @contextmanager
     def start(self):
         # 更新
         self._load_config()
         self._load_sub_modules()
+
+        # TODO: 显示模块加载情况
+        if self.__height == 0:
+            print("正在加载模块: ")
+        print(self.__height * "    " + self.label)
 
         # 循环启动各个子模块
         for module in self.__sub_modules.values():
@@ -48,12 +63,11 @@ class ModuleInterface(metaclass=ABCMeta):
                 return
             module.start()
 
-        # 上下文控制器 https://zhuanlan.zhihu.com/p/317360115
-        # yield None
-        yield None
-
-        # TODO:
-        print(self.kind_with_name + ": start successfully")
+        # 运行模块自定义处理逻辑
+        if self._startup_thread != None:
+            self._startup_thread.start()
+        elif self._startup_func != None:
+            self._startup_func()
 
         # Notice: 只有所有程序启动成功之后 才能更新状态
         self.__is_running = True
@@ -63,6 +77,9 @@ class ModuleInterface(metaclass=ABCMeta):
         try:
             for module in self.__modules.values():
                 module.stop()
+
+            if self._startup_thread != None:
+                self._startup_thread.join()
         except Exception:
             pass
         finally:
@@ -74,9 +91,12 @@ class ModuleInterface(metaclass=ABCMeta):
         # Notice: 模块启动时也会按照如下顺序进行加载各个子模块
         self.__sub_modules.update(modules)
         
+        for module in modules.values():
+            module.set_height(self.__height + 1)
+        
     # 根据 kind, name 自动获取系统配置信息
     def _read_config(self) -> object:
-        return config.get_system_module(self.__kind, self.__name)
+        return config.get_system_module(self.__name, self.__kind)
 
     ''' ----- Getter ----- '''
     @property
@@ -92,7 +112,25 @@ class ModuleInterface(metaclass=ABCMeta):
         return self.__name
     
     @property
-    def kind_with_name(self, format: str="{kind} ({name})") -> str:
+    def label(self, format: str="{name} [{kind}]") -> str:
         return format.format(kind=self.__kind, name=self.__name)
+    
+    ''' ----- Setter -----'''
+    def set_height(self, height: int):
+        self.__height = height
+
+    def _set_startup_func(self, startup_func: Callable, with_thread: bool=True):
+        """设置模块自定义
+
+        Args:
+            startup_func (Callable): _description_
+            with_thread (bool, optional): _description_. Defaults to True.
+        """
+
+        self._startup_func = startup_func
+        if with_thread:
+            self._startup_thread = Thread(target=startup_func)
+        else:
+            self._startup_thread = None
 
     

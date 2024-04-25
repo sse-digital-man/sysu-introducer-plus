@@ -1,8 +1,7 @@
-from abc import abstractmethod
 from typing import Tuple
 
 from .caller import Caller 
-from .kind import CallerKind, SearcherKind
+from .kind import CallerKind
 from ..interface import ModuleInterface
 
 
@@ -14,18 +13,13 @@ class BotInterface(ModuleInterface):
     def __init__(self, name: str):
         super().__init__(LLM, name)
 
+        self._caller = Caller()
+
     def _load_config(self):
         pass
 
-    def _load_sub_modules(self):
-        self._add_sub_modules({
-            "caller": Caller(),
-        })
-
-    @abstractmethod
     def talk(self, query: str) -> str:
         return self._caller.single_call(query)
-    
     
     def check(self) -> Tuple[bool, Exception]:
         """如果调用后不会报错且能够正常返回，则检验正常。
