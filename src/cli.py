@@ -17,12 +17,16 @@ def check_cmd(text: str) -> CommandKind:
         return None
 
 def main():
-    if args.auto:
-        booter.start()
+    first_start_flag = False
 
     while True:
         try:
-            cmd = check_cmd(input("> "))
+            # 设置启动程序后的自动运行
+            if not first_start_flag and args.auto:
+                cmd = CommandKind.Start
+                first_start_flag = True
+            else:
+                cmd = check_cmd(input("> "))
 
             if cmd == None:
                 print("unknown command")
@@ -35,15 +39,10 @@ def main():
             elif cmd is CommandKind.Exit:
                 return
         except Exception as e:
-            print("error: ", repr(e))
+            print("error:", repr(e))
+            # raise e
+        finally:
+            booter.stop()
 
 if __name__ == '__main__':
     main()
-        
-        
-        
-
-        
-        
-    
-    

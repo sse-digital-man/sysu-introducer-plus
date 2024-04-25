@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import List, Dict, Self, Callable
+from typing import List, Dict, Tuple, Self, Callable
 from importlib import import_module
 from threading import Thread
 
@@ -81,7 +81,7 @@ class ModuleInterface(metaclass=ABCMeta):
     # 如果验证成功则直接通过，失败则 raise 错误
     # 主要是用于是否能够正常启动模块
     @abstractmethod
-    def check(self) -> bool:
+    def check(self) -> Tuple[bool, Exception]:
         ...
 
     # 启动模块单元
@@ -105,16 +105,21 @@ class ModuleInterface(metaclass=ABCMeta):
             if module is None:
                 continue
 
-            if not module.check():
-                print(module.name, "check error")
-                return
             module.start()
 
         # 运行模块自定义处理逻辑
         self._before_running()
 
+        # 模块自检
+        (flag, e) = self.check()
+        if not flag:
+            raise e if e!= None else SystemError(self.name, "check error")
+        
         # Notice: 只有所有程序启动成功之后 才能更新状态
         self.__is_running = True
+
+        if self.__height == 0:
+            print("模块加载成功")
 
         # 钩子函数
         self._after_running()

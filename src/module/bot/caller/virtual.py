@@ -4,8 +4,6 @@ import random as ra
 from .interface import CallerInterface
 from ..kind import CallerKind
 
-from utils.config import config
-
 RANDOM_ANSWERS = [
     "欢迎欢迎",
     "见到你很高兴",
@@ -13,9 +11,7 @@ RANDOM_ANSWERS = [
     "你说得对"
 ]
 
-
 class VirtualCaller(CallerInterface):
-
     def __init__(self):
         super().__init__(CallerKind.Virtual.value)
 
@@ -34,22 +30,6 @@ class VirtualCaller(CallerInterface):
 
         if self.__delay < 0:
             raise ValueError("delay must be not negative")
-        
-    def check(self):
-        """如果调用后不会报错且能够正常返回，则检验正常。
-        在调用该函数时，会重新加载配置文件中的配置信息。
-        因此该函数只运行一次即可。
-
-        Returns:
-            bool: 是否正常
-        """
-        try:
-            self._caller.load_config()
-
-            response = self._caller.single_call("hello", with_system_prompt=False)
-            return (response != None, None) 
-        except Exception as e:
-            return (False, e)
 
     def single_call(self, query: str, with_system_prompt: bool=True) -> str:
         time.sleep(self.__delay)
