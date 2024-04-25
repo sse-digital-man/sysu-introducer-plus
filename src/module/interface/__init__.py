@@ -1,11 +1,54 @@
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Self, Callable
+from typing import List, Dict, Self, Callable
+from importlib import import_module
 from threading import Thread
+
 
 from utils.config import config
 
 VIRTUAL = "virtual"
 BASIC = "basic"
+NULL = "null"
+
+
+def generate_name(name: str, kind: str):
+    if kind == None: kind = "basic"
+
+    return kind.title() + name.title()
+
+def import_module_dynamic(module: str | Dict[str, str]):
+    # 1. 收集包路径
+    names: List[str] = []
+
+    # 2. 设置基本路径，模块名的路径
+    if isinstance(module, str):
+        names.append("module")
+        names.append(module)
+        name = module
+    else:
+        path = module["path"]
+        name = module['name']
+
+        if path is not None:
+            names.append(path)
+        names.append(name)
+
+    # 3. 设置模块的类型
+    try:
+        kind = config.get_use_module(name)  
+        if isinstance(kind, str): 
+            names.append(kind) 
+    except:
+        kind = "basic"
+
+    if kind == "null":
+        return (name, None)
+
+    class_name = generate_name(name, kind)
+
+    # print(".".join(names), class_name)
+    return (name, import_module(".".join(names)).__getattribute__(class_name))
+
 
 class ModuleInterface(metaclass=ABCMeta):
     def __init__(self, name: str, kind: str=BASIC):
@@ -26,17 +69,14 @@ class ModuleInterface(metaclass=ABCMeta):
         self._startup_thread = None
 
         # 子模块相关的属性
-        self.__sub_modules: Dict[str, ModuleInterface] = {}
+        self.__sub_modules_list: List[str|Dict[str, str]] = []
+        self._sub_modules: Dict[str, Self] = {}
         self.__height = 0
 
     # 该函数主要由模块管理器统一进行管理，统一进行更新
     @abstractmethod
     def _load_config(self):
         # 需要每次更新配置文件以保证最新
-        pass
-
-    # 封装子模块类型
-    def _load_sub_modules(self):
         pass
 
     # 如果验证成功则直接通过，失败则 raise 错误
@@ -57,7 +97,10 @@ class ModuleInterface(metaclass=ABCMeta):
         print(self.__height * "    " + self.label)
 
         # 循环启动各个子模块
-        for module in self.__sub_modules.values():
+        for module in self._sub_modules.values():
+            if module is None:
+                continue
+
             if not module.check():
                 print(module.name, "check error")
                 return
@@ -86,13 +129,20 @@ class ModuleInterface(metaclass=ABCMeta):
             # 无论如何 最后都需要更新状态
             self.__is_running = False
 
+    
     # 添加子模块
-    def _add_sub_modules(self, modules: Dict[str, Self]):
-        # Notice: 模块启动时也会按照如下顺序进行加载各个子模块
-        self.__sub_modules.update(modules)
-        
-        for module in modules.values():
-            module.set_height(self.__height + 1)
+    def _load_sub_modules(self):
+        modules = self.__sub_modules_list
+
+        for module_info in modules:
+            (name, module_object) = import_module_dynamic(module_info)
+
+            module = module_object() if module_object != None else None
+            self._sub_modules[name] = module
+            if module is not None:
+                module.set_height(self.__height + 1)
+
+        # print("load: ", self._sub_modules)
         
     # 根据 kind, name 自动获取系统配置信息
     def _read_config(self) -> object:
@@ -118,6 +168,10 @@ class ModuleInterface(metaclass=ABCMeta):
     ''' ----- Setter -----'''
     def set_height(self, height: int):
         self.__height = height
+
+    def _set_sub_modules(self, modules: List[str]):
+        # Notice: 模块启动时也会按照如下顺序进行加载各个子模块
+        self.__sub_modules_list = modules
 
     def _set_startup_func(self, startup_func: Callable, with_thread: bool=True):
         """设置模块自定义

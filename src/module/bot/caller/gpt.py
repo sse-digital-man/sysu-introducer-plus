@@ -1,7 +1,7 @@
 import openai
 from typing import List
 
-from .base import CallerInterface
+from .interface import CallerInterface
 from ..kind import CallerKind
 from utils.config import config
 

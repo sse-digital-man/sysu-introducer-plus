@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import List, Dict
 
-from ..interface import ModuleInterface
+from .. import ModuleInterface
 
 class SearcherInterface(ModuleInterface, metaclass=ABCMeta):
     Kind = "searcher"

@@ -1,7 +1,7 @@
 import time
 import random as ra
 
-from .base import CallerInterface
+from .interface import CallerInterface
 from ..kind import CallerKind
 
 from utils.config import config
@@ -17,7 +17,7 @@ RANDOM_ANSWERS = [
 class VirtualCaller(CallerInterface):
 
     def __init__(self):
-        super().__init__(CallerKind.Virtual)
+        super().__init__(CallerKind.Virtual.value)
 
         # 调研延迟 (单位为 ms)
         self.__delay: int
@@ -26,14 +26,30 @@ class VirtualCaller(CallerInterface):
         # 2. false: 输出我回答了 XXX
         self.__is_random: bool
 
-    def load_config(self):
-        info = config.get_system_module("llm", self.kind.value)
+    def _load_config(self):
+        info = self._read_config()
 
         self.__delay = info['delay'] / 1000
         self.__is_random = info['isRandom']
 
         if self.__delay < 0:
             raise ValueError("delay must be not negative")
+        
+    def check(self):
+        """如果调用后不会报错且能够正常返回，则检验正常。
+        在调用该函数时，会重新加载配置文件中的配置信息。
+        因此该函数只运行一次即可。
+
+        Returns:
+            bool: 是否正常
+        """
+        try:
+            self._caller.load_config()
+
+            response = self._caller.single_call("hello", with_system_prompt=False)
+            return (response != None, None) 
+        except Exception as e:
+            return (False, e)
 
     def single_call(self, query: str, with_system_prompt: bool=True) -> str:
         time.sleep(self.__delay)

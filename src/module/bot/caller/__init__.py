@@ -2,7 +2,7 @@ from utils.config import config
 
 from ..kind import CallerKind
 
-from .base import CallerInterface
+from .interface import CallerInterface
 from .gpt import GPTCaller
 from .virtual import VirtualCaller
 

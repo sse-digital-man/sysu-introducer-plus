@@ -4,7 +4,6 @@ from message import Message
 from core.msg_queue.fifo_queue import FIFOQueue as MessageQueue
 
 from module.interface import ModuleInterface
-from module.llm import Bot
 
 class BasicCore(ModuleInterface):
     def __init__(self):
@@ -14,14 +13,9 @@ class BasicCore(ModuleInterface):
         self.__msg_queue = MessageQueue()
 
         self._set_startup_func(self.__handle)
-
+        self._set_sub_modules(["bot"])
     def _load_config(self):
         pass
-
-    def _load_sub_modules(self):
-        self._add_sub_modules({
-            "llm": Bot()
-        })
 
     # 线程循环处理消息队列（需要开启多线程）
     def __handle(self):

@@ -1,4 +1,4 @@
-from .interface import BotInterface
+from . import BotInterface
 
 class SimpleBot(BotInterface):
     def __init__(self):
