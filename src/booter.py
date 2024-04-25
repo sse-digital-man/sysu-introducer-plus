@@ -15,13 +15,15 @@ class Booter(ModuleInterface):
     def __init__(self):
         super().__init__("booter")
         
-        self._set_startup_func(self._startup, with_thread=False)
-        self._set_sub_modules(["crawler", {"name": "core", "path": None}])
+        self._set_sub_modules([
+            {"name": "core", "path": None},
+            "crawler"
+        ])
 
     def _load_config(self):
         pass
 
-    def _startup(self):
+    def _after_load_sub_modules(self):
         def crawler_callback(text: str):
             message = Message(MessageKind.Watcher, text)
             self.send(message)
@@ -33,4 +35,4 @@ class Booter(ModuleInterface):
         return True
 
     def send(self, message: Message):
-        self.__core.send(message)
+        self._sub_modules["core"].send(message)

@@ -64,9 +64,8 @@ class ModuleInterface(metaclass=ABCMeta):
         self.__name = name
         self.__kind = kind
 
-        # start 函数的逻辑（每个模块需要自定义）
-        self._startup_func = None
-        self._startup_thread = None
+        # 线程相关
+        self.__threads: List[Thread] = []        
 
         # 子模块相关的属性
         self.__sub_modules_list: List[str|Dict[str, str]] = []
@@ -89,14 +88,19 @@ class ModuleInterface(metaclass=ABCMeta):
     def start(self):
         # 更新
         self._load_config()
-        self._load_sub_modules()
 
         # TODO: 显示模块加载情况
         if self.__height == 0:
             print("正在加载模块: ")
         print(self.__height * "    " + self.label)
 
+        self._before_load_sub_modules()
+
         # 循环启动各个子模块
+        self._load_sub_modules()
+
+        self._after_load_sub_modules()
+
         for module in self._sub_modules.values():
             if module is None:
                 continue
@@ -107,28 +111,26 @@ class ModuleInterface(metaclass=ABCMeta):
             module.start()
 
         # 运行模块自定义处理逻辑
-        if self._startup_thread != None:
-            self._startup_thread.start()
-        elif self._startup_func != None:
-            self._startup_func()
+        self._before_running()
 
         # Notice: 只有所有程序启动成功之后 才能更新状态
         self.__is_running = True
 
+        # 钩子函数
+        self._after_running()
+
     # 停止模块单元
     def stop(self):
-        try:
-            for module in self.__modules.values():
+        # 无论如何 最后都需要更新状态
+        self.__is_running = False
+
+        # 先关闭内部的线程处理
+        for thread in self.__threads:
+            thread.join()
+
+        for module in self._sub_modules.values():
+            if module is not None:
                 module.stop()
-
-            if self._startup_thread != None:
-                self._startup_thread.join()
-        except Exception:
-            pass
-        finally:
-            # 无论如何 最后都需要更新状态
-            self.__is_running = False
-
     
     # 添加子模块
     def _load_sub_modules(self):
@@ -147,6 +149,26 @@ class ModuleInterface(metaclass=ABCMeta):
     # 根据 kind, name 自动获取系统配置信息
     def _read_config(self) -> object:
         return config.get_system_module(self.__name, self.__kind)
+    
+    # 开辟一个线程用于处理
+    def _make_thread(self, target: Callable):
+        thread = Thread(target=target)
+        self.__threads.append(thread)
+        thread.start()
+    
+    ''' ----- Hook -----'''
+    
+    def _before_load_sub_modules(self):
+        pass
+
+    def _after_load_sub_modules(self):
+        pass
+
+    def _before_running(self):
+        pass
+
+    def _after_running(self):
+        pass
 
     ''' ----- Getter ----- '''
     @property
@@ -172,19 +194,5 @@ class ModuleInterface(metaclass=ABCMeta):
     def _set_sub_modules(self, modules: List[str]):
         # Notice: 模块启动时也会按照如下顺序进行加载各个子模块
         self.__sub_modules_list = modules
-
-    def _set_startup_func(self, startup_func: Callable, with_thread: bool=True):
-        """设置模块自定义
-
-        Args:
-            startup_func (Callable): _description_
-            with_thread (bool, optional): _description_. Defaults to True.
-        """
-
-        self._startup_func = startup_func
-        if with_thread:
-            self._startup_thread = Thread(target=startup_func)
-        else:
-            self._startup_thread = None
 
     

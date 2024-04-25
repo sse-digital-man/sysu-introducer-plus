@@ -13,7 +13,6 @@ class BasicBot(ModuleInterface):
     def __init__(self):
         super().__init__(BOT)
 
-
         self._set_sub_modules([
             {"name": "caller", "path": BASE_PATH},
             {"name": "searcher", "path": BASE_PATH}
@@ -26,7 +25,7 @@ class BasicBot(ModuleInterface):
         return True
 
     def talk(self, query: str) -> str:
-        return self._caller.single_call(query)
+        return self._sub_modules["caller"].single_call(query)
     
     def caller_kind(self) -> CallerKind:
         return self._caller.kind

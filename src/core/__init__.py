@@ -12,16 +12,17 @@ class BasicCore(ModuleInterface):
         # 初始化消息队列
         self.__msg_queue = MessageQueue()
 
-        self._set_startup_func(self.__handle)
         self._set_sub_modules(["bot"])
+        
     def _load_config(self):
         pass
 
     # 线程循环处理消息队列（需要开启多线程）
     def __handle(self):
         # ...
-        while True:
+        while self.is_running:
             time.sleep(0.5)
+            # print("handling...")
 
             # 当 Core 停止后，处理线程也需要停止
             if not self.is_running:
@@ -30,12 +31,15 @@ class BasicCore(ModuleInterface):
 
             if self.__msg_queue.empty():
                 continue
-
+            
             message = self.__msg_queue.pop()
             print("receive:", message.content)
 
-            response = self.__bot.talk(message.content)
+            response = self._sub_modules["bot"].talk(message.content)
             print("answer:", response)
+
+    def _after_running(self):
+        self._make_thread(self.__handle)
 
     def send(self, text: Message):
         self.__msg_queue.push(text)
