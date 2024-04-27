@@ -1,31 +1,25 @@
 {
     "system": {
-        "interface": {
+        "module": {
             "crawler": {
                 "bilibili": {
                     "roomId": 0
+                },
+                "virtual": {
+                    "delay": 1000,
+                    "messages_path": "./data/test_messages.txt"
                 }
             },
-            "virtual": {
-                "delay": 1000,
-                "messages_path": "./data/test_messages.txt"
-            }
-        },
-        "module": {
-            "llm": {
+            "caller": {
                 "gpt": {
-                    "apiKey": "",
-                    "url": ""
+                    "apiKey": "sk-xxx",
+                    "url": "https://api.chatanywhere.tech/v1"
                 },
                 "virtual": {
                     "delay": 1000,
                     "isRandom": true
                 }
-            }
-        }
-    },
-    "use": {
-        "interface": {
+            },
             "view": {
                 "character": "lambda_00",
                 "output_size": "512x512",
@@ -34,15 +28,14 @@
                 "model": "standard_half",
                 "sleep": 20,
                 "port": 7888
-            },
-            "crawler": {
-                "kind": "virtual"
             }
-        },
+        }
+    },
+    "use": {
         "module": {
-            "llm": {
-                "kind": "virtual"
-            }
+            "crawler": "virtual",
+            "caller": "gpt",
+            "searcher": "null"
         }
     }
 }
