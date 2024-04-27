@@ -7,7 +7,7 @@
 （这部分由 DynamicMessageQueue 负责），
 而是通过 **外部知识库**，**检索**和**提示工程**和提高回答的质量和风格。
 
-## 架构设计
+## 功能
 
 -   大模型内核: 此部分可以通过调用 API 或者使用本地部署的大模型，
     是整个模块中最基础的部分。
@@ -28,7 +28,7 @@
 ## 技术结构
 
 在该模块中， 主要通过 `Bot` 对象来提供回答生成的功能 ，
-而它又包含`caller` 和 `searcher`两个对象，
+而它又包含`caller` 和 `searcher`两个子模块，
 前者用于封装调用外部 API 或者调用本地 LLM 的逻辑，
 而后者主要是作为检索器，用于对相关知识的检索。
 `Bot` 的主要处理逻辑封装在 `talk` 函数内部，
@@ -37,7 +37,7 @@
 
 ### Searcher
 
-#### ElasticSearch
+#### 1. ElasticSearch
 
 > TODO: ...
 
@@ -46,14 +46,14 @@
 目前本项目仅支持如下几种 LLM 的 API 的调用方式，
 并可以通过配置文件进行动态加载和配置。
 
-#### GPT
+#### 1. GPT
 
 使用 openai sdk 进行调用 GPT3.5。
 
 -   `apiKey`: 调用 API 所需要的秘钥
 -   `url`: openai 代理的链接。具体使用说明可以参考 [GPT_API_free](http://github.com/chatanywhere/GPT_API_free)
 
-#### Virtual
+#### 2. Virtual
 
 如果使用 LLM 模块进行生成文本，会在使用过程中产生相应的费用。
 因此，如果在项目开发时，并不特别需要大模型的文本生成的能力，
