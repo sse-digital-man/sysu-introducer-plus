@@ -80,9 +80,8 @@ class ModuleInterface(metaclass=ABCMeta):
 
     # 如果验证成功则直接通过，失败则 raise 错误
     # 主要是用于是否能够正常启动模块
-    @abstractmethod
     def check(self) -> Tuple[bool, Exception]:
-        ...
+        return (True, None)
 
     # 启动模块单元
     def start(self):

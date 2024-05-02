@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from .kind import CallerKind
 from ..interface import ModuleInterface
 
@@ -20,9 +18,6 @@ class BasicBot(ModuleInterface):
 
     def _load_config(self):
         pass
-
-    def check(self):
-        return True
 
     def talk(self, query: str) -> str:
         return self._sub_modules["caller"].single_call(query)

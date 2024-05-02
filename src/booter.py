@@ -1,6 +1,5 @@
 from typing import Dict
 
-# from core.basic import BasicCore as Core
 from message import Message, MessageKind
 
 from module.interface import ModuleInterface
@@ -30,9 +29,6 @@ class Booter(ModuleInterface):
 
         crawler_module: CrawlerInterface = self._sub_modules["crawler"]
         crawler_module.set_receive_callback(crawler_callback)
-        
-    def check(self) -> bool:
-        return True
 
     def send(self, message: Message):
         self._sub_modules["core"].send(message)

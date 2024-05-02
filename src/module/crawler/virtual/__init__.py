@@ -2,7 +2,7 @@ from typing import List
 import time
 
 from ...interface import VIRTUAL
-from ..interface import CrawlerInterface, CrawlerCallback
+from ..interface import CrawlerInterface
 
 DEFAULT_DELAY = 1
 
@@ -31,9 +31,6 @@ class VirtualCrawler(CrawlerInterface):
 
         if len(self.__messages) == 0:
             print("[warning] messages is empty")
-
-    def check(self) -> bool:
-        return True
 
     def _after_running(self):
         self._make_thread(self.__generate_messages)

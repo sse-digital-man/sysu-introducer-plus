@@ -43,6 +43,3 @@ class BasicCore(ModuleInterface):
 
     def send(self, text: Message):
         self.__msg_queue.push(text)
-    
-    def check(self):
-        return True
