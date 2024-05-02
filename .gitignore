@@ -6,3 +6,5 @@ config.json
 cc.zh.300.bin
 
 data/chromadb
+
+src/interface/view/data/

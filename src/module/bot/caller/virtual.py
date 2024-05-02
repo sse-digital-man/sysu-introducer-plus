@@ -1,18 +1,14 @@
 import time
 import random as ra
 
-from .base import CallerInterface
-from ..caller_kind import CallerKind
-
-from ....utils.config import config
+from .interface import CallerInterface
+from ..kind import CallerKind
 
 RANDOM_ANSWERS = ["欢迎欢迎", "见到你很高兴", "谢谢夸奖", "你说得对"]
 
-
 class VirtualCaller(CallerInterface):
-
     def __init__(self):
-        super().__init__(CallerKind.Virtual)
+        super().__init__(CallerKind.Virtual.value)
 
         # 调研延迟 (单位为 ms)
         self.__delay: int
@@ -21,8 +17,8 @@ class VirtualCaller(CallerInterface):
         # 2. false: 输出我回答了 XXX
         self.__is_random: bool
 
-    def load_config(self):
-        info = config.get_system_module("llm", self.kind.value)
+    def _load_config(self):
+        info = self._read_config()
 
         self.__delay = info["delay"] / 1000
         self.__is_random = info["isRandom"]

@@ -1,33 +1,38 @@
-from core.basic_core import BasicCore as Core
+from typing import Dict
+
+# from core.basic import BasicCore as Core
 from message import Message, MessageKind
-from interface.live import LiveCrawler
-from interface.live.crawler import CrawlerInterface
 
-
-
+from module.interface import ModuleInterface
+from module.crawler import CrawlerInterface
 
 '''
 数字人 Core 的引导程序，用于封装包括 Core，Communicate，Interface 在内的多个组件，并提供以下操作：
 1. 控制各个子部件的运行与停止
 2. 连接组件之间的交互
 '''
-class Booter:
+class Booter(ModuleInterface):
     def __init__(self):
-        def __live_crawler_callback(text: str):
+        super().__init__("booter")
+        
+        self._set_sub_modules([
+            {"name": "core", "path": None},
+            "crawler"
+        ])
+
+    def _load_config(self):
+        pass
+
+    def _after_load_sub_modules(self):
+        def crawler_callback(text: str):
             message = Message(MessageKind.Watcher, text)
             self.send(message)
 
-        self.__live_crawler: CrawlerInterface = LiveCrawler(__live_crawler_callback)
-        self.__core = Core()
+        crawler_module: CrawlerInterface = self._sub_modules["crawler"]
+        crawler_module.set_receive_callback(crawler_callback)
+        
+    def check(self) -> bool:
+        return True
 
-
-    def start(self):
-        self.__core.start()
-        self.__live_crawler.start()
-
-
-    def stop(self):
-        self.__live_crawler.stop()
-    
     def send(self, message: Message):
-        self.__core.send(message)
+        self._sub_modules["core"].send(message)

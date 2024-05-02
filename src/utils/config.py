@@ -22,15 +22,9 @@ class Config:
                 return None
 
         return result
-
-    def get_system_interface(self, *keys):
-        return self.get('system', 'interface', *keys)
     
     def get_system_module(self, *keys):
         return self.get('system', 'module', *keys)
-    
-    def get_use_interface(self, *keys):
-        return self.get('use', 'interface', *keys)
     
     def get_use_module(self, *keys):
         return self.get('use', 'module', *keys)

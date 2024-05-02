@@ -6,7 +6,7 @@ from aiohttp import ClientSession
 from threading import Thread
 
 
-from ..crawler import CrawlerInterface
+from ..interface import CrawlerInterface
 from .blivedm import BLiveClient, BaseHandler
 from .blivedm.models.web import DanmakuMessage
 

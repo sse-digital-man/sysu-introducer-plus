@@ -1,17 +1,15 @@
 import openai
-from typing import List
 
-from .base import CallerInterface
-from ..caller_kind import CallerKind
-from ....utils.config import config
+from .interface import CallerInterface
+from ..kind import CallerKind
 
 # Migration Guide: https://github.com/openai/openai-python/discussions/742
 
-class GPTCaller(CallerInterface):
+class GptCaller(CallerInterface):
     model_type = "gpt-3.5-turbo"
 
     def __init__(self):
-        super().__init__(CallerKind.GPT)
+        super().__init__(CallerKind.GPT.value)
 
         self.__client = openai.OpenAI(
             api_key="",
@@ -19,8 +17,8 @@ class GPTCaller(CallerInterface):
             timeout=5
         )
 
-    def load_config(self):
-        info = config.get_system_module("llm", "gpt")
+    def _load_config(self):
+        info = self._read_config()
 
         self.__client.api_key = info['apiKey']
         self.__client.base_url = info['url']
