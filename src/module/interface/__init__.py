@@ -3,6 +3,7 @@ from typing import List, Dict, Tuple, Self, Callable
 from importlib import import_module
 from threading import Thread
 
+from .container import ModuleContainer
 
 from utils.config import config
 
@@ -51,6 +52,9 @@ def import_module_dynamic(module: str | Dict[str, str]):
 
 
 class ModuleInterface(metaclass=ABCMeta):
+    container = ModuleContainer()
+
+
     def __init__(self, name: str, kind: str=BASIC):
         """ 初始化函数
 
