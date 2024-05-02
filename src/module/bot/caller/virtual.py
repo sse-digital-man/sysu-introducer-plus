@@ -38,3 +38,4 @@ class VirtualCaller(CallerInterface):
             return ra.sample(RANDOM_ANSWERS, 1)[0]
         else:
             return f"我回答了 {query}"
+
