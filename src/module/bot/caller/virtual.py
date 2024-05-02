@@ -4,7 +4,12 @@ import random as ra
 from .interface import CallerInterface
 from ..kind import CallerKind
 
-RANDOM_ANSWERS = ["欢迎欢迎", "见到你很高兴", "谢谢夸奖", "你说得对"]
+RANDOM_ANSWERS = [
+    "欢迎欢迎",
+    "见到你很高兴",
+    "谢谢夸奖",
+    "你说得对"
+]
 
 class VirtualCaller(CallerInterface):
     def __init__(self):
@@ -20,8 +25,8 @@ class VirtualCaller(CallerInterface):
     def _load_config(self):
         info = self._read_config()
 
-        self.__delay = info["delay"] / 1000
-        self.__is_random = info["isRandom"]
+        self.__delay = info['delay'] / 1000
+        self.__is_random = info['isRandom']
 
         if self.__delay < 0:
             raise ValueError("delay must be not negative")
