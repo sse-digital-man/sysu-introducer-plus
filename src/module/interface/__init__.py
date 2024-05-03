@@ -4,7 +4,7 @@ from threading import Thread
 
 from .interface import ModuleInterface
 from .manager import manager
-from .info import ModuleInfo
+from .info import ModuleInfo, ModuleStatus
 
 from utils.config import config
 
@@ -37,19 +37,23 @@ class BasicModule(ModuleInterface):
         return (True, None)
 
     # 启动模块单元
-    def start(self):
-        # 1. 更新配置信息
+    def start(self, with_sub_modules: bool=True):
+        # 1. 首先启动启动子模块
+        self._before_running_sub_module()
+
+        if with_sub_modules: 
+            for module in self._sub_module_list:
+                if module is not None:
+                    module.start()
+
+        if self.is_running:
+            print(self.label, "已启动")
+            return
+
+        # 2. 更新配置信息
         self._load_config()
 
-        # TODO: 显示模块加载情况
-        if self._info.depth == 0:
-            print("正在启动模块: ")
-        print(self._info.depth * "    " + self.label)
-
-        # 2. 启动子模块
-        for module in self._sub_module_list:
-            if module is not None:
-                module.start()
+        print(self.label, "启动中...")
 
         # 模块自检
         (flag, e) = self.check()
@@ -58,10 +62,10 @@ class BasicModule(ModuleInterface):
         # 3. 运行模块自定义处理逻辑
         self._before_running()
         
-        # Notice: TODO: 只有所有程序启动成功之后 才能更新状态
+        # Notice: 只有所有程序启动成功之后 才能更新状态
+        self._info.status = ModuleStatus.Running
 
-        if self._info.depth == 0:
-            print("模块启动成功")
+        print(self.label, "启动成功")
 
         # 4. 钩子函数
         self._after_running()
@@ -69,6 +73,7 @@ class BasicModule(ModuleInterface):
     # 停止模块单元
     def stop(self):
         # 1. TODO: 先设置标志位
+        self._set_status(ModuleStatus.Waiting)
 
         # 2. 关闭内部的线程处理
         for thread in self.__threads:
@@ -91,6 +96,9 @@ class BasicModule(ModuleInterface):
     
     ''' ----- Hook -----'''
     
+    def _before_running_sub_module(self):
+        pass
+
     def _before_running(self):
         pass
 
@@ -103,13 +111,21 @@ class BasicModule(ModuleInterface):
     def _info(self) -> ModuleInfo:
         return manager.info(self.name)
     
+    @property
+    def status(self) -> ModuleStatus:
+        return self._info.status
+    
+    @property
+    def is_running(self) -> bool:
+        return self.status is ModuleStatus.Running
+
     # 获取子模块的对象
     def _sub_module(self, name: str) -> Self:
         if name not in manager.info(self.name).modules:
             raise FileNotFoundError(f"{name} is not in {self.name}")
 
         return manager.object(name)
-
+    
     # 获取子模块对象的列表
     @property
     def _sub_module_list(self) -> List[Self]:
@@ -117,3 +133,5 @@ class BasicModule(ModuleInterface):
         return [manager.object(name) for name in sub_module_names]
     
     ''' ----- Setter -----'''
+    def _set_status(self, status: ModuleStatus):
+        self._info.status = status

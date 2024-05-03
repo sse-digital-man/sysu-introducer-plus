@@ -14,17 +14,11 @@ class ModuleInterface(metaclass=ABCMeta):
             runKind (str): 
         """
         # 模块的基本信息
-        self.__is_running = False
         self.__name = name
         # self.__kind = kind
 
         # 线程相关
         self.__threads: List[Thread] = []        
-
-        # 子模块相关的属性
-        # self.__sub_modules_list: List[str|Dict[str, str]] = []
-        # self._sub_modules: Dict[str, Self] = {}
-        # self.__height = 0
 
     # 该函数主要由模块管理器统一进行管理，统一进行更新
     @abstractmethod
@@ -59,10 +53,6 @@ class ModuleInterface(metaclass=ABCMeta):
 
     ''' ----- Getter ----- '''
     @property
-    def is_running(self) -> bool:
-        return self.__is_running
-
-    @property
     def kind(self) -> str:
         return self.__kind
     
@@ -71,16 +61,5 @@ class ModuleInterface(metaclass=ABCMeta):
         return self.__name
     
     @property
-    def label(self, format: str="{name} [{kind}]") -> str:
-        return format.format(kind=self._info.kind, name=self._info.name)
-    
-    ''' ----- Setter -----'''
-    # def set_height(self, height: int):
-    #     self.__height = height
-
-    # 由配置文件自动设置，不需要手动配置
-    # def _set_sub_modules(self, modules: List[str]):
-    #     # Notice: 模块启动时也会按照如下顺序进行加载各个子模块
-    #     self.__sub_modules_list = modules
-
-    
+    def label(self, format: str="{alias} ({kind})") -> str:
+        return format.format(alias=self._info.alias, kind=self._info.kind)

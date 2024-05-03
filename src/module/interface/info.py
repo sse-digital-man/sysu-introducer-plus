@@ -1,16 +1,35 @@
 from typing import List
+from enum import Enum, IntEnum, unique
+
+class ModuleName(Enum):
+    Booter = "booter"
+    Core = "core"
+    Bot = "bot"
+    Caller = "caller"
+    Searcher = "searcher"
+    Crawler = "crawler"
+
+@unique
+class ModuleStatus(Enum):
+    NotLoaded = "not loaded"
+    Waiting = "waiting"
+    Running = "running"
 
 class ModuleInfo:
     def __init__(self, name: str, alias: str, 
                 kind: str="basic", path: str="", modules: List[str]=[]):
+        # 基本信息
         self.__name = name
         self.__alias = alias
         self.__kind = kind
-        
         self.__path = path
-        self.__modules = modules
 
-        self.__depth = -1;
+        # 子模块信息
+        self.__modules = modules
+        self.__depth = -1
+
+        # 运行状态信息
+        self.__status: ModuleStatus = ModuleStatus.NotLoaded 
 
     ''' ---- Getter ------ '''
     
@@ -37,9 +56,17 @@ class ModuleInfo:
     @property
     def depth(self) -> int:
         return self.__depth
+    
+    @property
+    def status(self) -> ModuleStatus:
+        return self.__status
 
     ''' ---- Setter ------ '''
     
     @depth.setter
     def depth(self, depth: int):
         self.__depth = depth
+
+    @status.setter
+    def status(self, status: ModuleStatus):
+        self.__status = status

@@ -2,7 +2,7 @@ from typing import Dict, List
 from importlib import import_module
 
 from utils.file import load_json
-from .info import ModuleInfo
+from .info import ModuleInfo, ModuleStatus
 from .interface import ModuleInterface
 
 CONFIG_PATH = "src/modules.json"
@@ -45,8 +45,10 @@ class ModuleManager:
         # 3. 加载模块对象
         for name in self.__module_name_list:
             module_object =  self.__dynamic_import_module(name)
+            # 如果需要加载的模块类型为空，则表示仍未加载
             if module_object != None:
                 self.__module_object_list[name] = module_object()
+                self.__module_info_list[name].status = ModuleStatus.Waiting
 
         self.__is_loaded = True
 
@@ -117,6 +119,24 @@ class ModuleManager:
     def object(self, name: str) -> ModuleInterface:
         return self.__module_object_list.get(name)
     
+    @property
+    def module_info_list(self) -> List[Dict]:
+        """列表组成 name, alias, kind, status
+
+        Returns:
+            List[Dict]: 信息的列表
+        """
+
+        list = []
+        for info in self.__module_info_list.values():
+            list.append({
+                "name": info.name,
+                "alias": info.alias,
+                "kind": info.kind,
+                "status": info.status
+            })
+
+        return list
 
     ''' ---- Debug ----- '''
 

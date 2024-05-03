@@ -1,6 +1,7 @@
 from message import Message, MessageKind
 
 from module.interface import BasicModule
+from module.interface.info import ModuleStatus
 from module.crawler import CrawlerInterface
 
 '''
@@ -15,7 +16,7 @@ class BasicBooter(BasicModule):
     def _load_config(self):
         pass
 
-    def _before_running(self):
+    def _before_running_sub_module(self):
         def crawler_callback(text: str):
             message = Message(MessageKind.Watcher, text)
             self.send(message)
@@ -23,6 +24,15 @@ class BasicBooter(BasicModule):
         crawler_module: CrawlerInterface = self._sub_module("crawler")
         crawler_module.set_receive_callback(crawler_callback)
 
+    # 单独运行和停止模块子模块
+    def start_sub_module(self, name: str):
+        self._load_config()
+        self._sub_module(name).start()
+        self._set_status(ModuleStatus.Running)
+
+    def stop_sub_module(self, name: str):
+        self._sub_module(name).stop()
+
     def send(self, message: Message):
-        self._sub_modules["core"].send(message)
+        self._sub_module("core").send(message)
 

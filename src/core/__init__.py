@@ -33,7 +33,7 @@ class BasicCore(BasicModule):
             message = self.__msg_queue.pop()
             print("receive:", message.content)
 
-            response = self._sub_modules["bot"].talk(message.content)
+            response = self._sub_module("bot").talk(message.content)
             print("answer:", response)
 
     def _after_running(self):
