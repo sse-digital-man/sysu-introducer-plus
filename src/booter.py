@@ -1,5 +1,3 @@
-from typing import Dict
-
 from message import Message, MessageKind
 
 from module.interface import BasicModule
@@ -17,12 +15,12 @@ class BasicBooter(BasicModule):
     def _load_config(self):
         pass
 
-    def _after_load_sub_modules(self):
+    def _before_running(self):
         def crawler_callback(text: str):
             message = Message(MessageKind.Watcher, text)
             self.send(message)
 
-        crawler_module: CrawlerInterface = self._module("crawler")
+        crawler_module: CrawlerInterface = self._sub_module("crawler")
         crawler_module.set_receive_callback(crawler_callback)
 
     def send(self, message: Message):

@@ -5,12 +5,10 @@ from utils.file import load_json
 from .info import ModuleInfo
 from .interface import ModuleInterface
 
-
 CONFIG_PATH = "src/modules.json"
 
 NULL = "null"
 BASIC = "basic"
-
 
 def generate_name(name: str, kind: str):
     if kind == None: kind = "basic"
@@ -73,7 +71,8 @@ class ModuleManager:
         # 如果没有入度为 0 的节点，说明存在循环依赖
         if len(queue) == 0:
             raise ValueError(f"circular dependency between modules") 
-
+        
+        # 使用 BFS 计算所有节点深度
         depth = 0
         while len(queue) > 0:
             size = len(queue)
@@ -108,11 +107,20 @@ class ModuleManager:
 
         class_name = generate_name(info.name, info.kind)
 
-        print(".".join(names))
-
         return import_module(".".join(names)).__getattribute__(class_name)
 
+    ''' ----- Getter ----- '''
+    
+    def info(self, name: str) -> ModuleInfo:
+        return self.__module_info_list.get(name)
+    
+    def object(self, name: str) -> ModuleInterface:
+        return self.__module_object_list.get(name)
+    
 
+    ''' ---- Debug ----- '''
+
+    # 用于表格化输出所有模块信息
     def __show_as_table(self) -> str:
         from tabulate import tabulate
 
@@ -125,12 +133,6 @@ class ModuleManager:
 
         return tabulate(rows, header, tablefmt="github")
 
-    ''' ----- Getter ----- '''
-    
-    def info(self, name: str) -> ModuleInfo:
-        return self.__module_info_list.get(name)
-    
-    def object(self, name: str) -> ModuleInterface:
-        return self.__module_object_list.get(name)
 
+# Notice: 使用单例模式使用模块管理器
 manager = ModuleManager()

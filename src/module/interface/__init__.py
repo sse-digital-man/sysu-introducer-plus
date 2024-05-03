@@ -12,27 +12,18 @@ VIRTUAL = "virtual"
 BASIC = "basic"
 NULL = "null"
 
-
 class BasicModule(ModuleInterface):
     def __init__(self, name: str):
         """ 初始化函数
 
         Args:
             name (str): 模块名称
-            kind (str): 模块具体对应的类型
-            runKind (str): 
         """
         # 模块的基本信息
         super().__init__(name)
-        # self.__kind = kind
 
         # 线程相关
         self.__threads: List[Thread] = []  
-
-        # 子模块相关的属性
-        # self.__sub_modules_list: List[str|Dict[str, str]] = []
-        # self._sub_modules: Dict[str, Self] = {}
-        # self.__height = 0
 
     # 该函数主要由模块管理器统一进行管理，统一进行更新
     @abstractmethod
@@ -47,65 +38,46 @@ class BasicModule(ModuleInterface):
 
     # 启动模块单元
     def start(self):
-        # 更新
+        # 1. 更新配置信息
         self._load_config()
 
         # TODO: 显示模块加载情况
         if self._info.depth == 0:
-            print("正在加载模块: ")
+            print("正在启动模块: ")
         print(self._info.depth * "    " + self.label)
 
-        self._before_load_sub_modules()
-
-        # 循环启动各个子模块
-        # self._load_sub_modules()
-
-        self._after_load_sub_modules()
-
-        for module in self._modules:
-            if module is None:
-                continue
-
-            module.start()
-
-        # 运行模块自定义处理逻辑
-        self._before_running()
+        # 2. 启动子模块
+        for module in self._sub_module_list:
+            if module is not None:
+                module.start()
 
         # 模块自检
         (flag, e) = self.check()
         if not flag:
             raise e if e!= None else SystemError(self.name, "check error")
+        # 3. 运行模块自定义处理逻辑
+        self._before_running()
         
-        # Notice: 只有所有程序启动成功之后 才能更新状态
-        self.__is_running = True
+        # Notice: TODO: 只有所有程序启动成功之后 才能更新状态
 
         if self._info.depth == 0:
-            print("模块加载成功")
+            print("模块启动成功")
 
-        # 钩子函数
+        # 4. 钩子函数
         self._after_running()
 
     # 停止模块单元
     def stop(self):
-        # 无论如何 最后都需要更新状态
-        self.__is_running = False
+        # 1. TODO: 先设置标志位
 
-        # 先关闭内部的线程处理
+        # 2. 关闭内部的线程处理
         for thread in self.__threads:
             thread.join()
 
-        # for module in self._sub_modules.values():
-        #     if module is not None:
-        #         module.stop()
-    
-    # 添加子模块
-    # def _load_sub_modules(self):
-    #     modules = self.info.modules
-
-    #     for module_info in modules:
-    #         module_object = import_module_dynamic(module_info)
-
-        # print("load: ", self._sub_modules)
+        # 3. 关闭子线程
+        for module in self._sub_module_list:
+            if module is not None:
+                module.stop()
         
     # 根据 kind, name 自动获取系统配置信息
     def _read_config(self) -> object:
@@ -119,12 +91,6 @@ class BasicModule(ModuleInterface):
     
     ''' ----- Hook -----'''
     
-    def _before_load_sub_modules(self):
-        pass
-
-    def _after_load_sub_modules(self):
-        pass
-
     def _before_running(self):
         pass
 
@@ -132,27 +98,22 @@ class BasicModule(ModuleInterface):
         pass
 
     ''' ----- Getter ----- '''
-    def _module(self, name: str) -> Self:
-        # from .manager import manager
-        return manager.object(name)
-    
+    # 获取当前的模块信息
     @property
     def _info(self) -> ModuleInfo:
-        # from .manager import manager
         return manager.info(self.name)
     
+    # 获取子模块的对象
+    def _sub_module(self, name: str) -> Self:
+        if name not in manager.info(self.name).modules:
+            raise FileNotFoundError(f"{name} is not in {self.name}")
+
+        return manager.object(name)
+
+    # 获取子模块对象的列表
     @property
-    def _modules(self) -> List[Self]:
-        # from .manager import manager
-        return [manager.object(name) for name in manager.info(self.name).modules]
+    def _sub_module_list(self) -> List[Self]:
+        sub_module_names = manager.info(self.name).modules
+        return [manager.object(name) for name in sub_module_names]
     
     ''' ----- Setter -----'''
-    # def set_height(self, height: int):
-    #     self.__height = height
-
-    # 由配置文件自动设置，不需要手动配置
-    # def _set_sub_modules(self, modules: List[str]):
-    #     # Notice: 模块启动时也会按照如下顺序进行加载各个子模块
-    #     self.__sub_modules_list = modules
-
-    
