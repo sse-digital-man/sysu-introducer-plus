@@ -23,9 +23,10 @@
 
 ## 目录
 
--   [架构介绍](./structure.md)
 -   [配置文件](./config.md)
 -   [控制器](./controller.md)
+-   架构介绍
+    -   [模块化](./structure/modular.md)
 -   模块：
     -   [大语言模型](./module/bot.md)
     -   [直播爬虫](./module/crawler.md)
