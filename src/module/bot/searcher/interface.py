@@ -1,9 +1,9 @@
 from abc import ABCMeta, abstractmethod
 from typing import List, Dict
 
-from .. import ModuleInterface
+from .. import BasicModule
 
-class SearcherInterface(ModuleInterface, metaclass=ABCMeta):
+class SearcherInterface(BasicModule, metaclass=ABCMeta):
     Kind = "searcher"
     def __init__(self, name: str):
         super().__init__(self.Kind, name)

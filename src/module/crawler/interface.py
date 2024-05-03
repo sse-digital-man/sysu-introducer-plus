@@ -1,24 +1,19 @@
 from collections.abc import Callable
-from typing import NewType
 
-from ..interface import ModuleInterface
-
-
-from utils.config import config
-
+from ..interface import BasicModule
 
 CRAWLER = "crawler"
 
 CrawlerCallback = Callable[[str], None]
 
-class CrawlerInterface(ModuleInterface):
-    def __init__(self, name: str):
+class CrawlerInterface(BasicModule):
+    def __init__(self):
         """
         Args:
             name(str): 模块具体的实现方式
             receive_callback (function): 接收到消息的回调函数
         """
-        super().__init__(CRAWLER, name)
+        super().__init__(CRAWLER)
         self._receive_callback = None
 
     def _load_config(self):

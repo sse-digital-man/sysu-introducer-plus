@@ -18,7 +18,7 @@ def file_to_list(path: str) -> List[str]:
 
 class VirtualCrawler(CrawlerInterface):
     def __init__(self):
-        super().__init__(VIRTUAL)
+        super().__init__()
 
         self.__messages = []
         self.__delay = DEFAULT_DELAY

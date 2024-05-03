@@ -14,12 +14,12 @@
     },
     "caller": {
         "alias": "大语言模型调用器",
-        "path": "module/bot",
+        "path": "module.bot",
         "default": "virtual"
     },
     "searcher": {
         "alias": "文本检索器",
-        "path": "module/bot",
+        "path": "module.bot",
         "default": "null"
     },
     "crawler": {

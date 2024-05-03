@@ -3,16 +3,14 @@ import time
 from message import Message
 from core.msg_queue.fifo_queue import FIFOQueue as MessageQueue
 
-from module.interface import ModuleInterface
+from module.interface import BasicModule
 
-class BasicCore(ModuleInterface):
+class BasicCore(BasicModule):
     def __init__(self):
         super().__init__("core")
     
         # 初始化消息队列
         self.__msg_queue = MessageQueue()
-
-        self._set_sub_modules(["bot"])
         
     def _load_config(self):
         pass

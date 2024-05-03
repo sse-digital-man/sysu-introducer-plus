@@ -1,9 +1,10 @@
 from enum import Enum
 
-from booter import Booter
 from utils.args import args
+from module.interface.manager import manager
+from booter import BasicBooter
 
-booter = Booter()
+booter = BasicBooter()
 
 class CommandKind(Enum):
     Start = "start"
@@ -16,8 +17,14 @@ def check_cmd(text: str) -> CommandKind:
     except:
         return None
 
+# 系统初始化操作
+def init():
+    # Notice: 需要再运行时统一加载完模块
+    manager.load_modules()
+
 def main():
     first_start_flag = False
+    init()
 
     while True:
         try:
@@ -40,7 +47,7 @@ def main():
                 return
         except Exception as e:
             print("error:", repr(e))
-            # raise e
+            raise e
         finally:
             booter.stop()
 

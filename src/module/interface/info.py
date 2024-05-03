@@ -10,8 +10,10 @@ class ModuleInfo:
         self.__path = path
         self.__modules = modules
 
-        self.__object = None
+        self.__depth = -1;
 
+    ''' ---- Getter ------ '''
+    
     @property
     def name(self) -> str:
         return self.__name
@@ -31,9 +33,13 @@ class ModuleInfo:
     @property
     def modules(self) -> List[str]:
         return self.__modules
-
+    
     @property
-    def object(self) -> str:
-        return self.__object
+    def depth(self) -> int:
+        return self.__depth
+
+    ''' ---- Setter ------ '''
     
-    
+    @depth.setter
+    def depth(self, depth: int):
+        self.__depth = depth
