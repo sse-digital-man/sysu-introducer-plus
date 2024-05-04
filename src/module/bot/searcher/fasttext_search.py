@@ -1,10 +1,10 @@
 import chromadb
 from gensim.models.fasttext import load_facebook_vectors
 from typing import List
-import json
 import time
+from .interface import SearcherInterface
 
-class FTSearcher:
+class FTSearcher(SearcherInterface):
     """
     使用FastText嵌入在ChromaDB数据库中搜索文本的类。
     """
@@ -23,7 +23,10 @@ class FTSearcher:
         collection_id = "fasttext"
         self.collection = self.client.get_collection(name=collection_id)
 
+        # 加载FastText模型
+        print("加载FastText模型...")
         self.model = load_facebook_vectors(model_path)
+        print("FastText模型加载完成。")
 
     def search(self, query: str, size: int) -> List[str]:
         """
@@ -44,3 +47,12 @@ class FTSearcher:
         print("Query time:", time.time() - start)
         # 返回最相似的文本
         return results["documents"][0]
+
+    def _load_config(self):
+        pass
+
+    def check(self):
+        pass
+
+    def search_with_label(self):
+        pass

@@ -22,7 +22,10 @@ class FTDataInitializer:
         collection_id = "fasttext"
         self.collection = self.client.get_or_create_collection(name=collection_id)
 
+        # 加载FastText模型
+        print("加载FastText模型...")
         self.model = load_facebook_vectors(model_path)
+        print("FastText模型加载完成。")
 
         # 从本地文件加载数据
         print("从本地文件加载数据...")
