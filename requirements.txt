@@ -10,5 +10,3 @@ openai
 
 # config
 pyyaml
-
-redis
