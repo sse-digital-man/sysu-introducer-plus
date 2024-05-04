@@ -1,6 +1,5 @@
 import unittest
-from ...module.llm.searcher.fasttext_init import FTDataInitializer
-
+from module.bot.searcher.fasttext_init import FTDataInitializer
 
 class TestFTDataInitializer(unittest.TestCase):
 
