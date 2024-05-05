@@ -5,6 +5,7 @@ from threading import Thread
 from .interface import ModuleInterface
 from .manager import manager
 from .info import ModuleInfo, ModuleStatus
+from .log.module_status import ModuleStatusLog
 
 from utils.config import config
 
@@ -143,3 +144,5 @@ class BasicModule(ModuleInterface):
     ''' ----- Setter -----'''
     def _set_status(self, status: ModuleStatus):
         self._info.status = status
+
+        manager.log(ModuleStatusLog(self.name, status))

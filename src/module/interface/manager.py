@@ -1,14 +1,17 @@
-from typing import Dict, List
+from typing import Dict, List, Callable
 from importlib import import_module
 
 from utils.file import load_json
 from .info import ModuleInfo, ModuleStatus
 from .interface import ModuleInterface
+from .log.interface import ModuleLog
 
 CONFIG_PATH = "src/modules.json"
 
 NULL = "null"
 BASIC = "basic"
+
+LogCallBack = Callable[[ModuleLog], None]
 
 def generate_name(name: str, kind: str):
     if kind == None: kind = "basic"
@@ -22,6 +25,8 @@ class ModuleManager:
         self.__module_object_list: Dict[str, ModuleInterface] = {}
 
         self.__is_loaded = False
+
+        self.__log_callback: None | LogCallBack = None
 
     def load_modules(self):
         if self.__is_loaded:
@@ -51,6 +56,13 @@ class ModuleManager:
                 self.__module_info_list[name].status = ModuleStatus.Stopped
 
         self.__is_loaded = True
+
+    def log(self, log: ModuleLog):
+        # TODO: 发送日志后的处理函数
+        
+        if self.__log_callback is not None:
+            self.__log_callback(log)
+        
 
     def __check_modules(self):
         # 验证模块是否存在, 并加载子模块的嵌套深度
@@ -137,8 +149,13 @@ class ModuleManager:
             })
 
         return list
+    
+    ''' ----- Setter -----'''
+    
+    def set_log_callback(self, callback: LogCallBack):
+        self.__log_callback = callback
 
-    ''' ---- Debug ----- '''
+    ''' ----- Debug ----- '''
 
     # 用于表格化输出所有模块信息
     def __show_as_table(self) -> str:
