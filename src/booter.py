@@ -15,8 +15,8 @@ class BasicBooter(BasicModule):
         
     def _load_config(self):
         pass
-
-    def _before_running_sub_module(self):
+    
+    def _before_starting(self):
         def crawler_callback(text: str):
             message = Message(MessageKind.Watcher, text)
             self.send(message)
