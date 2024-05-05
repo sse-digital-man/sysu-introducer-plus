@@ -2,6 +2,8 @@ from threading import Thread
 import asyncio
 import websockets
 
+# refs: https://blog.csdn.net/m0_61560439/article/details/130569160
+
 class WSServer:
     def __init__(self, host: str="0.0.0.0", port: str="8083"):
         self.__host = host
@@ -53,6 +55,7 @@ class WSServer:
         event_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(event_loop)
         event_loop.run_until_complete(connect())
+        # asyncio.run(connect())
 
     # 处理发送
     async def __handle_send(self):
