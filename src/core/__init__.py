@@ -18,12 +18,12 @@ class BasicCore(BasicModule):
     # 线程循环处理消息队列（需要开启多线程）
     def __handle(self):
         # ...
-        while self.is_running:
+        while self._is_ready:
             time.sleep(0.5)
             # print("handling...")
 
             # 当 Core 停止后，处理线程也需要停止
-            if not self.is_running:
+            if not self._is_ready:
                 self.__msg_queue.clear()
                 break
 
@@ -35,8 +35,8 @@ class BasicCore(BasicModule):
 
             response = self._sub_module("bot").talk(message.content)
             print("answer:", response)
-
-    def _after_running(self):
+    
+    def _before_started(self):
         self._make_thread(self.__handle)
 
     def send(self, text: Message):

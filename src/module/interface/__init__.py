@@ -39,41 +39,33 @@ class BasicModule(ModuleInterface):
     # 启动模块单元
     def start(self, with_sub_modules: bool=True):
         # 1. 首先启动启动子模块
-        self._before_running_sub_module()
+        self._before_starting()
+        self._set_status(ModuleStatus.Starting)
 
         if with_sub_modules: 
             for module in self._sub_module_list:
                 if module is not None:
                     module.start()
 
-        if self.is_running:
-            print(self.label, "已启动")
-            return
-
         # 2. 更新配置信息
         self._load_config()
 
-        print(self.label, "启动中...")
-
-        # 模块自检
+        # 3. 模块自检
         (flag, e) = self.check()
         if not flag:
             raise e if e!= None else SystemError(self.name, "check error")
-        # 3. 运行模块自定义处理逻辑
-        self._before_running()
         
-        # Notice: 只有所有程序启动成功之后 才能更新状态
-        self._info.status = ModuleStatus.Running
-
-        print(self.label, "启动成功")
-
-        # 4. 钩子函数
-        self._after_running()
+        # 4. 运行模块自定义处理逻辑
+        self._before_started()
+        
+        # 5. 钩子函数
+        self._set_status(ModuleStatus.Started)
+        self._after_started()
 
     # 停止模块单元
     def stop(self):
         # 1. TODO: 先设置标志位
-        self._set_status(ModuleStatus.Waiting)
+        self._set_status(ModuleStatus.Stopping)
 
         # 2. 关闭内部的线程处理
         for thread in self.__threads:
@@ -83,6 +75,8 @@ class BasicModule(ModuleInterface):
         for module in self._sub_module_list:
             if module is not None:
                 module.stop()
+
+        self._set_status(ModuleStatus.Stopped)
         
     # 根据 kind, name 自动获取系统配置信息
     def _read_config(self) -> object:
@@ -96,13 +90,13 @@ class BasicModule(ModuleInterface):
     
     ''' ----- Hook -----'''
     
-    def _before_running_sub_module(self):
+    def _before_starting(self):
         pass
 
-    def _before_running(self):
+    def _before_started(self):
         pass
 
-    def _after_running(self):
+    def _after_started(self):
         pass
 
     ''' ----- Getter ----- '''
@@ -118,6 +112,16 @@ class BasicModule(ModuleInterface):
     @property
     def is_running(self) -> bool:
         return self.status is ModuleStatus.Running
+    
+    @property
+    def _is_ready(self) -> bool:
+        """判断当前模块是否满足线程的运行条件, 主要模块内部可控制线程运行
+
+        Returns:
+            bool: 结果
+        """
+        
+        return self.status in [ModuleStatus.Started, ModuleStatus.Starting]
 
     # 获取子模块的对象
     def _sub_module(self, name: str) -> Self:
@@ -125,6 +129,10 @@ class BasicModule(ModuleInterface):
             raise FileNotFoundError(f"{name} is not in {self.name}")
 
         return manager.object(name)
+    
+    @property
+    def sub_module_list(self) -> List[str]:
+        return manager.info(self.name).modules
     
     # 获取子模块对象的列表
     @property

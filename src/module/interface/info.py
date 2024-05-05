@@ -10,10 +10,13 @@ class ModuleName(Enum):
     Crawler = "crawler"
 
 @unique
-class ModuleStatus(Enum):
-    NotLoaded = "not loaded"
-    Waiting = "waiting"
-    Running = "running"
+class ModuleStatus(IntEnum):
+    NotLoaded = 0
+    Stopped = 1
+    Starting = 2
+    Started = 3
+    Stopping = 4
+    
 
 class ModuleInfo:
     def __init__(self, name: str, alias: str, 

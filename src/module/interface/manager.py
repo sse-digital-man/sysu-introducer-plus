@@ -48,7 +48,7 @@ class ModuleManager:
             # 如果需要加载的模块类型为空，则表示仍未加载
             if module_object != None:
                 self.__module_object_list[name] = module_object()
-                self.__module_info_list[name].status = ModuleStatus.Waiting
+                self.__module_info_list[name].status = ModuleStatus.Stopped
 
         self.__is_loaded = True
 
