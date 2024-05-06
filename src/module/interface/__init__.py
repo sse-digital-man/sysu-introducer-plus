@@ -81,7 +81,7 @@ class BasicModule(ModuleInterface):
         
     # 根据 kind, name 自动获取系统配置信息
     def _read_config(self) -> object:
-        return config.get_system_module(self._info.name, self._info.kind)
+        return config.get_system_module(self.info.name, self.info.kind)
     
     # 开辟一个线程用于处理
     def _make_thread(self, target: Callable):
@@ -103,12 +103,12 @@ class BasicModule(ModuleInterface):
     ''' ----- Getter ----- '''
     # 获取当前的模块信息
     @property
-    def _info(self) -> ModuleInfo:
+    def info(self) -> ModuleInfo:
         return manager.info(self.name)
     
     @property
     def status(self) -> ModuleStatus:
-        return self._info.status
+        return self.info.status
     
     @property
     def is_running(self) -> bool:
@@ -143,6 +143,6 @@ class BasicModule(ModuleInterface):
     
     ''' ----- Setter -----'''
     def _set_status(self, status: ModuleStatus):
-        self._info.status = status
+        self.info.status = status
 
         manager.log(ModuleStatusLog(self.name, status))
