@@ -14,7 +14,7 @@ class CrawlerInterface(BasicModule):
             receive_callback (function): 接收到消息的回调函数
         """
         super().__init__(CRAWLER)
-        self._receive_callback = None
+        self._receive_callback = lambda message: None
 
     def _load_config(self):
         info = self._read_config()
