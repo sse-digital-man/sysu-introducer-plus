@@ -3,16 +3,14 @@ import time
 from message import Message
 from core.msg_queue.fifo_queue import FIFOQueue as MessageQueue
 
-from module.interface import ModuleInterface
+from module.interface import BasicModule
 
-class BasicCore(ModuleInterface):
+class BasicCore(BasicModule):
     def __init__(self):
         super().__init__("core")
     
         # 初始化消息队列
         self.__msg_queue = MessageQueue()
-
-        self._set_sub_modules(["bot"])
         
     def _load_config(self):
         pass
@@ -20,12 +18,12 @@ class BasicCore(ModuleInterface):
     # 线程循环处理消息队列（需要开启多线程）
     def __handle(self):
         # ...
-        while self.is_running:
+        while self._is_ready:
             time.sleep(0.5)
             # print("handling...")
 
             # 当 Core 停止后，处理线程也需要停止
-            if not self.is_running:
+            if not self._is_ready:
                 self.__msg_queue.clear()
                 break
 
@@ -35,10 +33,10 @@ class BasicCore(ModuleInterface):
             message = self.__msg_queue.pop()
             print("receive:", message.content)
 
-            response = self._sub_modules["bot"].talk(message.content)
+            response = self._sub_module("bot").talk(message.content)
             print("answer:", response)
-
-    def _after_running(self):
+    
+    def _before_started(self):
         self._make_thread(self.__handle)
 
     def send(self, text: Message):

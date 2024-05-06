@@ -11,6 +11,27 @@
 
 > 本项目中的所有相对路径都是根据项目的根目录 `sysu-introducer-plus`。
 
+## 文件结构
+
+```lua
+.
+├── docs
+└── src
+    ├── core
+    │   ├── msg_queue   -- 消息队列
+    │   └── basic_core  -- 实现最基础的内核
+    ├── module
+    │   ├── bot         -- LLM 模块
+    │   ├── tts         -- TTS 模块
+    │   ├── crawler     -- 直播监听 接口
+    │   └── view        -- View 接口
+    ├── utils
+    │   └── config      -- 配置文件
+    ├── booter.py       -- 引导程序
+    ├── app.py          -- Webui 控制器
+    └── cli.py          -- cli 控制器
+```
+
 ## 项目架构
 
 本系统本质上是将各种技术的有机结合，并且在具体实现上，
@@ -41,4 +62,4 @@
 
 ## 开发文档
 
-详情请见 [docs/README.md](./docs/README.md)。
+开发文档请见[此处](https://fucloud.gitbook.io/sysu-introducer)。
