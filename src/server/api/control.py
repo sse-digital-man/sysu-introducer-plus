@@ -1,6 +1,9 @@
 import sys; sys.path.append("src") 
+
+from typing import Dict
 from flask import Blueprint, request
 
+from utils.config import config
 from booter import BasicBooter
 from module.interface.manager import manager
 
@@ -51,7 +54,7 @@ def status(name: str):
     return Result.create(info={"status": info.status}), 200
 
 @control_api.route("/module/list/controllable", methods=['GET'])
-def get_module_can_control():
+def get_controllable_module():
     with_booter = request.args.get("withBooter") not in [0, None]
 
     infos = [manager.info(sub_module) for sub_module in booter.sub_module_list]
@@ -70,8 +73,41 @@ def get_module_can_control():
         })
 
     return Result.create(info={"list": result}), 200
-    
 
-@control_api.route("/send/message", methods=['POST'])
-def send_message():
-    ...
+@control_api.route("/module/list/all", methods=['GET'])
+def get_all_module():
+    return Result.create(info={"list": manager.module_info_list}), 200
+    
+@control_api.route("/module/config/<name>", methods=['GET'])
+def get_module_config(name: str):
+    try:
+        config_list = config.get(name)
+        kind_list = list(config_list.keys()) 
+        
+        return Result.create(info={
+            "config": config_list, 
+            "kinds": kind_list
+        }), 200
+    except KeyError:
+        return Result.create(), 404
+
+
+@control_api.route("/module/config/<name>", methods=['PUT'])
+def modify_module_config(name: str):
+    data = request.get_json()
+
+    kind = data["kind"]
+    info: Dict = data["content"]
+
+    origin = config.get(name, kind).copy()
+
+    try:
+        for (key, value) in info.items():
+            origin[key] = value
+    except KeyError:
+        # 出现未知的
+        return Result.create(), 400
+    
+    config.update(origin, name, kind, save=True)
+
+    return Result.create(), 200
