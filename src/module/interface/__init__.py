@@ -15,7 +15,7 @@ NULL = "null"
 
 class BasicModule(ModuleInterface):
     def __init__(self, name: str):
-        """ 初始化函数
+        """ 初始化函数，注意不要在此处编写过多地初始化操作
 
         Args:
             name (str): 模块名称
