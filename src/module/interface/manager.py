@@ -190,12 +190,7 @@ class ModuleManager:
 
         list = []
         for info in self.__module_info_list.values():
-            list.append({
-                "name": info.name,
-                "alias": info.alias,
-                "kind": info.kind,
-                "status": info.status
-            })
+            list.append(info.to_dict())
 
         return list
     

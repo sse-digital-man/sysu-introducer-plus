@@ -43,6 +43,16 @@ class ModuleInfo:
         # 运行状态信息
         self.__status: ModuleStatus = ModuleStatus.NotLoaded 
 
+    def to_dict(self):
+        return {
+            "alias": self.alias,
+            "name": self.name,
+            "kind": self.kind,
+            "kinds": self.kinds,
+            "status": self.status,
+            "modules": self.modules
+        }        
+
     ''' ---- Getter ------ '''
     
     @property
