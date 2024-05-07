@@ -15,7 +15,7 @@ NULL = "null"
 
 class BasicModule(ModuleInterface):
     def __init__(self, name: str):
-        """ 初始化函数
+        """ 初始化函数，注意不要在此处编写过多地初始化操作
 
         Args:
             name (str): 模块名称
@@ -79,10 +79,6 @@ class BasicModule(ModuleInterface):
 
         self._set_status(ModuleStatus.Stopped)
         
-    # 根据 kind, name 自动获取系统配置信息
-    def _read_config(self) -> object:
-        return config.get_system_module(self.info.name, self.info.kind)
-    
     # 开辟一个线程用于处理
     def _make_thread(self, target: Callable):
         thread = Thread(target=target)

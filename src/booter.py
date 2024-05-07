@@ -26,11 +26,12 @@ class BasicBooter(BasicModule):
 
     # 单独运行和停止模块子模块
     def start_sub_module(self, name: str):
+        self._before_starting()
         self._load_config()
         self._sub_module(name).start()
-        self._set_status(ModuleStatus.Running)
 
     def stop_sub_module(self, name: str):
+        # 验证当前是否只有最后一个启动
         self._sub_module(name).stop()
 
     def send(self, message: Message):
