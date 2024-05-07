@@ -11,3 +11,6 @@ openai
 
 # config
 pyyaml
+
+# 表格化数据
+tabulate
