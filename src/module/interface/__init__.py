@@ -79,10 +79,6 @@ class BasicModule(ModuleInterface):
 
         self._set_status(ModuleStatus.Stopped)
         
-    # 根据 kind, name 自动获取系统配置信息
-    def _read_config(self) -> object:
-        return config.get_system_module(self.info.name, self.info.kind)
-    
     # 开辟一个线程用于处理
     def _make_thread(self, target: Callable):
         thread = Thread(target=target)

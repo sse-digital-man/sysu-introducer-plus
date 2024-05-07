@@ -23,8 +23,6 @@ class Config:
     #     return result
     
     def get(self, name: str, kind: str=None) -> Dict:
-        print(self._data[name])
-
         if kind is None:
             return Config._data[name]
         else:
