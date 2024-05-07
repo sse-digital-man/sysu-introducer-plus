@@ -4,9 +4,9 @@ from flask import jsonify
 
 class Result:
     @staticmethod
-    def create(info: dict=None, code: int=0):
+    def create(data: dict=None, code: int=0):
         return {
-            "info": info,
+            "data": data,
             "code": code
         }
 
