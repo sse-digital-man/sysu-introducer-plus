@@ -39,6 +39,7 @@ class ModuleManager:
         for (name, content) in modules_info.items():
             self.__module_info_list[name] = \
                 ModuleInfo(name, content["alias"], 
+                    content.get("kinds", []),
                     content.get("default", "basic"),
                     content.get("path", ""),
                     content.get("modules", [])
@@ -46,6 +47,9 @@ class ModuleManager:
             
         # 2. 验证模块情况
         self.__check_modules()
+
+        # 3. 验证实现类型
+        self.__check_kinds()
 
         # 3. 加载模块对象
         for name in self.__module_name_list:
@@ -56,13 +60,6 @@ class ModuleManager:
                 self.__module_info_list[name].status = ModuleStatus.Stopped
 
         self.__is_loaded = True
-
-    def log(self, log: ModuleLog):
-        # TODO: 发送日志后的处理函数
-        
-        if self.__log_callback is not None:
-            self.__log_callback(log)
-        
 
     def __check_modules(self):
         # 验证模块是否存在, 并加载子模块的嵌套深度
@@ -104,8 +101,8 @@ class ModuleManager:
 
             depth += 1
 
-    # 子模块同意加载
-    def __dynamic_import_module(self, name: str):
+    # 子模块
+    def __dynamic_import_module(self, name: str, kind: str=None):
         # 1. 收集包路径
         names: List[str] = []
 
@@ -114,14 +111,66 @@ class ModuleManager:
             names.append(info.path)
         names.append(info.name)
 
-        if info.kind == NULL:
-            return None
-        elif info.kind != BASIC:
-            names.append(info.kind)
+        # 如果传输进来的实现类型为空，则读取 kind
+        if kind == None:
+            kind = info.kind
 
-        class_name = generate_name(info.name, info.kind)
+        if kind == NULL:
+            return None
+        elif kind != BASIC:
+            names.append(kind)
+
+        class_name = generate_name(name,kind)
 
         return import_module(".".join(names)).__getattribute__(class_name)
+
+    def __check_kinds(self):
+        for info in self.__module_info_list.values():
+            # 如果当前实现类型是基本类型，则只有一种实现类型，不需要校验
+            if info.kind == BASIC:
+                continue
+            
+            # 验证当前实现是否存咋支持的 kinds 中
+            if info.kind != NULL and info.kind not in info.kinds:
+                raise ValueError(f"the kind of implement '{kind}' is not supported ")                
+
+            # 验证对应子实现
+            for kind in info.kinds:
+                try: 
+                    # 如果能导入说明存在
+                    self.__dynamic_import_module(info.name, kind)
+                except ImportError:
+                    raise ValueError(f"the kind of implement '{kind}' does not exist")
+
+
+    def log(self, log: ModuleLog):
+        # TODO: 发送日志后的处理函数
+        
+        if self.__log_callback is not None:
+            self.__log_callback(log)
+
+    def change_module_kind(self, name: str, kind: str):
+        info = self.__module_info_list.get(name, None)
+
+        if info is None:
+            raise ValueError(f"module '{name}' not found")
+        
+        # 如果置空，则需要清空记录
+        if kind == NULL:
+            info.kind = NULL
+            info.status = ModuleStatus.NotLoaded
+            self.__module_object_list[name] = None
+            return
+        elif kind == BASIC:
+            if len(info.kinds) != 0:
+                raise ValueError(f"the module '{name}' is not single implementation")
+            return 
+        elif kind not in info.kinds:
+            raise ValueError(f"the kind of implement '{kind}' is not supported ")      
+
+        # 使用动态导入模块
+        info.kind = kind
+        self.__module_object_list[name] = self.__dynamic_import_module(name, kind)()
 
     ''' ----- Getter ----- '''
     
