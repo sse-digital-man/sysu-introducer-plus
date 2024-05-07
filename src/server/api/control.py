@@ -44,6 +44,20 @@ def stop(name: str):
 
     return "ok", 200
 
+
+@control_api.route("/module/change/<name>", methods=['PUT'])
+def change_module_kind(name: str):
+    data = request.get_json()
+    try:
+        kind = data["kind"]
+    except:
+        return Result.create(), 400
+
+    manager.change_module_kind(name, kind)
+
+    return "ok", 200
+
+
 @control_api.route("/module/status/<name>", methods=['GET'])
 def status(name: str):
     info = manager.info(name)
@@ -51,7 +65,17 @@ def status(name: str):
     if info is None:
         return Result.create(), 404
     
-    return Result.create(info={"status": info.status}), 200
+    return Result.create(data={"status": info.status}), 200
+
+
+@control_api.route("/module/info/<name>", methods=['GET'])
+def get_single_module(name: str):
+    info = manager.info(name)
+
+    if info is None:
+        return Result.create(), 404
+    
+    return Result.create(data={"info": info.to_dict()}), 200
 
 @control_api.route("/module/list/controllable", methods=['GET'])
 def get_controllable_module():
@@ -65,32 +89,27 @@ def get_controllable_module():
     result = []
 
     for info in infos:    
-        result.append({
-            "alias": info.alias,
-            "name": info.name,
-            "kind": info.kind,
-            "status": info.status
-        })
+        result.append(info.to_dict())
 
-    return Result.create(info={"list": result}), 200
+    return Result.create(data={"list": result}), 200
 
 @control_api.route("/module/list/all", methods=['GET'])
 def get_all_module():
-    return Result.create(info={"list": manager.module_info_list}), 200
-    
+    return Result.create(data={"list": manager.module_info_list}), 200
+
+
 @control_api.route("/module/config/<name>", methods=['GET'])
 def get_module_config(name: str):
     try:
         config_list = config.get(name)
-        kind_list = list(config_list.keys()) 
+        # kind_list = list(config_list.keys()) 
         
-        return Result.create(info={
+        return Result.create(data={
             "config": config_list, 
-            "kinds": kind_list
+            # "kinds": kind_list
         }), 200
     except KeyError:
         return Result.create(), 404
-
 
 @control_api.route("/module/config/<name>", methods=['PUT'])
 def modify_module_config(name: str):
