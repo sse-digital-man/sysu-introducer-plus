@@ -1,8 +1,11 @@
-from abc import ABCMeta, abstractmethod
-from typing import List, Dict, Tuple, Self, Callable
-from importlib import import_module
+from abc import abstractmethod
+from typing import List, Tuple, Callable, Self
 from threading import Thread
 
+from .interface import ModuleInterface
+from .manager import manager
+from .info import ModuleInfo, ModuleStatus
+from .log.module_status import ModuleStatusLog
 
 from utils.config import config
 
@@ -10,67 +13,18 @@ VIRTUAL = "virtual"
 BASIC = "basic"
 NULL = "null"
 
-
-def generate_name(name: str, kind: str):
-    if kind == None: kind = "basic"
-
-    return kind.title() + name.title()
-
-def import_module_dynamic(module: str | Dict[str, str]):
-    # 1. 收集包路径
-    names: List[str] = []
-
-    # 2. 设置基本路径，模块名的路径
-    if isinstance(module, str):
-        names.append("module")
-        names.append(module)
-        name = module
-    else:
-        path = module["path"]
-        name = module['name']
-
-        if path is not None:
-            names.append(path)
-        names.append(name)
-
-    # 3. 设置模块的类型
-    try:
-        kind = config.get_use_module(name)  
-        if isinstance(kind, str): 
-            names.append(kind) 
-    except:
-        kind = "basic"
-
-    if kind == "null":
-        return (name, None)
-
-    class_name = generate_name(name, kind)
-
-    # print(".".join(names), class_name)
-    return (name, import_module(".".join(names)).__getattribute__(class_name))
-
-
-class ModuleInterface(metaclass=ABCMeta):
-    def __init__(self, name: str, kind: str=BASIC):
-        """ 初始化函数
+class BasicModule(ModuleInterface):
+    def __init__(self, name: str):
+        """ 初始化函数，注意不要在此处编写过多地初始化操作
 
         Args:
             name (str): 模块名称
-            kind (str): 模块具体对应的类型
-            runKind (str): 
         """
         # 模块的基本信息
-        self.__is_running = False
-        self.__name = name
-        self.__kind = kind
+        super().__init__(name)
 
         # 线程相关
-        self.__threads: List[Thread] = []        
-
-        # 子模块相关的属性
-        self.__sub_modules_list: List[str|Dict[str, str]] = []
-        self._sub_modules: Dict[str, Self] = {}
-        self.__height = 0
+        self.__threads: List[Thread] = []  
 
     # 该函数主要由模块管理器统一进行管理，统一进行更新
     @abstractmethod
@@ -80,81 +34,51 @@ class ModuleInterface(metaclass=ABCMeta):
 
     # 如果验证成功则直接通过，失败则 raise 错误
     # 主要是用于是否能够正常启动模块
-    @abstractmethod
     def check(self) -> Tuple[bool, Exception]:
-        ...
+        return (True, None)
 
     # 启动模块单元
-    def start(self):
-        # 更新
+    def start(self, with_sub_modules: bool=True):
+        # 1. 首先启动启动子模块
+        self._before_starting()
+        self._set_status(ModuleStatus.Starting)
+
+        if with_sub_modules: 
+            for module in self._sub_module_list:
+                if module is not None:
+                    module.start()
+
+        # 2. 更新配置信息
         self._load_config()
 
-        # TODO: 显示模块加载情况
-        if self.__height == 0:
-            print("正在加载模块: ")
-        print(self.__height * "    " + self.label)
-
-        self._before_load_sub_modules()
-
-        # 循环启动各个子模块
-        self._load_sub_modules()
-
-        self._after_load_sub_modules()
-
-        for module in self._sub_modules.values():
-            if module is None:
-                continue
-
-            module.start()
-
-        # 运行模块自定义处理逻辑
-        self._before_running()
-
-        # 模块自检
+        # 3. 模块自检
         (flag, e) = self.check()
         if not flag:
             raise e if e!= None else SystemError(self.name, "check error")
         
-        # Notice: 只有所有程序启动成功之后 才能更新状态
-        self.__is_running = True
-
-        if self.__height == 0:
-            print("模块加载成功")
-
-        # 钩子函数
-        self._after_running()
+        # 4. 运行模块自定义处理逻辑
+        self._before_started()
+        
+        # 5. 钩子函数
+        self._set_status(ModuleStatus.Started)
+        self._after_started()
 
     # 停止模块单元
     def stop(self):
-        # 无论如何 最后都需要更新状态
-        self.__is_running = False
+        # 1. TODO: 先设置标志位
+        self._set_status(ModuleStatus.Stopping)
 
-        # 先关闭内部的线程处理
+        # 2. 关闭内部的线程处理
         for thread in self.__threads:
             thread.join()
 
-        for module in self._sub_modules.values():
+        # 3. 关闭子线程
+        for module in self._sub_module_list:
             if module is not None:
                 module.stop()
-    
-    # 添加子模块
-    def _load_sub_modules(self):
-        modules = self.__sub_modules_list
 
-        for module_info in modules:
-            (name, module_object) = import_module_dynamic(module_info)
-
-            module = module_object() if module_object != None else None
-            self._sub_modules[name] = module
-            if module is not None:
-                module.set_height(self.__height + 1)
-
-        # print("load: ", self._sub_modules)
+        self._set_status(ModuleStatus.Stopped)
         
-    # 根据 kind, name 自动获取系统配置信息
-    def _read_config(self) -> object:
-        return config.get_system_module(self.__name, self.__kind)
-    
     # 开辟一个线程用于处理
     def _make_thread(self, target: Callable):
         thread = Thread(target=target)
@@ -163,41 +87,58 @@ class ModuleInterface(metaclass=ABCMeta):
     
     ''' ----- Hook -----'''
     
-    def _before_load_sub_modules(self):
+    def _before_starting(self):
         pass
 
-    def _after_load_sub_modules(self):
+    def _before_started(self):
         pass
 
-    def _before_running(self):
-        pass
-
-    def _after_running(self):
+    def _after_started(self):
         pass
 
     ''' ----- Getter ----- '''
+    # 获取当前的模块信息
+    @property
+    def info(self) -> ModuleInfo:
+        return manager.info(self.name)
+    
+    @property
+    def status(self) -> ModuleStatus:
+        return self.info.status
+    
     @property
     def is_running(self) -> bool:
-        return self.__is_running
+        return self.status is ModuleStatus.Running
+    
+    @property
+    def _is_ready(self) -> bool:
+        """判断当前模块是否满足线程的运行条件, 主要模块内部可控制线程运行
 
-    @property
-    def kind(self) -> str:
-        return self.__kind
+        Returns:
+            bool: 结果
+        """
+        
+        return self.status in [ModuleStatus.Started, ModuleStatus.Starting]
+
+    # 获取子模块的对象
+    def _sub_module(self, name: str) -> Self:
+        if name not in manager.info(self.name).modules:
+            raise FileNotFoundError(f"{name} is not in {self.name}")
+
+        return manager.object(name)
     
     @property
-    def name(self) -> str:
-        return self.__name
+    def sub_module_list(self) -> List[str]:
+        return manager.info(self.name).modules
     
+    # 获取子模块对象的列表
     @property
-    def label(self, format: str="{name} [{kind}]") -> str:
-        return format.format(kind=self.__kind, name=self.__name)
+    def _sub_module_list(self) -> List[Self]:
+        sub_module_names = manager.info(self.name).modules
+        return [manager.object(name) for name in sub_module_names]
     
     ''' ----- Setter -----'''
-    def set_height(self, height: int):
-        self.__height = height
+    def _set_status(self, status: ModuleStatus):
+        self.info.status = status
 
-    def _set_sub_modules(self, modules: List[str]):
-        # Notice: 模块启动时也会按照如下顺序进行加载各个子模块
-        self.__sub_modules_list = modules
-
-    
+        manager.log(ModuleStatusLog(self.name, status))

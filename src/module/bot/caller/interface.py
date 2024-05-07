@@ -1,13 +1,13 @@
 from abc import ABCMeta, abstractmethod
 from typing import Tuple
-from ...interface import ModuleInterface
+from ...interface import BasicModule
 
-class CallerInterface(ModuleInterface, metaclass=ABCMeta):
+class CallerInterface(BasicModule, metaclass=ABCMeta):
     # Notice: 在抽象类中仅提供一个默认的 Prompt，不同的 LLM 可能需要分别优化
     default_system_prompt = "你现在是一名主播，请回答观众问题，请将回答控制在10字以内。"
 
-    def __init__(self, kind: str, system_prompt: str=None):
-        super().__init__("caller", kind)
+    def __init__(self, system_prompt: str=None):
+        super().__init__("caller")
         self._system_prompt = system_prompt if system_prompt != None \
             else CallerInterface.default_system_prompt
         

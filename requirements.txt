@@ -1,4 +1,5 @@
 flask
+websockets
 
 # blivedm
 aiohttp~=3.9.0
@@ -10,3 +11,6 @@ openai
 
 # config
 pyyaml
+
+# 表格化数据
+tabulate

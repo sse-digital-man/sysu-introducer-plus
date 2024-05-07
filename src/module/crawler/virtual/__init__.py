@@ -2,7 +2,7 @@ from typing import List
 import time
 
 from ...interface import VIRTUAL
-from ..interface import CrawlerInterface, CrawlerCallback
+from ..interface import CrawlerInterface
 
 DEFAULT_DELAY = 1
 
@@ -18,7 +18,7 @@ def file_to_list(path: str) -> List[str]:
 
 class VirtualCrawler(CrawlerInterface):
     def __init__(self):
-        super().__init__(VIRTUAL)
+        super().__init__()
 
         self.__messages = []
         self.__delay = DEFAULT_DELAY
@@ -32,10 +32,7 @@ class VirtualCrawler(CrawlerInterface):
         if len(self.__messages) == 0:
             print("[warning] messages is empty")
 
-    def check(self) -> bool:
-        return True
-
-    def _after_running(self):
+    def _before_started(self):
         self._make_thread(self.__generate_messages)
 
     def __generate_messages(self):
@@ -43,7 +40,7 @@ class VirtualCrawler(CrawlerInterface):
 
         n = len(self.__messages)
 
-        while self.is_running and n > 0:
+        while self._is_ready and n > 0:
             msg = self.__messages[index]
             self._receive_callback(msg)
 

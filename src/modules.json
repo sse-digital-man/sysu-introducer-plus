@@ -1,0 +1,32 @@
+{
+    "booter": {
+        "alias": "引导程序",
+        "modules": ["core", "crawler"]
+    },
+    "core": {
+        "alias": "核心",
+        "modules": ["bot"]
+    },
+    "bot": {
+        "alias": "大语言模型",
+        "path": "module",
+        "modules": ["caller", "searcher"]
+    },
+    "caller": {
+        "alias": "大语言模型调用器",
+        "path": "module.bot",
+        "kinds": ["gpt", "virtual"],
+        "default": "virtual"
+    },
+    "searcher": {
+        "alias": "文本检索器",
+        "path": "module.bot",
+        "default": "null"
+    },
+    "crawler": {
+        "alias": "直播间爬虫",
+        "path": "module",
+        "kinds": ["bilibili", "virtual"],
+        "default": "virtual"
+    }
+}
