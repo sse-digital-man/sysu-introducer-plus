@@ -1,70 +1,40 @@
-import subprocess
 import requests
+from typing import Dict, List
+from module.view.interface import ViewInterface
 
 
-class EasyAIVtuber:
-    def __init__(self, info: dict):
-        self.port = info['port']
-        self.url = f'http://localhost:{self.port}/alive'
-        self.beat = info['beat']
-        self.mouth_offset = info['mouth_offset']
-        self.process = None
-        self.character = info['character']
-        self.output_size = info['output_size']
-        self.simplify = info['simplify']
-        self.output_webcam = info['output_webcam']
-        self.model = info['model']
-        self.sleep = info['sleep']
-        self.port = info['port']
-        pass
+class EasyAIVtuber(ViewInterface):
+    def _load_config(self):
+        super()._load_config()
 
-    def start(self):
-        command = [
-            "python", "main.py",
-            "--character", str(self.character),
-            "--output_size", str(self.output_size),
-            "--simplify", str(self.simplify),
-            "--output_webcam", str(self.output_webcam),
-            "--model", str(self.model),
-            "--anime4k",
-            "--sleep", str(self.sleep),
-            "--port", str(self.port)
-        ]
-        # 通过cwd参数指定工作目录
-        self.process = subprocess.run(command, cwd='src/module/view/EasyAIVtuber/')
-
-    def stop(self):
-        self.process.kill()
-
-    def speack(self, speech_path: str) -> dict:
-        data = {}
-        data["type"] = "speak"
-        data["speech_path"] = speech_path
+    def speak(self, path: str, bgm_path: str = None, mouth_offset: float = None, beat: int = None) -> Dict[str, str]:
+        data = []
+        if bgm_path is None:
+            data["type"] = "speak"
+            data["speech_path"] = path
+        else:
+            if mouth_offset is None:
+                mouth_offset = self.mouth_offset
+            if beat is None:
+                beat = self.beat
+            data = {}
+            data["type"] = "sing"
+            data["music_path"] = bgm_path
+            data["voice_path"] = path
+            data["mouth_offset"] = mouth_offset
+            data["beat"] = beat
         return self.send_message(data)
 
-    def swing(self, music_path: str, beat: int = None):
+    def background_music(self, path: str, beat: int = None) -> Dict[str, str]:
         if beat is None:
             beat = self.beat
         data = {}
         data["type"] = "rhythm"
-        data["music_path"] = music_path
+        data["music_path"] = path
         data["beat"] = beat
         return self.send_message(data)
 
-    def sing(self, music_path: str, voice_path: str, mouth_offset: float = None, beat: int = None):
-        if mouth_offset is None:
-            mouth_offset = self.mouth_offset
-        if beat is None:
-            beat = self.beat
-        data = {}
-        data["type"] = "sing"
-        data["music_path"] = music_path
-        data["voice_path"] = voice_path
-        data["mouth_offset"] = mouth_offset
-        data["beat"] = beat
-        return self.send_message(data)
-
-    def stop_move(self):
+    def stop_move(self) -> Dict[str, str]:
         data = {
             "type": "stop"
         }
@@ -76,6 +46,6 @@ class EasyAIVtuber:
         data["img"] = img_path
         return self.send_message(data)
 
-    def send_message(self, data: dict) -> dict:
+    def send_message(self, data: dict) -> Dict[str, str]:
         res = requests.post(self.url, json=data)
         return res.json()
