@@ -1,6 +1,5 @@
 import sys
 sys.path.append("./src")
-from interface.view import view
-
+from module.view import view
 
 view.start()

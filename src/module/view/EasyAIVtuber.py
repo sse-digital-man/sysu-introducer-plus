@@ -19,10 +19,8 @@ class EasyAIVtuber:
         pass
 
     def start(self):
-        program_path = "src/interface/view/EasyAIVtuber/" + "main.py"
-        
         command = [
-            "python", program_path,
+            "python", "main.py",
             "--character", str(self.character),
             "--output_size", str(self.output_size),
             "--simplify", str(self.simplify),
@@ -32,7 +30,8 @@ class EasyAIVtuber:
             "--sleep", str(self.sleep),
             "--port", str(self.port)
         ]
-        self.process = subprocess.run(command)
+        # 通过cwd参数指定工作目录
+        self.process = subprocess.run(command, cwd='src/module/view/EasyAIVtuber/')
 
     def stop(self):
         self.process.kill()

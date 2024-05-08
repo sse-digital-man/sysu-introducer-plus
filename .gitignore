@@ -4,4 +4,4 @@ __pycache__
 
 config.json
 
-src/interface/view/data/
+src/module/view/data/
