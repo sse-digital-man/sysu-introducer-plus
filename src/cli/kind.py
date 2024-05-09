@@ -1,5 +1,10 @@
 from enum import Enum
 
+class UnknownCommandError(BaseException):
+    def __init__(self):
+        super().__init__("unknown command")
+
+
 class CommandKind(Enum):
     Start = "start"
     Stop = "stop"
