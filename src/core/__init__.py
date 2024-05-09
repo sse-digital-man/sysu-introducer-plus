@@ -36,7 +36,10 @@ class BasicCore(BasicModule):
     def _before_started(self):
         self._make_thread(self.__handle)
 
-    def send(self, text: Message):
+    def send(self, text: Message) -> bool:
         # 只有当处理核心运行时 才能向其添加消息
-        if self._is_ready:
+        if self.is_running:
             self.__msg_queue.push(text)
+            return True
+
+        return False
