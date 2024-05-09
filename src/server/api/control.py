@@ -4,13 +4,11 @@ from typing import Dict
 from flask import Blueprint, request
 
 from utils.config import config
-from booter import BasicBooter
 from module.interface.manager import manager
 
 from .result import Result
 
-booter = BasicBooter()
-
+booter = manager.object("booter")
 control_api = Blueprint('control_api', __name__)
 
 def check_module_can_control(name: str) -> bool:
@@ -30,7 +28,6 @@ def start(name: str):
         booter.start_sub_module(name)
 
     return "ok", 200
-    
 
 @control_api.route("/module/stop/<name>", methods=['POST'])
 def stop(name: str):
@@ -43,7 +40,6 @@ def stop(name: str):
         booter.stop_sub_module(name)
 
     return "ok", 200
-
 
 @control_api.route("/module/change/<name>", methods=['PUT'])
 def change_module_kind(name: str):
@@ -118,7 +114,7 @@ def modify_module_config(name: str):
 
         kind = data["kind"]
         content: Dict = data["content"]
-        
+
         config.update(name, kind, content, save=True)
     except BaseException:
         # 出现未知的
