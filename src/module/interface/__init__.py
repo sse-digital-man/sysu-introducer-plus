@@ -39,6 +39,10 @@ class BasicModule(ModuleInterface):
 
     # 启动模块单元
     def start(self, with_sub_modules: bool=True):
+        # 0. FIXME: 如果该模块已经运行则无需运行
+        if self._is_ready:
+            return
+
         # 1. 首先启动启动子模块
         self._before_starting()
         self._set_status(ModuleStatus.Starting)
@@ -78,6 +82,9 @@ class BasicModule(ModuleInterface):
                 module.stop()
 
         self._set_status(ModuleStatus.Stopped)
+
+    def _read_config(self) -> object:
+        return config.get(self.info.name, self.info.kind)
         
     # 开辟一个线程用于处理
     def _make_thread(self, target: Callable):
@@ -97,6 +104,10 @@ class BasicModule(ModuleInterface):
         pass
 
     ''' ----- Getter ----- '''
+    @property
+    def kind(self) -> str:
+        return self.info.kind; 
+
     # 获取当前的模块信息
     @property
     def info(self) -> ModuleInfo:
@@ -108,7 +119,7 @@ class BasicModule(ModuleInterface):
     
     @property
     def is_running(self) -> bool:
-        return self.status is ModuleStatus.Running
+        return self.status is ModuleStatus.Started
     
     @property
     def _is_ready(self) -> bool:

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Self
 from enum import Enum, IntEnum, unique
 
 class ModuleName(Enum):
@@ -16,6 +16,9 @@ class ModuleStatus(IntEnum):
     Starting = 2
     Started = 3
     Stopping = 4
+
+    def can_change(self: Self) -> bool:
+        return self in [ModuleStatus.NotLoaded, ModuleStatus.Stopped]
 
 moduleStatusMap = {
     ModuleStatus.NotLoaded: "未加载",

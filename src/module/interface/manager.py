@@ -156,6 +156,10 @@ class ModuleManager:
         if info is None:
             raise ValueError(f"module '{name}' not found")
         
+        # 判断模块状态是否可切换
+        if not ModuleStatus.can_change(info.status):
+            raise RuntimeError(f"module is '{info.status.name}', so it can't be changed")
+        
         # 如果置空，则需要清空记录
         if kind == NULL:
             info.kind = NULL
