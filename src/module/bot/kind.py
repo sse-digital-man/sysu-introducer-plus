@@ -6,4 +6,5 @@ class CallerKind(Enum):
     Virtual = "virtual"
 
 class SearcherKind(Enum):
+    ES = "ESSearcher"
     NULL = "null"

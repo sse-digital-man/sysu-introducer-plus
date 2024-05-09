@@ -16,7 +16,7 @@
         "alias": "大语言模型调用器",
         "path": "module.bot",
         "kinds": ["gpt", "virtual"],
-        "default": "virtual"
+        "default": "gpt"
     },
     "searcher": {
         "alias": "文本检索器",
