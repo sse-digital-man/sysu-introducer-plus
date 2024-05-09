@@ -2,8 +2,10 @@ from typing import List
 from tabulate import tabulate
 
 from module.interface.info import moduleStatusMap
+from core import BasicCore
+from message import Message, MessageKind
 from . import manager
-from .kind import UnknownCommandError
+from .kind import CommandHandleError, CommandUsageError
 
 booter = manager.object("booter")
 
@@ -16,7 +18,7 @@ def handle_start(args: List[str]):
         module = args[1]
         booter.start_sub_module(module)
     else:
-        raise UnknownCommandError("usage - start [name]")
+        raise CommandUsageError(args[0])
 
 # m
 def handle_stop(args: List[str] = ["stop"]):
@@ -28,7 +30,7 @@ def handle_stop(args: List[str] = ["stop"]):
         module = args[1]
         booter.stop_sub_module(module)
     else:
-        raise UnknownCommandError("usage - stop [name]")
+        raise CommandUsageError(args[0])
 
 
 def handle_status(args: List[str]):
@@ -53,7 +55,7 @@ def handle_status(args: List[str]):
                 row.append(cell)
             
             except KeyError:
-                raise KeyError(f"unknown field name '{header}'")
+                raise CommandHandleError(f"unknown field name '{header}'")
         
         rows.append(row)
 
@@ -70,4 +72,16 @@ def handle_change(args: List[str]):
 
         manager.change_module_kind(name, kind)
     except ValueError:
-        print("usage: change name kind")
+        raise CommandUsageError(args[0])
+
+def handle_send(args: List[str]):
+    try:
+        if len(args) != 2:
+            raise ValueError()
+        message = Message(MessageKind.Admin, eval(args[1]))
+    except:
+        raise CommandUsageError(args[0])
+
+    # 如果消息未能发送成功，则说明模块未启动
+    if not booter.send(message):
+        raise CommandHandleError("module is not running, can't send message")

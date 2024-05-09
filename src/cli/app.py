@@ -3,7 +3,7 @@ from typing import List
 from importlib import import_module
 
 from cli.args import args
-from cli.kind import check_cmd, UnknownCommandError
+from cli.kind import check_cmd, CommandHandleError, UnknownCommandError
 from cli.handler import handle_stop
 
 def print_error(e: Exception):
@@ -19,8 +19,8 @@ class CliApp:
         if args.auto and not self.__has_started:
             input_args = ["start"]
         # 是否运行初始化指令
-        if args.init and len(self.__initial_command) > 0:
-            input_args = self.__init_cmd.pop(0)
+        if args.init and len(self.__init_cmd) > 0:
+            input_args = self.__init_cmd.pop(0).split()
         else:
             input_args = input("> ").split()
 
@@ -35,18 +35,18 @@ class CliApp:
                 # 2. 验证指令非空，且存在
                 if len(input_args) == 0: 
                     continue
-                cmd = check_cmd(input_args[0])
-                if cmd == None:
+                cmd = input_args[0]
+                if not check_cmd(cmd):
                     raise UnknownCommandError()
 
                 # 3. 动态导入并调用处理函数
                 handle_function = \
-                    import_module("cli.handler").__getattribute__(f"handle_{cmd.value}")
+                    import_module("cli.handler").__getattribute__(f"handle_{cmd}")
 
                 handle_function(input_args)
 
-            # 未知指令不需要特殊处理
-            except UnknownCommandError as e:
+            # 当出现指令处理错误时 只需要打印即可
+            except CommandHandleError as e:
                 print_error(e)
             except InterruptedError:
                 # 退出程序时 应该先停止该程序
@@ -60,10 +60,7 @@ class CliApp:
 
 def main():
     # 初始化运行指令
-    initial_command = [
-        ["start", "core"], 
-        ["status"]
-    ]
+    initial_command = []
 
     app = CliApp(initial_command)
     app.handle()
