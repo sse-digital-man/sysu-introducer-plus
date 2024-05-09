@@ -57,7 +57,7 @@ def change_module_kind(name: str):
 
     return "ok", 200
 
-
+'''
 @control_api.route("/module/status/<name>", methods=['GET'])
 def status(name: str):
     info = manager.info(name)
@@ -96,7 +96,7 @@ def get_controllable_module():
 @control_api.route("/module/list/all", methods=['GET'])
 def get_all_module():
     return Result.create(data={"list": manager.module_info_list}), 200
-
+'''
 
 @control_api.route("/module/config/<name>", methods=['GET'])
 def get_module_config(name: str):
@@ -113,20 +113,16 @@ def get_module_config(name: str):
 
 @control_api.route("/module/config/<name>", methods=['PUT'])
 def modify_module_config(name: str):
-    data = request.get_json()
-
-    kind = data["kind"]
-    info: Dict = data["content"]
-
-    origin = config.get(name, kind).copy()
-
     try:
-        for (key, value) in info.items():
-            origin[key] = value
-    except KeyError:
+        data = request.get_json()
+
+        kind = data["kind"]
+        content: Dict = data["content"]
+        
+        config.update(name, kind, content, save=True)
+    except BaseException:
         # 出现未知的
         return Result.create(), 400
     
-    config.update(origin, name, kind, save=True)
 
     return Result.create(), 200
