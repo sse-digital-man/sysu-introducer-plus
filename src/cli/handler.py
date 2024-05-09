@@ -2,23 +2,34 @@ from typing import List
 from tabulate import tabulate
 
 from module.interface.info import moduleStatusMap
-from . import booter, manager
+from . import manager
+from .kind import UnknownCommandError
+
+booter = manager.object("booter")
 
 def handle_start(args: List[str]):
     length = len(args)
     # 如果运行没有参数，则运行所有参数
     if length == 1:
         booter.start()
-    else:
+    elif length == 2:
         module = args[1]
         booter.start_sub_module(module)
-
-def handle_stop(args: List[str]):
-    if len(args) == 1:
-        booter.stop()
     else:
+        raise UnknownCommandError("usage - start [name]")
+
+# m
+def handle_stop(args: List[str] = ["stop"]):
+    length = len(args)
+
+    if length == 1:
+        booter.stop()
+    elif length == 2:
         module = args[1]
         booter.stop_sub_module(module)
+    else:
+        raise UnknownCommandError("usage - stop [name]")
+
 
 def handle_status(args: List[str]):
     info_list = manager.module_info_list

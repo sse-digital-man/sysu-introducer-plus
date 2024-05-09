@@ -1,8 +1,11 @@
 from enum import Enum
 
 class UnknownCommandError(BaseException):
-    def __init__(self):
-        super().__init__("unknown command")
+    def __init__(self, *args):
+        if len(args) == 0:
+            args = ["unknown command"]
+
+        super().__init__(*args)
 
 
 class CommandKind(Enum):
