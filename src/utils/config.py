@@ -21,8 +21,12 @@ class Config:
 
     #     return result
     
-    def get(self, name: str, kind: str) -> Dict:
-        return Config._data[name][kind]
+    def get(self, name: str, kind: str=None) -> Dict:
+        # 返回 模块的所有配置信息
+        if kind is None:
+            return Config._data[name]
+        else:
+            return Config._data[name][kind]
         
     def update(self, name: str, kind: str, content: Dict, save: bool=False):
         origin = self.get(name, kind).copy()
