@@ -4,9 +4,8 @@ from typing import List, Dict
 from .. import BasicModule
 
 class SearcherInterface(BasicModule, metaclass=ABCMeta):
-    Kind = "searcher"
-    def __init__(self, name: str):
-        super().__init__(self.Kind, name)
+    def __init__(self):
+        super().__init__("searcher")
 
     @abstractmethod
     def search(self, query: str, size: int) -> List[str]:
