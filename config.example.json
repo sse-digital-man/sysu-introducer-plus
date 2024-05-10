@@ -1,31 +1,32 @@
 {
-    "system": {
-        "interface": {
-            "live": {
-                "bilibili": {
-                    "roomId": 0
-                }
-            }
+    "crawler": {
+        "bilibili": {
+            "roomId": 0
         },
-        "module": {
-            "llm": {
-                "gpt": {
-                    "apiKey": "",
-                    "url": ""
-                },
-                "virtual": {
-                    "delay": 1000,
-                    "isRandom": true
-                }
-            }
+        "virtual": {
+            "delay": 1000,
+            "messages_path": "./data/test_messages.txt"
         }
     },
-    "use": {
-        "interface": {},
-        "module": {
-            "llm": {
-                "kind": "virtual"
-            }
+    "caller": {
+        "gpt": {
+            "apiKey": "sk-xxx",
+            "url": "https://api.chatanywhere.tech/v1"
+        },
+        "virtual": {
+            "delay": 1000,
+            "isRandom": true
+        }
+    },
+    "view": {
+        "basic": {
+            "character": "lambda_00",
+            "output_size": "512x512",
+            "simplify": 1,
+            "output_webcam": "obs",
+            "model": "standard_half",
+            "sleep": 20,
+            "port": 7888
         }
     }
 }
