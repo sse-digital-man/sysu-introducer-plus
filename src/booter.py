@@ -1,7 +1,6 @@
 from message import Message, MessageKind
 
 from module.interface import BasicModule
-from module.interface.info import ModuleStatus
 from module.crawler import CrawlerInterface
 
 '''
@@ -34,6 +33,6 @@ class BasicBooter(BasicModule):
         # 验证当前是否只有最后一个启动
         self._sub_module(name).stop()
 
-    def send(self, message: Message):
-        self._sub_module("core").send(message)
+    def send(self, message: Message) -> bool:
+        return self._sub_module("core").send(message)
 

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Self
 from enum import Enum, IntEnum, unique
 
 class ModuleName(Enum):
@@ -17,6 +17,9 @@ class ModuleStatus(IntEnum):
     Started = 3
     Stopping = 4
 
+    def can_change(self: Self) -> bool:
+        return self in [ModuleStatus.NotLoaded, ModuleStatus.Stopped]
+
 moduleStatusMap = {
     ModuleStatus.NotLoaded: "未加载",
     ModuleStatus.Stopped: "未运行",
@@ -27,14 +30,22 @@ moduleStatusMap = {
 
 
 class ModuleInfo:
-    def __init__(self, name: str, alias: str, kinds: List[str]=[],
-                kind: str="basic", path: str="", modules: List[str]=[]):
+    def __init__(self, name: str, alias: str, 
+        kinds: List[str]=[], kind: str="basic", 
+        notNull: bool=True,
+        path: str="", modules: List[str]=[]
+    ):
         # 基本信息
         self.__name = name
         self.__alias = alias
         self.__kind = kind
+        self.__kinds: List[str] = kinds
+        self.__notNull = notNull
         self.__path = path
-        self.__kinds = kinds
+
+        # Notice: 当这个模块支持空时 则需要添加空值类型
+        if not notNull:
+            self.__kinds.insert(0, "null")
 
         # 子模块信息
         self.__modules = modules
@@ -72,6 +83,10 @@ class ModuleInfo:
     def kinds(self) -> List[str]:
         """返回支持的实现类型列表"""
         return self.__kinds
+    
+    @property
+    def notNull(self) -> bool:
+        return self.__notNull
 
     @property
     def path(self) -> str:
