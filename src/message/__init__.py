@@ -4,9 +4,10 @@ class MessageKind(IntEnum):
     Watcher = 0
     Admin = 1
     Command = 2
+    Assistant = 3
 
 message_kind_map = {
-    0: "观众", 1: "管理员", 2: "指令"
+    0: "观众", 1: "管理员", 2: "指令", 3: "数字人"
 }
 
 class Message:
