@@ -10,12 +10,14 @@ class Result:
             "code": code
         }
 
+
 class ResultResponse(Response):
-    default_mimetype = "application/json"
+    default_mimetype = "text/html; charset=utf-8"
 
     @classmethod
     def force_type(cls, response: Response, environ: dict[str, Any] | None = None) -> Response:
         if isinstance(response, dict):
-            response(jsonify(response))
+            response = jsonify(response)
+            response.headers['Content-Type'] = "application/json"
 
         return super(ResultResponse, cls).force_type(response, environ)

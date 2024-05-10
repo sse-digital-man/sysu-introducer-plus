@@ -21,7 +21,8 @@
     "searcher": {
         "alias": "文本检索器",
         "path": "module.bot",
-        "default": "null"
+        "default": "null",
+        "notNull": false
     },
     "crawler": {
         "alias": "直播间爬虫",

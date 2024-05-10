@@ -8,3 +8,6 @@ cc.zh.300.bin
 data/chromadb
 
 src/interface/view/data/
+
+# webui 控制器静态文件
+static

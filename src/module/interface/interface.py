@@ -1,8 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import List, Dict, Tuple, Self, Callable
-from threading import Thread
-
-from utils.config import config
+from typing import Tuple
 
 class ModuleInterface(metaclass=ABCMeta):
     def __init__(self, name: str):
@@ -15,16 +12,6 @@ class ModuleInterface(metaclass=ABCMeta):
         """
         # 模块的基本信息
         self.__name = name
-        # self.__kind = kind
-
-        # 线程相关
-        self.__threads: List[Thread] = []        
-
-    # 该函数主要由模块管理器统一进行管理，统一进行更新
-    @abstractmethod
-    def _load_config(self):
-        # 需要每次更新配置文件以保证最新
-        pass
 
     # 如果验证成功则直接通过，失败则 raise 错误
     # 主要是用于是否能够正常启动模块
@@ -40,21 +27,12 @@ class ModuleInterface(metaclass=ABCMeta):
     @abstractmethod
     def stop(self):
         ...
-        
-    # 根据 kind, name 自动获取系统配置信息
-    def _read_config(self) -> object:
-        return config.get(self.info.name, self.info.kind)
     
-    # 开辟一个线程用于处理
-    def _make_thread(self, target: Callable):
-        thread = Thread(target=target)
-        self.__threads.append(thread)
-        thread.start()
-
     ''' ----- Getter ----- '''
     @property
+    @abstractmethod
     def kind(self) -> str:
-        return self.__kind
+        ...
     
     @property
     def name(self) -> str:
@@ -62,4 +40,9 @@ class ModuleInterface(metaclass=ABCMeta):
     
     @property
     def label(self, format: str="{alias} ({kind})") -> str:
-        return format.format(alias=self._info.alias, kind=self._info.kind)
+        ...
+    
+    @property
+    @abstractmethod
+    def is_running(self) -> bool:
+        ...
