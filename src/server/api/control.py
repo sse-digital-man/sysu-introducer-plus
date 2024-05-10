@@ -1,10 +1,8 @@
-import sys; sys.path.append("src") 
-
 from typing import Dict
 from flask import Blueprint, request
 
 from utils.config import config
-from module.interface.manager import manager
+from server import manager
 
 from .result import Result
 
@@ -88,11 +86,11 @@ def get_controllable_module():
         result.append(info.to_dict())
 
     return Result.create(data={"list": result}), 200
+'''
 
 @control_api.route("/module/list/all", methods=['GET'])
 def get_all_module():
     return Result.create(data={"list": manager.module_info_list}), 200
-'''
 
 @control_api.route("/module/config/<name>", methods=['GET'])
 def get_module_config(name: str):
