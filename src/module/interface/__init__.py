@@ -5,7 +5,7 @@ from threading import Thread
 from .interface import ModuleInterface
 from .manager import manager
 from .info import ModuleInfo, ModuleStatus
-from .log.module_status import ModuleStatusLog
+from .log import ModuleStatusLog
 
 from utils.config import config
 
