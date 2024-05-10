@@ -10,6 +10,8 @@
     "bot": {
         "alias": "大语言模型",
         "path": "module",
+        "kinds": ["basic", "simple"],
+        "default": "simple",
         "modules": ["caller", "searcher"]
     },
     "caller": {
@@ -21,7 +23,8 @@
     "searcher": {
         "alias": "文本检索器",
         "path": "module.bot",
-        "default": "null",
+        "kinds": ["es"],
+        "default": "es",
         "notNull": false
     },
     "crawler": {
