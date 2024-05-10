@@ -1,21 +1,5 @@
-from flask import Flask
-
-from api.account import account_api
-from api.control import control_api
-from api.result import ResultResponse
-from ws import WSServer
-from module.interface.manager import manager
-
-app = Flask(__name__)
-app.register_blueprint(account_api)
-app.register_blueprint(control_api)
-# 自定义返回类型
-app.response_class = ResultResponse
-
-ws_server = WSServer()
-
-manager.load_modules()
-manager.set_log_callback(lambda log: ws_server.send(log.to_json()))
+import sys; sys.path.append("src") 
+from server import ws_server, app
 
 def run():
     ws_server.start()

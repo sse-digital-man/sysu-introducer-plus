@@ -41,6 +41,7 @@ class ModuleManager:
                 ModuleInfo(name, content["alias"], 
                     content.get("kinds", []),
                     content.get("default", "basic"),
+                    content.get("notNull", True),
                     content.get("path", ""),
                     content.get("modules", [])
                 )
@@ -131,7 +132,7 @@ class ModuleManager:
                 continue
             
             # 验证当前实现是否存咋支持的 kinds 中
-            if info.kind != NULL and info.kind not in info.kinds:
+            if info.kind not in info.kinds:
                 raise ValueError(f"the kind of implement '{kind}' is not supported ")                
 
             # 验证对应子实现
@@ -154,6 +155,10 @@ class ModuleManager:
 
         if info is None:
             raise ValueError(f"module '{name}' not found")
+        
+        # 判断模块状态是否可切换
+        if not ModuleStatus.can_change(info.status):
+            raise RuntimeError(f"module is '{info.status.name}', so it can't be changed")
         
         # 如果置空，则需要清空记录
         if kind == NULL:

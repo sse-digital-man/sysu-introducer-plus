@@ -1,4 +1,5 @@
 from abc import ABCMeta
+from typing import Dict
 from enum import IntEnum
 
 import json
@@ -11,13 +12,14 @@ class ModuleLogKind(IntEnum):
     Message = 2
 
 class ModuleLog(metaclass=ABCMeta):
-    def __init__(self, kind: ModuleLogKind):
+    def __init__(self, kind: ModuleLogKind, content: Dict):
         self.kind = kind
+        self.content = content
 
     def to_json(self) -> str:
-        json_object = {}
+        data = {
+            "kind": self.kind,
+            "content": self.content
+        }
 
-        for (key, value) in vars(self).items():
-            json_object[key] = value
-
-        return json.dumps(json_object)
+        return json.dumps(data)
