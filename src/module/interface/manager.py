@@ -1,4 +1,4 @@
-from typing import Dict, List, Callable
+from typing import Dict, List, Tuple, Callable
 from importlib import import_module
 
 from utils.file import load_json
@@ -150,32 +150,51 @@ class ModuleManager:
         if self.__log_callback is not None:
             self.__log_callback(log)
 
-    def change_module_kind(self, name: str, kind: str):
+    def change_module_kind(self, name: str, kind: str) -> Tuple[bool, ModuleStatus]:
+        """切换模块的实现类型，并返回是否切换成功
+
+        Args:
+            name (str): 模块名称
+            kind (str): 模块实现类型
+
+        Raises:
+            FileNotFoundError: 模块不存在
+            ValueError: 模块实现类型不支持
+
+        Returns:
+            Tuple[bool, ModuleStatus]: 是否切换成功、当前状态（切换成功为空）
+        """
         info = self.__module_info_list.get(name, None)
 
         if info is None:
-            raise ValueError(f"module '{name}' not found")
+            raise FileNotFoundError(f"module '{name}' not found")
         
         # 判断模块状态是否可切换
-        if not ModuleStatus.can_change(info.status):
-            raise RuntimeError(f"module is '{info.status.name}', so it can't be changed")
+        cur_status = info.status
+        if not ModuleStatus.can_change(cur_status):
+            # raise RuntimeError(f"module is '{info.status.name}', so it can't be changed", info.status)
+            return False, cur_status
         
         # 如果置空，则需要清空记录
         if kind == NULL:
             info.kind = NULL
             info.status = ModuleStatus.NotLoaded
             self.__module_object_list[name] = None
-            return
-        elif kind == BASIC:
-            if len(info.kinds) != 0:
-                raise ValueError(f"the module '{name}' is not single implementation")
-            return 
+            return True, None
+        # 模块不限定 basic 只存在一种实现类型，其只作为最基本的实现类型
+        # elif kind == BASIC:
+        #     if len(info.kinds) != 0:
+        #         raise ValueError(f"the module '{name}' is not single implementation")
+        #     return 
         elif kind not in info.kinds:
             raise ValueError(f"the kind of implement '{kind}' is not supported ")      
 
         # 使用动态导入模块
         info.kind = kind
         self.__module_object_list[name] = self.__dynamic_import_module(name, kind)()
+
+        # FIXME: 使用抛出异常解决运行不成功的问题
+        return True, None
 
     ''' ----- Getter ----- '''
     
