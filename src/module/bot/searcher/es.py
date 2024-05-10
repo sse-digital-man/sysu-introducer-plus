@@ -18,7 +18,7 @@ class EsSearcher(SearcherInterface):
         Returns:
             List[str]: 文本列表 [text1, text2, text3, ...]
         """
-        dsl = {"query": {"match": {"document": query}}, "size": size}
+        dsl = {"query": {"match": {"query": query}}, "size": size}
         search_res = self._es.search(index=self._es_index, body=dsl)
         res = []
         # 遍历得到前size个相似问题

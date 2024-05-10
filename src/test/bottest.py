@@ -39,7 +39,7 @@ if __name__ == '__main__':
                 writer.writerow([line, res, end - start])
                 print("----回答的问题:", line)
                 print("----time:", end - start)
-                print("----回答为:", res, "\n\n")
+                print("----回答为:", res, "\n")
             except openai.APITimeoutError: 
                 print("timeout")
                 pass
