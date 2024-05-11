@@ -4,7 +4,9 @@ __pycache__
 
 config.json
 
-data
+data/music
+
+data/sound
 
 # webui 控制器静态文件
 static

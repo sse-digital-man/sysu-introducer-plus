@@ -30,7 +30,7 @@
         "kinds": ["bilibili", "virtual"],
         "default": "virtual"
     },
-    "render": {
+    "renderer": {
         "alias": "人物渲染器",
         "path": "module",
         "kinds": ["easyaivtuber"],

@@ -4,8 +4,8 @@ from typing import List, Dict
 from module.interface import BasicModule
 
 
-class RenderInterface(BasicModule, metaclass=ABCMeta):
-    Kind = "render"
+class RendererInterface(BasicModule, metaclass=ABCMeta):
+    Kind = "renderer"
 
     def __init__(self):
         super().__init__(self.Kind)

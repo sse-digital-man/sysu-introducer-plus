@@ -1,14 +1,14 @@
 import subprocess
 import requests
 from typing import Dict
-from module.render.interface import RenderInterface
+from module.renderer.interface import RendererInterface
 
 
 def get_url(port: str) -> str:
     return f'http://localhost:{port}/alive'
 
 
-class EasyaivtuberRender(RenderInterface):
+class EasyaivtuberRenderer(RendererInterface):
     def __init__(self):
         super().__init__()
 
@@ -18,7 +18,7 @@ class EasyaivtuberRender(RenderInterface):
         self.__url = get_url(7888)
         self.__beat = 1
         self.__mouth_offset = 0.
-        self.__work_dir = 'src/module/render/EasyAIVtuber/'
+        self.__work_dir = 'src/module/renderer/EasyAIVtuber/'
 
     def _load_config(self):
         # 该函数的父类函数是抽象函数

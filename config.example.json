@@ -18,7 +18,7 @@
             "isRandom": true
         }
     },
-    "render": {
+    "renderer": {
         "easyaivtuber": {
             "character": "lambda_05",
             "output_size": "512x512",
@@ -28,8 +28,7 @@
             "sleep": -1,
             "port": 7888,
             "beat": 1,
-            "mouth_offset": 0.0,
-            "work_dir": "src/module/view/EasyAIVtuber/"
+            "mouth_offset": 0.0
         }
     }
 }
