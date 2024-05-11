@@ -6,5 +6,8 @@ config.json
 
 src/interface/view/data/
 
+# speaker sound
+data/sound
+
 # webui 控制器静态文件
 static
