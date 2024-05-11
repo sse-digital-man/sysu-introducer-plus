@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import List, Tuple, Callable, Self
+from typing import List, Tuple, Dict, Callable, Self
 from threading import Thread
 
 from .interface import ModuleInterface
@@ -83,7 +83,7 @@ class BasicModule(ModuleInterface):
 
         self._set_status(ModuleStatus.Stopped)
 
-    def _read_config(self) -> object:
+    def _read_config(self) -> Dict:
         return config.get(self.info.name, self.info.kind)
         
     # 开辟一个线程用于处理
