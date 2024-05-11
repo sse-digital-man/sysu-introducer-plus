@@ -12,6 +12,7 @@ elasticsearch
 
 # tts module
 azure-cognitiveservices-speech
+lxml
 
 # renderer module
 requests
