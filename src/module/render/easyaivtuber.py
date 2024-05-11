@@ -1,14 +1,14 @@
 import subprocess
 import requests
 from typing import Dict
-from module.view.interface import ViewInterface
+from module.render.interface import RenderInterface
 
 
 def get_url(port: str) -> str:
     return f'http://localhost:{port}/alive'
 
 
-class EasyaivtuberView(ViewInterface):
+class EasyaivtuberRender(RenderInterface):
     def __init__(self):
         super().__init__()
 
@@ -18,7 +18,7 @@ class EasyaivtuberView(ViewInterface):
         self.__url = get_url(7888)
         self.__beat = 1
         self.__mouth_offset = 0.
-        self.__work_dir = 'src/module/view/EasyAIVtuber/'
+        self.__work_dir = 'src/module/render/EasyAIVtuber/'
 
     def _load_config(self):
         # 该函数的父类函数是抽象函数
@@ -27,7 +27,7 @@ class EasyaivtuberView(ViewInterface):
 
         def is_startup_arg(name: str) -> bool:
             # 排除非启动参数
-            return not (name in ["beat", "mouth_offset", "work_dir"])
+            return not (name in ["beat", "mouth_offset"])
 
         # 1. 设置启动参数
         for key, value in info.items():
@@ -38,7 +38,6 @@ class EasyaivtuberView(ViewInterface):
         self.__url = get_url(info["port"])
         self.__beat = info['beat']
         self.__mouth_offset = info['mouth_offset']
-        self.__work_dir = info['work_dir']
 
     def _run_command(self):
         command = ["python", "main.py"]

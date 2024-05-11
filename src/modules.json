@@ -30,8 +30,8 @@
         "kinds": ["bilibili", "virtual"],
         "default": "virtual"
     },
-    "view": {
-        "alias": "视图",
+    "render": {
+        "alias": "人物渲染器",
         "path": "module",
         "kinds": ["easyaivtuber"],
         "default": "easyaivtuber"

@@ -1,5 +1,5 @@
 from enum import Enum
 
 
-class ViewKind(Enum):
+class RenderKind(Enum):
     EasyAIVtuber = 'easyaivtuber'
