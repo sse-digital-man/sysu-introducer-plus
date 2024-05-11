@@ -5,7 +5,7 @@
     },
     "core": {
         "alias": "核心",
-        "modules": ["bot"]
+        "modules": ["bot", "speaker"]
     },
     "bot": {
         "alias": "大语言模型",
