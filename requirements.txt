@@ -8,6 +8,7 @@ yarl~=1.9.3
 
 # llm module
 openai
+elasticsearch
 
 # tts module
 azure-cognitiveservices-speech

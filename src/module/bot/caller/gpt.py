@@ -1,7 +1,6 @@
 import openai
 
 from .interface import CallerInterface
-from ..kind import CallerKind
 
 # Migration Guide: https://github.com/openai/openai-python/discussions/742
 
@@ -9,7 +8,7 @@ class GptCaller(CallerInterface):
     model_type = "gpt-3.5-turbo"
 
     def __init__(self):
-        super().__init__(CallerKind.GPT.value)
+        super().__init__()
 
         self.__client = openai.OpenAI(
             api_key="",
