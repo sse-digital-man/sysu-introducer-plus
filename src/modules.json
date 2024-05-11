@@ -28,5 +28,11 @@
         "path": "module",
         "kinds": ["bilibili", "virtual"],
         "default": "virtual"
+    },
+    "view": {
+        "alias": "视图",
+        "path": "module",
+        "kinds": ["easyaivtuber"],
+        "default": "easyaivtuber"
     }
 }
