@@ -5,10 +5,8 @@ from module.interface import BasicModule
 
 
 class RendererInterface(BasicModule, metaclass=ABCMeta):
-    Kind = "renderer"
-
     def __init__(self):
-        super().__init__(self.Kind)
+        super().__init__()
 
     @abstractmethod
     def speak(self, path: str) -> Dict[str, str]:
