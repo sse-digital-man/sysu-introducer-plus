@@ -30,5 +30,10 @@
             "beat": 1,
             "mouth_offset": 0.0
         }
+    },
+    "speaker": {
+        "basic": {
+            "apiKey": "xxx"
+        }
     }
 }

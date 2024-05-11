@@ -8,5 +8,8 @@ data/music
 
 data/sound
 
+# speaker sound
+data/sound
+
 # webui 控制器静态文件
 static

@@ -1,27 +1,28 @@
-from abc import abstractmethod
-from typing import List, Tuple, Dict, Callable, Self
+from abc import abstractmethod, ABCMeta
+from typing import List, Dict, Tuple, Callable, Self
 from threading import Thread
 
-from .interface import ModuleInterface
-from .manager import manager
-from .info import ModuleInfo, ModuleStatus
-from .log import ModuleStatusLog
+from .info import ModuleStatus
 
 from utils.config import config
 
-VIRTUAL = "virtual"
-BASIC = "basic"
-NULL = "null"
-
-class BasicModule(ModuleInterface):
-    def __init__(self, name: str):
+class BasicModule(metaclass=ABCMeta):
+    def __init__(self):
         """ 初始化函数，注意不要在此处编写过多地初始化操作
 
         Args:
             name (str): 模块名称
         """
         # 模块的基本信息
-        super().__init__(name)
+        super().__init__()
+
+        # 依赖注入
+        self.__name = None
+        self.__kind = None
+        self.__status = ModuleStatus.NotLoaded
+        self.__sub_modules: Dict[str, Self | None]
+
+        self.__hasInjected = False
 
         # 线程相关
         self.__threads: List[Thread] = []  
@@ -37,54 +38,8 @@ class BasicModule(ModuleInterface):
     def check(self) -> Tuple[bool, Exception]:
         return (True, None)
 
-    # 启动模块单元
-    def start(self, with_sub_modules: bool=True):
-        # 0. FIXME: 如果该模块已经运行则无需运行
-        if self._is_ready:
-            return
-
-        # 1. 首先启动启动子模块
-        self._before_starting()
-        self._set_status(ModuleStatus.Starting)
-
-        if with_sub_modules: 
-            for module in self._sub_module_list:
-                if module is not None:
-                    module.start()
-
-        # 2. 更新配置信息
-        self._load_config()
-
-        # 3. 模块自检
-        (flag, e) = self.check()
-        if not flag:
-            raise e if e!= None else SystemError(self.name, "check error")
-        
-        # 4. 运行模块自定义处理逻辑
-        self._before_started()
-        
-        # 5. 钩子函数
-        self._set_status(ModuleStatus.Started)
-        self._after_started()
-
-    # 停止模块单元
-    def stop(self):
-        # 1. TODO: 先设置标志位
-        self._set_status(ModuleStatus.Stopping)
-
-        # 2. 关闭内部的线程处理
-        for thread in self.__threads:
-            thread.join()
-
-        # 3. 关闭子线程
-        for module in self._sub_module_list:
-            if module is not None:
-                module.stop()
-
-        self._set_status(ModuleStatus.Stopped)
-
     def _read_config(self) -> Dict:
-        return config.get(self.info.name, self.info.kind)
+        return config.get(self.name, self.kind)
         
     # 开辟一个线程用于处理
     def _make_thread(self, target: Callable):
@@ -105,17 +60,16 @@ class BasicModule(ModuleInterface):
 
     ''' ----- Getter ----- '''
     @property
-    def kind(self) -> str:
-        return self.info.kind; 
+    def name(self) -> str:
+        return self.__name
 
-    # 获取当前的模块信息
     @property
-    def info(self) -> ModuleInfo:
-        return manager.info(self.name)
-    
+    def kind(self) -> str:
+        return self.__kind
+
     @property
     def status(self) -> ModuleStatus:
-        return self.info.status
+        return self.__status
     
     @property
     def is_running(self) -> bool:
@@ -133,23 +87,48 @@ class BasicModule(ModuleInterface):
 
     # 获取子模块的对象
     def _sub_module(self, name: str) -> Self:
-        if name not in manager.info(self.name).modules:
+        try:
+            # Notice: 不能直接比较 None, 因为未加载的模块返回为空
+            return self.__sub_modules[name]
+        except:
             raise FileNotFoundError(f"{name} is not in {self.name}")
-
-        return manager.object(name)
     
     @property
     def sub_module_list(self) -> List[str]:
-        return manager.info(self.name).modules
+        return list(self.__sub_modules.keys())
     
     # 获取子模块对象的列表
     @property
     def _sub_module_list(self) -> List[Self]:
-        sub_module_names = manager.info(self.name).modules
-        return [manager.object(name) for name in sub_module_names]
+        return list(self.__sub_modules.values())
     
     ''' ----- Setter -----'''
-    def _set_status(self, status: ModuleStatus):
-        self.info.status = status
 
-        manager.log(ModuleStatusLog(self.name, status))
+
+    ''' ----- 管理器依赖注入 ----- '''
+
+    def inject(self, name: str, kind: str, sub_modules: Dict[str, Self]):
+        """管理器初次注入信息
+
+        Args:
+            name (str): 模块名称
+            kind (str): 模块实现类型
+            sub_modules (Dict[str, Self]): 子模块对象指针
+        """
+
+        if self.__hasInjected:
+            raise RuntimeError("object of module has been injected")
+
+        self.__name = name
+        self.__kind = kind
+        self.__sub_modules = sub_modules
+
+        self.__hasInjected = True
+
+    def update_status(self, status: ModuleStatus):
+        self.__status = status
+
+    def update_sub_module(self, sub_module: Self):
+        self.__sub_modules[sub_module.name] = sub_module
+
+        

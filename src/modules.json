@@ -1,28 +1,37 @@
 {
     "booter": {
         "alias": "引导程序",
-        "modules": ["core", "crawler"]
+        "modules": ["core", "crawler", "speaker"]
     },
     "core": {
         "alias": "核心",
-        "modules": ["bot"]
+        "modules": ["bot", "speaker"]
     },
     "bot": {
         "alias": "大语言模型",
         "path": "module",
+        "kinds": ["basic", "simple"],
+        "default": "simple",
         "modules": ["caller", "searcher"]
     },
     "caller": {
         "alias": "大语言模型调用器",
         "path": "module.bot",
         "kinds": ["gpt", "virtual"],
-        "default": "virtual"
+        "default": "gpt"
     },
     "searcher": {
         "alias": "文本检索器",
         "path": "module.bot",
-        "default": "null",
+        "kinds": ["es"],
+        "default": "es",
         "notNull": false
+    },
+    "speaker": {
+        "alias": "文本转语音",
+        "path": "module",
+        "kinds": ["basic"],
+        "default": "basic"
     },
     "crawler": {
         "alias": "直播间爬虫",
