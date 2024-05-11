@@ -28,5 +28,10 @@
             "sleep": 20,
             "port": 7888
         }
+    },
+    "speaker": {
+        "basic": {
+            "apiKey": "xxx"
+        }
     }
 }

@@ -41,6 +41,10 @@ class BasicCore(BasicModule):
                 to_admin=message.kind == MessageKind.Admin
             ))
 
+            # 生成语音
+            speech = self._sub_module("speaker").speak(response)
+            print("speech:", speech)
+
         # 核心处理完毕之后 清除消息队列
         self.__msg_queue.clear()
 

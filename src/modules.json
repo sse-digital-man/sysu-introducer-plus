@@ -1,11 +1,11 @@
 {
     "booter": {
         "alias": "引导程序",
-        "modules": ["core", "crawler"]
+        "modules": ["core", "crawler", "speaker"]
     },
     "core": {
         "alias": "核心",
-        "modules": ["bot"]
+        "modules": ["bot", "speaker"]
     },
     "bot": {
         "alias": "大语言模型",
@@ -32,5 +32,11 @@
         "path": "module",
         "kinds": ["bilibili", "virtual"],
         "default": "virtual"
+    },
+    "speaker": {
+        "alias": "文本转语音",
+        "path": "module",
+        "kinds": ["basic"],
+        "default": "basic"
     }
 }
