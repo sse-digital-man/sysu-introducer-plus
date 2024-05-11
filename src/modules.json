@@ -24,8 +24,14 @@
         "alias": "文本检索器",
         "path": "module.bot",
         "kinds": ["es"],
-        "default": "es",
+        "default": "null",
         "notNull": false
+    },
+    "speaker": {
+        "alias": "文本转语音",
+        "path": "module",
+        "kinds": ["basic"],
+        "default": "basic"
     },
     "crawler": {
         "alias": "直播间爬虫",
@@ -33,10 +39,10 @@
         "kinds": ["bilibili", "virtual"],
         "default": "virtual"
     },
-    "speaker": {
-        "alias": "文本转语音",
+    "renderer": {
+        "alias": "人物渲染器",
         "path": "module",
-        "kinds": ["basic"],
-        "default": "basic"
+        "kinds": ["easyaivtuber"],
+        "default": "easyaivtuber"
     }
 }

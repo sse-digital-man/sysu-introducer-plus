@@ -38,7 +38,7 @@ class BasicModule(metaclass=ABCMeta):
     def check(self) -> Tuple[bool, Exception]:
         return (True, None)
 
-    def _read_config(self) -> object:
+    def _read_config(self) -> Dict:
         return config.get(self.name, self.kind)
         
     # 开辟一个线程用于处理
