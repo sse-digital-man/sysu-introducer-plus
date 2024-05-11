@@ -8,7 +8,7 @@ from module.interface import BasicModule
 
 class BasicSpeaker(BasicModule):
     def __init__(self):
-        super().__init__("speaker")
+        super().__init__()
 
         self.__output_dir = './data/sound'
 
