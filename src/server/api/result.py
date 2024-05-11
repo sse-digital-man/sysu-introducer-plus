@@ -13,8 +13,11 @@ class ErrorCode(Enum):
     # 模块相关错误
     ModuleNotFound =( 201, "模块不存在", 404)
     ModuleUncontrollable = (202, "模块不可控", 400)
-    ModuleStatusNotSupported = (203, "模块状态不支持", 200)
+    ModuleStatusNotSupported = (203, "模块状态不支持", 400)
     ModuleConfigEmpty = (204, "模块无配置信息", 200)
+    ModuleConfigItemNotFound = (205, "模块配置信息条目不存在", 404),
+    ModuleConfigItemTypeUnmatched = (206, "模块信息条目类型不匹配", 400)
+    ModuleKindNotFound = (207, "模块实现类型不存在", 404)
 
 class Result:
     @staticmethod
