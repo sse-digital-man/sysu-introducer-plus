@@ -63,8 +63,7 @@ class ModuleInfo:
             "name": self.name,
             "kind": self.kind,
             "kinds": self.kinds,
-            "status": self.status,
-            "modules": self.modules
+            "modules": self.sub_modules
         }        
 
     ''' ---- Getter ------ '''

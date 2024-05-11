@@ -22,7 +22,7 @@ def generate_name(name: str, kind: str):
     return kind.title() + name.title()
 
 class ModuleManageCell:
-    def __init__(self, info: ModuleInfo, module: BasicModule=None, sub_modules: List[BasicModule]=[]):
+    def __init__(self, info: ModuleInfo, module: BasicModule=None, sub_modules: Dict[str, BasicModule]={}):
         self.info = info;
         self.module = module
         self.sub_modules = sub_modules
@@ -50,7 +50,7 @@ class ModuleManager:
             )
             
             self.__module_cells[name] = ModuleManageCell(info)
-            
+
         # 2. 验证模块情况
         self.__check_modules()
 
@@ -64,17 +64,20 @@ class ModuleManager:
             if module_object != None:
                 cell.module = module_object()
                 cell.status = ModuleStatus.Stopped
-                
+
         # 4. 加载子模块
         for (name, cell) in self.__module_cells.items():
             if cell.module == None:
                 continue
-            
+
             # 遍历加载所有子模块
             for sub_module in cell.info.sub_modules:
-                cell.sub_modules.append(
-                    self.__module_cells[sub_module].module
-                )
+                cell.sub_modules[sub_module] = self.__module_cells[sub_module].module
+        
+        # 5. 依赖注入
+        for cell in self.__module_cells.values():
+            if cell.module != None:
+                cell.module.inject(cell.info.name, cell.info.kind, cell.sub_modules);
 
         self.__is_loaded = True
 
@@ -194,13 +197,12 @@ class ModuleManager:
 
         # 1. 首先启动启动子模块
         module = cell.module
-        module._before_started()
+        module._before_starting()
         self._update_status(cell, ModuleStatus.Starting)
 
         if with_sub_modules: 
-            for sub_module in module.sub_module_list:
-                if sub_module is not None:
-                    sub_module.start()
+            for sub_name, sub_module in cell.sub_modules.items():
+                if sub_module != None: self.start(sub_name)
 
         # 2. 更新配置信息
         module._load_config()
@@ -241,15 +243,15 @@ class ModuleManager:
         # 1. 先设置标志位
         self._update_status(cell, ModuleStatus.Stopping)
 
-        module = cell.module
+        # module = cell.module
 
         # # 2. 关闭内部的线程处理
         # for thread in module.__threads:
         #     thread.join()
 
         # 3. 关闭子线程
-        for sub_module in module :
-            if sub_module is not None: sub_module.stop()
+        for sub_name, sub_module in cell.sub_modules.items():
+            if sub_module != None: self.stop(sub_name)
         self._update_status(cell, ModuleStatus.Stopped)
 
         return True, None
@@ -348,9 +350,12 @@ class ModuleManager:
     ''' ----- Setter -----'''
 
     def _update_status(self, cell: ModuleManageCell, new_status: ModuleStatus):
+        name = cell.info.name
+
         # Notice: 必须使用该函数进行更新状态
         cell.status = new_status
-        self.log(ModuleStatusLog(cell.info.name, new_status))
+        cell.module.update_status(new_status)
+        self.log(ModuleStatusLog(name, new_status))
 
     def set_log_callback(self, callback: LogCallBack):
         self.__log_callback = callback

@@ -13,7 +13,7 @@ from module.crawler import CrawlerInterface
 '''
 class BasicBooter(BasicModule):
     def __init__(self):
-        super().__init__("booter")
+        super().__init__()
         
     def _load_config(self):
         pass
