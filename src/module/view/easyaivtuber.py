@@ -3,38 +3,44 @@ import requests
 from typing import Dict
 from module.view.interface import ViewInterface
 
+def get_url(port: str) -> str:
+    return f'http://localhost:{port}/alive'
 
 class EasyaivtuberView(ViewInterface):
     def __init__(self):
         super().__init__()
-        info = self._read_config()
-        self.port = info['port']
-        self.url = f'http://localhost:{self.port}/alive'
-        self.beat = info['beat']
-        self.mouth_offset = info['mouth_offset']
+
+        # 设置启动参数
+        self.__startup_args = {}
+
+        self.__url = get_url(7888)
+        self.__beat = 1
+        self.__mouth_offset = 0.
 
     def _load_config(self):
-        super()._load_config()
+        # 该函数的父类函数是抽象函数
+        # super()._load_config()
         info = self._read_config()
-        self.character = info['character']
-        self.output_size = info['output_size']
-        self.simplify = info['simplify']
-        self.output_webcam = info['output_webcam']
-        self.model = info['model']
-        self.sleep = info['sleep']
+
+        def is_startup_arg(name: str) -> bool:
+            # 排除非启动参数
+            return not (name in ["beat", "mouth_offset"])
+        
+        # 1. 设置启动参数
+        for key, value in info.items():
+            if is_startup_arg(key):
+                self.__startup_args[key] = value
+
+        # 2. 设置生成参数
+        self.__url = get_url(info["port"])
+        self.__beat = info['beat']
+        self.__mouth_offset = info['mouth_offset']
 
     def _run_command(self):
-        command = [
-            "python", "main.py",
-            "--character", str(self.character),
-            "--output_size", str(self.output_size),
-            "--simplify", str(self.simplify),
-            "--output_webcam", str(self.output_webcam),
-            "--model", str(self.model),
-            "--anime4k",
-            "--sleep", str(self.sleep),
-            "--port", str(self.port)
-        ]
+        command = [ "python", "main.py" ]
+        for key, value in self.__startup_args.items():
+            command.extend([f"--{key}", value])
+        
         # 通过cwd参数指定工作目录
         subprocess.run(
             command, cwd='src/module/view/EasyAIVtuber/')
@@ -57,8 +63,8 @@ class EasyaivtuberView(ViewInterface):
             data["type"] = "sing"
             data["music_path"] = bgm_path
             data["voice_path"] = path
-            data["mouth_offset"] = mouth_offset
-            data["beat"] = beat
+            data["mouth_offset"] = self.__mouth_offset
+            data["beat"] = self.__beat
         print(data)
         return self.send_message(data)
 
@@ -68,7 +74,7 @@ class EasyaivtuberView(ViewInterface):
         data = {}
         data["type"] = "rhythm"
         data["music_path"] = path
-        data["beat"] = beat
+        data["beat"] = self.__beat
         return self.send_message(data)
 
     def stop_move(self) -> Dict[str, str]:
@@ -84,5 +90,5 @@ class EasyaivtuberView(ViewInterface):
         return self.send_message(data)
 
     def send_message(self, data: dict) -> Dict[str, str]:
-        res = requests.post(self.url, json=data)
+        res = requests.post(self.__url, json=data)
         return res.json()
