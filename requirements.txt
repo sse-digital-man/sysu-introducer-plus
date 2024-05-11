@@ -9,9 +9,12 @@ yarl~=1.9.3
 # llm module
 openai
 
+# tts module
+azure-cognitiveservices-speech
+
 # config
 pyyaml
 
-# è¡¨æ ¼åŒ–æ•°æ®
+# ±í¸ñ»¯Êı¾İ
 tabulate
 wcwidth
