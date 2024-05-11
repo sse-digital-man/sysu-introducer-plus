@@ -31,9 +31,9 @@ moduleStatusMap = {
 
 class ModuleInfo:
     def __init__(self, name: str, alias: str, 
-        kinds: List[str]=[], kind: str="basic", 
-        notNull: bool=True,
-        path: str="", modules: List[str]=[]
+        kinds: List[str], kind: str, 
+        notNull: bool,
+        path: str, sub_modules: List[str]
     ):
         # 基本信息
         self.__name = name
@@ -44,15 +44,18 @@ class ModuleInfo:
         self.__path = path
 
         # Notice: 当这个模块支持空时 则需要添加空值类型
+        if len(kinds) == 0 and kind == "basic":
+            self.__kinds.append("basic")
+
         if not notNull:
             self.__kinds.insert(0, "null")
 
-        # 子模块信息
-        self.__modules = modules
+        # 子模块信息, Notice: Info 是存储对象无关的信息
+        self.__sub_modules = sub_modules
         self.__depth = -1
 
         # 运行状态信息
-        self.__status: ModuleStatus = ModuleStatus.NotLoaded 
+        # self.__status: ModuleStatus = ModuleStatus.NotLoaded 
 
     def to_dict(self):
         return {
@@ -93,16 +96,16 @@ class ModuleInfo:
         return self.__path
 
     @property
-    def modules(self) -> List[str]:
-        return self.__modules
+    def sub_modules(self) -> List[str]:
+        return self.__sub_modules
     
     @property
     def depth(self) -> int:
         return self.__depth
     
-    @property
-    def status(self) -> ModuleStatus:
-        return self.__status
+    # @property
+    # def status(self) -> ModuleStatus:
+    #     return self.__status
 
     ''' ---- Setter ------ '''
 
@@ -114,6 +117,6 @@ class ModuleInfo:
     def depth(self, depth: int):
         self.__depth = depth
 
-    @status.setter
-    def status(self, status: ModuleStatus):
-        self.__status = status
+    # @status.setter
+    # def status(self, status: ModuleStatus):
+    #     self.__status = status

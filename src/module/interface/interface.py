@@ -17,16 +17,6 @@ class ModuleInterface(metaclass=ABCMeta):
     # 主要是用于是否能够正常启动模块
     def check(self) -> Tuple[bool, Exception]:
         return (True, None)
-
-    # 启动模块单元
-    @abstractmethod
-    def start(self):
-        ...
-
-    # 停止模块单元
-    @abstractmethod
-    def stop(self):
-        ...
     
     ''' ----- Getter ----- '''
     @property

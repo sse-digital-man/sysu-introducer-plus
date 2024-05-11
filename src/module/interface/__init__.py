@@ -3,7 +3,6 @@ from typing import List, Tuple, Callable, Self
 from threading import Thread
 
 from .interface import ModuleInterface
-from .manager import manager
 from .info import ModuleInfo, ModuleStatus
 from .log import ModuleStatusLog
 
@@ -36,76 +35,6 @@ class BasicModule(ModuleInterface):
     # 主要是用于是否能够正常启动模块
     def check(self) -> Tuple[bool, Exception]:
         return (True, None)
-
-    # 启动模块单元
-    def start(self, with_sub_modules: bool=True) -> Tuple[bool, ModuleStatus]:
-        """启动模块
-
-        Args:
-            with_sub_modules (bool, optional): 是否自动运行子模块. Defaults to True.
-
-        Returns:
-            bool: 是否运行成功，当前的状态（运行成功为None）
-        """
-
-        # 0. 如果当前模块状态不是在停止状态 则不能停止
-        cur_status = self.status
-        if cur_status != ModuleStatus.Stopped:
-            return False, cur_status
-
-        # 1. 首先启动启动子模块
-        self._before_starting()
-        self._set_status(ModuleStatus.Starting)
-
-        if with_sub_modules: 
-            for module in self._sub_module_list:
-                if module is not None:
-                    module.start()
-
-        # 2. 更新配置信息
-        self._load_config()
-
-        # 3. 模块自检
-        (flag, e) = self.check()
-        if not flag:
-            raise e if e!= None else SystemError(self.name, "check error")
-        
-        # 4. 运行模块自定义处理逻辑
-        self._before_started()
-        
-        # 5. 钩子函数
-        self._set_status(ModuleStatus.Started)
-        self._after_started()
-
-        return True, None
-
-    # 停止模块单元
-    def stop(self) -> bool:
-        """停止模块
-
-        Returns:
-            bool: 是否停止成功，当前的状态（停止成功为None）
-        """
-
-        cur_status = self.status
-        if cur_status != ModuleStatus.Started:
-            return False, cur_status
-
-        # 1. 先设置标志位
-        self._set_status(ModuleStatus.Stopping)
-
-        # 2. 关闭内部的线程处理
-        for thread in self.__threads:
-            thread.join()
-
-        # 3. 关闭子线程
-        for module in self._sub_module_list:
-            if module is not None:
-                module.stop()
-
-        self._set_status(ModuleStatus.Stopped)
-
-        return True, None
 
     def _read_config(self) -> object:
         return config.get(self.info.name, self.info.kind)
@@ -173,7 +102,3 @@ class BasicModule(ModuleInterface):
         return [manager.object(name) for name in sub_module_names]
     
     ''' ----- Setter -----'''
-    def _set_status(self, status: ModuleStatus):
-        self.info.status = status
-
-        manager.log(ModuleStatusLog(self.name, status))
