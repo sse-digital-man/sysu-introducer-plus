@@ -50,6 +50,8 @@ class ModuleInfo:
         if not notNull:
             self.__kinds.insert(0, "null")
 
+        self.__parent_module = None
+
         # 子模块信息, Notice: Info 是存储对象无关的信息
         self.__sub_modules = sub_modules
         self.__depth = -1
@@ -95,6 +97,10 @@ class ModuleInfo:
         return self.__path
 
     @property
+    def parent_module(self) -> str:
+        return self.__parent_module
+
+    @property
     def sub_modules(self) -> List[str]:
         return self.__sub_modules
     
@@ -115,6 +121,10 @@ class ModuleInfo:
     @depth.setter
     def depth(self, depth: int):
         self.__depth = depth
+
+    @parent_module.setter
+    def parent_module(self, name: str):
+        self.__parent_module = name
 
     # @status.setter
     # def status(self, status: ModuleStatus):
