@@ -1,4 +1,3 @@
-from .kind import CallerKind
 from ..interface import BasicModule
 
 
@@ -12,7 +11,4 @@ class BasicBot(BasicModule):
         pass
 
     def talk(self, query: str) -> str:
-        return self._sub_module("caller").single_call(query)
-    
-    def caller_kind(self) -> CallerKind:
-        return self._caller.kind
+        return self._sub_module("caller").single_call(query , True)
