@@ -1,7 +1,7 @@
 from typing import Dict
 from flask import Blueprint, request
 
-from module.interface.info import moduleStatusMap
+from module.interface.info import moduleStatusMap, ModuleName
 from utils.config import config
 from server import manager
 
@@ -9,12 +9,12 @@ from .result import Result, ErrorCode
 
 control_api = Blueprint('control_api', __name__)
 
-booter = manager.object("booter")
+BOOTER = ModuleName.Booter.value
 
 def check_module_can_control(name: str) -> bool:
-    if manager.object(name) == None:
+    if manager.module(name) == None:
         return Result.create(code=ErrorCode.ModuleNotFound)
-    elif name == "booter" or name in booter.sub_module_list:
+    elif name == "booter" or name in manager.info(BOOTER).sub_modules:
         # 目前只有 booter 与其子模块才可以单独地启动的暂停
         return None
     else:
@@ -29,11 +29,9 @@ def start(name: str, control: str):
         return result
     
     if control == "start":
-        flag, status = booter.start_sub_module(name) \
-            if name != "booter" else booter.start()
+        flag, status = manager.start(name) 
     elif control == "stop":
-        flag, status = booter.stop_sub_module(name) \
-            if name != "booter" else booter.stop()
+        flag, status = manager.stop(name) 
     
     # 如果模块启动失败，则说明是当前状态不支持
     if not flag:
@@ -67,26 +65,42 @@ def change_module_kind(name: str):
     data = request.get_json()
     try:
         kind = data["kind"]
-    except:
+    except KeyError:
         return Result.create(code=ErrorCode.KeyDataMissing)
+    
+    # 验证模块状态是否修改成功
+    try:
+        flag, status = manager.change_module_kind(name, kind)
+    except FileNotFoundError:
+        return Result.create(code=ErrorCode.ModuleNotFound)
+    except ValueError:
+        return Result.create(code=ErrorCode.ModuleKindNotFound)
 
-    manager.change_module_kind(name, kind)
+    return Result.create() if flag else \
+        Result.create(
+            code=ErrorCode.ModuleStatusNotSupported,
+            data={"status": status}
+        )
 
-    return Result.create()
 
 @control_api.route("/module/config/<name>", methods=['PUT'])
 def modify_module_config(name: str):
+    
+    data = request.get_json()
     try:
-        data = request.get_json()
-
         kind = data["kind"]
         content: Dict = data["content"]
+    except:
+        return Result.create(code=ErrorCode.KeyDataMissing)
 
+    try:
         config.update(name, kind, content, save=True)
-    except BaseException:
-        # 出现未知的
-        return Result.create()
-    
+    except KeyError:
+        # 出现未知的配置信息条目
+        return Result.create(code=ErrorCode.ModuleConfigItemNotFound)
+    except TypeError:
+        # 配置信息条目不匹配
+        return Result.create(code=ErrorCode.ModuleConfigItemTypeUnmatched)      
 
     return Result.create()
 
@@ -135,11 +149,11 @@ def get_all_module():
 def get_module_config(name: str):
     try:
         config_list = config.get(name)
-        # kind_list = list(config_list.keys()) 
-        
-        return Result.create(data={
-            "config": config_list, 
-            # "kinds": kind_list
-        })
     except KeyError:
-        return Result.create(code=ErrorCode.ModuleConfigEmpty)
+        config_list = {}
+        
+    return Result.create(
+        code=ErrorCode.ModuleConfigEmpty \
+            if len(config_list) == 0 else ErrorCode.Ok,
+        data={ "config": config_list })
+
