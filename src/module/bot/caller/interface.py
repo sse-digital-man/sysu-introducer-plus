@@ -8,7 +8,7 @@ class CallerInterface(BasicModule, metaclass=ABCMeta):
 
 
     def __init__(self, system_prompt: str=None):
-        super().__init__("caller")
+        super().__init__()
         self._system_prompt = system_prompt if system_prompt != None \
             else CallerInterface.default_system_prompt
         

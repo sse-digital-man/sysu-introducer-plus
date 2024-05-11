@@ -9,7 +9,7 @@ from module.interface import BasicModule
 
 class BasicCore(BasicModule):
     def __init__(self):
-        super().__init__("core")
+        super().__init__()
     
         # 初始化消息队列
         self.__msg_queue = MessageQueue()
