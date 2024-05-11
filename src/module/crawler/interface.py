@@ -2,8 +2,6 @@ from collections.abc import Callable
 
 from ..interface import BasicModule
 
-CRAWLER = "crawler"
-
 CrawlerCallback = Callable[[str], None]
 
 class CrawlerInterface(BasicModule):
@@ -13,7 +11,7 @@ class CrawlerInterface(BasicModule):
             name(str): 模块具体的实现方式
             receive_callback (function): 接收到消息的回调函数
         """
-        super().__init__(CRAWLER)
+        super().__init__()
         self._receive_callback = lambda message: None
 
     def _load_config(self):

@@ -7,7 +7,7 @@ class CallerInterface(BasicModule, metaclass=ABCMeta):
     default_system_prompt = "你现在是一名主播，请回答观众问题，请将回答控制在10字以内。"
 
     def __init__(self, system_prompt: str=None):
-        super().__init__("caller")
+        super().__init__()
         self._system_prompt = system_prompt if system_prompt != None \
             else CallerInterface.default_system_prompt
         
