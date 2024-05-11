@@ -6,8 +6,6 @@ config.json
 
 data/music
 
-data/sound
-
 # speaker sound
 data/sound
 
