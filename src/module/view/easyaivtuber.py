@@ -3,8 +3,10 @@ import requests
 from typing import Dict
 from module.view.interface import ViewInterface
 
+
 def get_url(port: str) -> str:
     return f'http://localhost:{port}/alive'
+
 
 class EasyaivtuberView(ViewInterface):
     def __init__(self):
@@ -16,6 +18,7 @@ class EasyaivtuberView(ViewInterface):
         self.__url = get_url(7888)
         self.__beat = 1
         self.__mouth_offset = 0.
+        self.__work_dir = 'src/module/view/EasyAIVtuber/'
 
     def _load_config(self):
         # 该函数的父类函数是抽象函数
@@ -24,8 +27,8 @@ class EasyaivtuberView(ViewInterface):
 
         def is_startup_arg(name: str) -> bool:
             # 排除非启动参数
-            return not (name in ["beat", "mouth_offset"])
-        
+            return not (name in ["beat", "mouth_offset", "work_dir"])
+
         # 1. 设置启动参数
         for key, value in info.items():
             if is_startup_arg(key):
@@ -35,15 +38,16 @@ class EasyaivtuberView(ViewInterface):
         self.__url = get_url(info["port"])
         self.__beat = info['beat']
         self.__mouth_offset = info['mouth_offset']
+        self.__work_dir = info['work_dir']
 
     def _run_command(self):
-        command = [ "python", "main.py" ]
+        command = ["python", "main.py"]
         for key, value in self.__startup_args.items():
-            command.extend([f"--{key}", value])
-        
+            command.extend([f"--{key}", str(value)])
+
         # 通过cwd参数指定工作目录
         subprocess.run(
-            command, cwd='src/module/view/EasyAIVtuber/')
+            command, cwd=self.__work_dir)
 
     def _before_started(self):
         super()._before_started()
@@ -56,21 +60,20 @@ class EasyaivtuberView(ViewInterface):
             data["speech_path"] = path
         else:
             if mouth_offset is None:
-                mouth_offset = self.mouth_offset
+                mouth_offset = self.__mouth_offset
             if beat is None:
-                beat = self.beat
+                beat = self.__beat
             data = {}
             data["type"] = "sing"
             data["music_path"] = bgm_path
             data["voice_path"] = path
             data["mouth_offset"] = self.__mouth_offset
             data["beat"] = self.__beat
-        print(data)
         return self.send_message(data)
 
     def background_music(self, path: str, beat: int = None) -> Dict[str, str]:
         if beat is None:
-            beat = self.beat
+            beat = self.__beat
         data = {}
         data["type"] = "rhythm"
         data["music_path"] = path
