@@ -10,12 +10,12 @@ class BasicSpeaker(BasicModule):
     def __init__(self):
         super().__init__("speaker")
 
-        self.__output_dir = './data/speech'
+        self.__output_dir = './data/sound'
 
     def _load_config(self):
         info = self._read_config()
         self.speech_config = speechsdk.SpeechConfig(
-            subscription=info['ms_subscription_key'], region='eastasia')
+            subscription=info['apiKey'], region='eastasia')
 
         # TODO 找到合适的声音，考虑使用SSML来风格化
         self.speech_config.speech_synthesis_voice_name = 'zh-CN-XiaohanNeural'
@@ -44,7 +44,7 @@ class BasicSpeaker(BasicModule):
 
         if reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
             stream = AudioDataStream(speech_synthesis_result)
-            stream.save_to_wav_file(self.speech_file_path)
+            stream.save_to_wav_file(output_path)
             # print(f"BasicSpeaker speak for text: {text}")
             # print(f"File saved at: {self.speech_file_path}")
 
@@ -62,5 +62,5 @@ class BasicSpeaker(BasicModule):
                     
         return output_path
     
-    def __generate_filename() -> str:
+    def __generate_filename(self) -> str:
         return datetime.now().strftime("BasicSpeaker-%Y%m%d%H%M%S") + '.wav'
