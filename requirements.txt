@@ -14,3 +14,4 @@ pyyaml
 
 # 表格化数据
 tabulate
+wcwidth

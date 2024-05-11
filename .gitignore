@@ -5,3 +5,6 @@ __pycache__
 config.json
 
 data
+
+# webui 控制器静态文件
+static
