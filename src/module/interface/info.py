@@ -1,4 +1,4 @@
-from typing import List, Self
+from typing import List, Dict, Self
 from enum import Enum, IntEnum, unique
 
 class ModuleName(Enum):
@@ -33,7 +33,7 @@ class ModuleInfo:
     def __init__(self, name: str, alias: str, 
         kinds: List[str], kind: str, 
         notNull: bool,
-        path: str, sub_modules: List[str]
+        path: str, submodules: List[str]
     ):
         # 基本信息
         self.__name = name
@@ -50,13 +50,12 @@ class ModuleInfo:
         if not notNull:
             self.__kinds.insert(0, "null")
 
-        self.__parent_module = None
-
-        # 子模块信息, Notice: Info 是存储对象无关的信息
-        self.__sub_modules = sub_modules
+        # 记录父子模块的关系 (只存储模块名, 不存储对象)
+        self.__sup: str = None
+        self.__sub: List[str] = submodules
         self.__depth = -1
 
-        # 运行状态信息
+        # 运行状态信息 (运行阶段的状态, 不再此处存储)
         # self.__status: ModuleStatus = ModuleStatus.NotLoaded 
 
     def to_dict(self):
@@ -65,7 +64,7 @@ class ModuleInfo:
             "name": self.name,
             "kind": self.kind,
             "kinds": self.kinds,
-            "modules": self.sub_modules
+            "modules": self.sub
         }        
 
     ''' ---- Getter ------ '''
@@ -97,12 +96,12 @@ class ModuleInfo:
         return self.__path
 
     @property
-    def parent_module(self) -> str:
-        return self.__parent_module
+    def sup(self) -> str:
+        return self.__sup
 
     @property
-    def sub_modules(self) -> List[str]:
-        return self.__sub_modules
+    def sub(self) -> List[str]:
+        return self.__sub
     
     @property
     def depth(self) -> int:
@@ -122,9 +121,9 @@ class ModuleInfo:
     def depth(self, depth: int):
         self.__depth = depth
 
-    @parent_module.setter
-    def parent_module(self, name: str):
-        self.__parent_module = name
+    @sup.setter
+    def sup(self, name: str):
+        self.__sup = name
 
     # @status.setter
     # def status(self, status: ModuleStatus):

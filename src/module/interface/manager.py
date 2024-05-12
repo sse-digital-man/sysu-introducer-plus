@@ -23,11 +23,30 @@ def generate_name(name: str, kind: str):
 
 class ModuleManageCell:
     def __init__(self, info: ModuleInfo):
-        self.info = info;
-        self.module = None
-        self.parent: BasicModule | None = None
-        self.sub_modules = {}
+        self.info = info
         self.status: ModuleStatus = ModuleStatus.NotLoaded
+
+        # 模块对象指针
+        self.module: BasicModule = None
+
+        # 记录管理单元的父子关系
+        self.sup: ModuleManageCell | None = None
+        self.sub: Dict[str, ModuleManageCell] = {}
+
+    @property
+    def name(self) -> str:
+        return self.info.name
+
+    def inject(self):
+        """将模块管理单元中包含的信息注入到其模块对象中
+
+        """
+        
+        if self.module == None:
+            return
+        
+        submodules = { name: child_cell.module for name, child_cell in self.sub.items() }
+        self.module.inject(self.info.name, self.info.kind, submodules)
 
 class ModuleManager:
     def __init__(self):
@@ -72,17 +91,16 @@ class ModuleManager:
                 continue
 
             # 遍历加载所有子模块
-            for sub_module in cell.info.sub_modules:
+            for submodule in cell.info.sub:
                 # 在父模块中添加子模块
-                cell.sub_modules[sub_module] = self.__module_cells[sub_module].module
+                cell.sub[submodule] = self.__module_cells[submodule]
                 # 在子模块中添加父模块
-                self.__module_cells[sub_module].parent = cell.module
+                self.__module_cells[submodule].sup = cell
         
         # 5. 依赖注入
         for cell in self.__module_cells.values():
-            if cell.module != None:
-                cell.module.inject(cell.info.name, cell.info.kind, cell.sub_modules);
-
+            cell.inject()
+            
         self.__is_loaded = True
 
     def __check_modules(self):
@@ -90,15 +108,15 @@ class ModuleManager:
         in_degree = dict.fromkeys(self._module_name_list, 0)
 
         for cell in self.__module_cells.values():
-            for sub_module in cell.info.sub_modules:
-                sub_cell =  self.__module_cells.get(sub_module, None)
+            for submodule in cell.info.sub:
+                sub_cell =  self.__module_cells.get(submodule, None)
                 if sub_cell is None:
-                    raise FileNotFoundError(f"{sub_module} in {info.name} not found")
+                    raise FileNotFoundError(f"{submodule} in {cell.name} not found")
                 
-                in_degree[sub_module] = in_degree.get(sub_module) + 1
+                in_degree[submodule] = in_degree.get(submodule) + 1
 
                 # 设置 ModuleInfo 中子节点指向父节点的指针
-                sub_cell.info.parent_module = cell.info.name
+                sub_cell.info.sup = cell.name
 
         # 如果没有入度为 0 的节点，说明存在循环依赖
         queue = []
@@ -120,11 +138,11 @@ class ModuleManager:
                 info = self.__module_cells[name].info
                 info.depth = depth
 
-                for sub_module in info.sub_modules:
-                    in_degree[sub_module] -= 1
+                for submodule in info.sub:
+                    in_degree[submodule] -= 1
 
-                    if in_degree[sub_module] == 0:
-                        queue.append(sub_module)
+                    if in_degree[submodule] == 0:
+                        queue.append(submodule)
 
             depth += 1
 
@@ -183,12 +201,12 @@ class ModuleManager:
     ''' ----- 模块控制 ----- '''
 
     # 启动模块单元
-    def start(self, name: str, with_sub_modules: bool=True) -> Tuple[bool, ModuleStatus]:
+    def start(self, name: str, with_submodules: bool=True) -> Tuple[bool, ModuleStatus]:
         """启动模块
 
         Args:
             name (str): 模块名称
-            with_sub_modules (bool, optional): 是否自动运行子模块. Defaults to True.
+            with_submodules (bool, optional): 是否自动运行子模块. Defaults to True.
 
         Returns:
             bool: 是否运行成功，当前的状态（运行成功为None）
@@ -208,9 +226,9 @@ class ModuleManager:
         module._before_starting()
         self._update_status(cell, ModuleStatus.Starting)
 
-        if with_sub_modules: 
-            for sub_name, sub_module in cell.sub_modules.items():
-                if sub_module != None: self.start(sub_name)
+        if with_submodules: 
+            for sub_name, submodule in cell.sub.items():
+                if submodule != None: self.start(sub_name)
 
         # 2. 更新配置信息
         module._load_config()
@@ -258,8 +276,8 @@ class ModuleManager:
         #     thread.join()
 
         # 3. 关闭子线程
-        for sub_name, sub_module in cell.sub_modules.items():
-            if sub_module != None: self.stop(sub_name)
+        for sub_name, submodule in cell.sub.items():
+            if submodule != None: self.stop(sub_name)
         self._update_status(cell, ModuleStatus.Stopped)
 
         return True, None
@@ -308,14 +326,14 @@ class ModuleManager:
             
             # 1. 使用动态导入模块
             module: BasicModule = self.__dynamic_import_module(name, kind)()
-            # 2. 依赖注入
-            module.inject(name, kind, cell.sub_modules)
-            # 3. 设置模块
+            # 2. 设置模块
             cell.module = module
+            # 3. 依赖注入
+            cell.inject()
 
         # 2. 重新设置父模块中的指针
-        parent_name = cell.parent.name
-        self.__module_cells[parent_name].sub_modules[name] = cell.module
+        sup_name = cell.sup.name
+        self.__module_cells[sup_name].sub[name] = cell
 
         # FIXME: 使用抛出异常解决运行不成功的问题
         return True, None
