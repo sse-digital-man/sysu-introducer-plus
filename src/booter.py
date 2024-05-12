@@ -4,7 +4,7 @@ from message import Message, MessageKind
 
 from module.interface.info import ModuleStatus
 from module.interface import BasicModule
-from module.crawler import CrawlerInterface
+from module.crawler.interface import CrawlerInterface
 
 '''
 数字人 Core 的引导程序，用于封装包括 Core，Communicate，Interface 在内的多个组件，并提供以下操作：
