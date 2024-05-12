@@ -3,6 +3,7 @@ from typing import List, Dict, Tuple, Callable, Self
 from threading import Thread
 
 from .info import ModuleStatus
+from .log.interface import ModuleLog, ModuleCallback
 
 from utils.config import config
 
@@ -46,6 +47,14 @@ class BasicModule(metaclass=ABCMeta):
         thread = Thread(target=target)
         self.__threads.append(thread)
         thread.start()
+    
+    def _log(self, log: ModuleLog):
+        """发送日志, 需要由管理器注入回调函数
+
+        Args:
+            _log (Message): 日志
+        """
+        pass
     
     ''' ----- Hook -----'''
     
@@ -107,7 +116,9 @@ class BasicModule(metaclass=ABCMeta):
 
     ''' ----- 管理器依赖注入 ----- '''
 
-    def inject(self, name: str, kind: str, sub_modules: Dict[str, Self]):
+    def inject(self, name: str, kind: str, sub_modules: Dict[str, Self], 
+        log: ModuleCallback
+    ):
         """管理器初次注入信息
 
         Args:
@@ -123,6 +134,8 @@ class BasicModule(metaclass=ABCMeta):
         self.__kind = kind
         self.__sub_modules = sub_modules
 
+        self._log = log
+        
         self.__hasInjected = True
 
     def update_status(self, status: ModuleStatus):

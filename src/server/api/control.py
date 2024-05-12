@@ -3,7 +3,7 @@ from flask import Blueprint, request
 
 from module.interface.info import moduleStatusMap, ModuleName
 from utils.config import config
-from server import manager
+from server import MANAGER
 
 from .result import Result, ErrorCode
 
@@ -12,9 +12,9 @@ control_api = Blueprint('control_api', __name__)
 BOOTER = ModuleName.Booter.value
 
 def check_module_can_control(name: str) -> bool:
-    if manager.module(name) == None:
+    if MANAGER.module(name) == None:
         return Result.create(code=ErrorCode.ModuleNotFound)
-    elif name == "booter" or name in manager.info(BOOTER).sub_modules:
+    elif name == "booter" or name in MANAGER.info(BOOTER).sub_modules:
         # 目前只有 booter 与其子模块才可以单独地启动的暂停
         return None
     else:
@@ -29,9 +29,9 @@ def start(name: str, control: str):
         return result
     
     if control == "start":
-        flag, status = manager.start(name) 
+        flag, status = MANAGER.start(name) 
     elif control == "stop":
-        flag, status = manager.stop(name) 
+        flag, status = MANAGER.stop(name) 
     
     # 如果模块启动失败，则说明是当前状态不支持
     if not flag:
@@ -70,7 +70,7 @@ def change_module_kind(name: str):
     
     # 验证模块状态是否修改成功
     try:
-        flag, status = manager.change_module_kind(name, kind)
+        flag, status = MANAGER.change_module_kind(name, kind)
     except FileNotFoundError:
         return Result.create(code=ErrorCode.ModuleNotFound)
     except ValueError:
@@ -107,7 +107,7 @@ def modify_module_config(name: str):
 '''
 @control_api.route("/module/status/<name>", methods=['GET'])
 def status(name: str):
-    info = manager.info(name)
+    info = MANAGER.info(name)
 
     if info is None:
         return Result.create(), 404
@@ -117,7 +117,7 @@ def status(name: str):
 
 @control_api.route("/module/info/<name>", methods=['GET'])
 def get_single_module(name: str):
-    info = manager.info(name)
+    info = MANAGER.info(name)
 
     if info is None:
         return Result.create(), 404
@@ -128,7 +128,7 @@ def get_single_module(name: str):
 def get_controllable_module():
     with_booter = request.args.get("withBooter") not in [0, None]
 
-    infos = [manager.info(sub_module) for sub_module in booter.sub_module_list]
+    infos = [MANAGER.info(sub_module) for sub_module in booter.sub_module_list]
     
     if with_booter:
         infos.append(booter.info)
@@ -143,7 +143,7 @@ def get_controllable_module():
 
 @control_api.route("/module/list/all", methods=['GET'])
 def get_all_module():
-    return Result.create(data={"list": manager.module_info_list})
+    return Result.create(data={"list": MANAGER.module_info_list})
 
 @control_api.route("/module/config/<name>", methods=['GET'])
 def get_module_config(name: str):

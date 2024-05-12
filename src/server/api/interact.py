@@ -2,7 +2,7 @@ from flask import Blueprint, request
 
 from message import Message, MessageKind
 
-from server import manager
+from server import MANAGER
 from .result import Result
 
 interact_api = Blueprint('interact_api', __name__)
@@ -15,7 +15,7 @@ def send_message():
 
     message = Message(MessageKind.Admin, content)
 
-    if manager.module("booter").send(message):
+    if MANAGER.module("booter").send(message):
         return Result.create(), 200
     else:
         return Result.create(), 200

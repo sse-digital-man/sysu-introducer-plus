@@ -1,5 +1,5 @@
 from abc import ABCMeta
-from typing import Dict
+from typing import Dict, Callable
 from enum import IntEnum
 
 import json
@@ -23,3 +23,5 @@ class ModuleLog(metaclass=ABCMeta):
         }
 
         return json.dumps(data)
+
+ModuleCallback = Callable[[ModuleLog], None]

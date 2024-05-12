@@ -6,7 +6,7 @@ from utils.file import load_json
 from . import BasicModule
 from .info import ModuleInfo, ModuleStatus
 
-from .log.interface import ModuleLog
+from .log.interface import ModuleLog, ModuleCallback
 from .log import ModuleStatusLog
 
 CONFIG_PATH = "src/modules.json"
@@ -37,7 +37,7 @@ class ModuleManageCell:
     def name(self) -> str:
         return self.info.name
 
-    def inject(self):
+    def inject(self, log: ModuleCallback):
         """将模块管理单元中包含的信息注入到其模块对象中
 
         """
@@ -46,15 +46,17 @@ class ModuleManageCell:
             return
         
         submodules = { name: child_cell.module for name, child_cell in self.sub.items() }
-        self.module.inject(self.info.name, self.info.kind, submodules)
+        self.module.inject(self.info.name, self.info.kind, submodules, log)
 
 class ModuleManager:
     def __init__(self):
         self.__module_cells: Dict[str, ModuleManageCell] = {}
         self.__is_loaded = False
         self.__log_callback: None | LogCallBack = None
+        
+        self.__load_modules()
 
-    def load_modules(self):
+    def __load_modules(self):
         if self.__is_loaded:
             return
 
@@ -99,7 +101,7 @@ class ModuleManager:
         
         # 5. 依赖注入
         for cell in self.__module_cells.values():
-            cell.inject()
+            cell.inject(self.log)
             
         self.__is_loaded = True
 
@@ -329,7 +331,7 @@ class ModuleManager:
             # 2. 设置模块
             cell.module = module
             # 3. 依赖注入
-            cell.inject()
+            cell.inject(self.log)
 
         # 2. 重新设置父模块中的指针
         sup_name = cell.sup.name
@@ -396,4 +398,4 @@ class ModuleManager:
         self.__log_callback = callback
 
 # Notice: 使用单例模式使用模块管理器
-manager = ModuleManager()
+MANAGER = ModuleManager()

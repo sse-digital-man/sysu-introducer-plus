@@ -1,14 +1,13 @@
 from flask import Flask, render_template, redirect
 from werkzeug.routing import BaseConverter
 
-from module.interface.manager import manager
+from module.interface.manager import MANAGER
 
 from ws import WSServer
 ws_server = WSServer()
 
 # 这部分需要首先进行加载
-manager.load_modules()
-manager.set_log_callback(lambda log: ws_server.send(log.to_json()))
+MANAGER.set_log_callback(lambda log: ws_server.send(log.to_json()))
 
 from api import API_LIST
 from api.result import ResultResponse
