@@ -9,7 +9,7 @@ from module.interface import BasicModule
 
 class BasicCore(BasicModule):
     def __init__(self):
-        super().__init__("core")
+        super().__init__()
     
         # 初始化消息队列
         self.__msg_queue = MessageQueue()
@@ -40,6 +40,10 @@ class BasicCore(BasicModule):
                 # 如果是管理员发送的消息 则需要专门发给管理员
                 to_admin=message.kind == MessageKind.Admin
             ))
+
+            # 生成语音
+            speech = self._sub_module("speaker").speak(response)
+            print("speech:", speech)
 
         # 核心处理完毕之后 清除消息队列
         self.__msg_queue.clear()

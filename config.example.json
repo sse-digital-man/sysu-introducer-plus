@@ -18,15 +18,22 @@
             "isRandom": true
         }
     },
-    "view": {
-        "basic": {
-            "character": "lambda_00",
+    "renderer": {
+        "easyaivtuber": {
+            "character": "lambda_05",
             "output_size": "512x512",
             "simplify": 1,
-            "output_webcam": "obs",
+            "output_webcam": "unitycapture",
             "model": "standard_half",
-            "sleep": 20,
-            "port": 7888
+            "sleep": -1,
+            "port": 7888,
+            "beat": 1,
+            "mouth_offset": 0.0
+        }
+    },
+    "speaker": {
+        "basic": {
+            "apiKey": "xxx"
         }
     }
 }

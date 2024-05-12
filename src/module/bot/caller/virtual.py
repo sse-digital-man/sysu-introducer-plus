@@ -2,7 +2,6 @@ import time
 import random as ra
 
 from .interface import CallerInterface
-from ..kind import CallerKind
 
 RANDOM_ANSWERS = [
     "欢迎欢迎",
@@ -13,7 +12,7 @@ RANDOM_ANSWERS = [
 
 class VirtualCaller(CallerInterface):
     def __init__(self):
-        super().__init__(CallerKind.Virtual.value)
+        super().__init__()
 
         # 调研延迟 (单位为 ms)
         self.__delay: int

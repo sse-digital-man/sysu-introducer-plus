@@ -7,7 +7,10 @@ cc.zh.300.bin
 
 data/chromadb
 
-src/interface/view/data/
+data/music
+
+# speaker sound
+data/sound
 
 # webui 控制器静态文件
 static
