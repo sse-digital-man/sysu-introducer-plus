@@ -7,7 +7,7 @@ class TestFTDataInitializer(unittest.TestCase):
         # 请用你的实际文件路径替换这些占位符
         database_path = "data/chromadb"
         model_path = "cc.zh.300.bin"
-        local_file_path = "data/baidu.json"
+        local_file_path = "data/database.json"
         print("TestFTSearcher.setUp")
         self.initializer = FTDataInitializer(database_path, model_path, local_file_path)
 

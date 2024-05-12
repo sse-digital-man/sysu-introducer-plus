@@ -34,15 +34,17 @@ class FTDataInitializer:
 
         self.documents = []
         self.metadatas = []
+        self.queries = []
 
         for key, value in data.items():
             self.documents.append(value["document"])
+            self.queries.append(value["query"])
             metadata_str = value["metadata"]
             metadata_dict = {key: True for key in metadata_str.split(",")}
             self.metadatas.append(metadata_dict)
 
         self.embeddings = [
-            self.model.get_vector(text).tolist() for text in self.documents
+            self.model.get_vector(text).tolist() for text in self.queries
         ]
 
         self.collection.add(
