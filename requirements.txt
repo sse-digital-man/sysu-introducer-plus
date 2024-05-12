@@ -13,6 +13,9 @@ elasticsearch
 # tts module
 azure-cognitiveservices-speech
 
+# renderer module
+requests
+
 # config
 pyyaml
 
