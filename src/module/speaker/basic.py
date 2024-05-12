@@ -5,10 +5,10 @@ from azure.cognitiveservices.speech import AudioDataStream
 from datetime import datetime
 from lxml import etree
 
-from module.interface import BasicModule
+from .interface import SpeakerInterface
 
 
-class BasicSpeaker(BasicModule):
+class BasicSpeaker(SpeakerInterface):
     def __init__(self):
         super().__init__()
 
@@ -80,7 +80,7 @@ class BasicSpeaker(BasicModule):
             os.makedirs(self.__output_dir)
 
         # 生成语音文件名和路径
-        file_name = self.__generate_filename()
+        file_name = self._generate_filename()
         output_path = os.path.join(self.__output_dir, file_name)
 
         # 文件输出
