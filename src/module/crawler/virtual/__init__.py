@@ -1,20 +1,9 @@
-from typing import List
 import time
 
-from ...interface import VIRTUAL
 from ..interface import CrawlerInterface
+from utils.file import load_lines
 
 DEFAULT_DELAY = 1
-
-def file_to_list(path: str) -> List[str]:
-    with open(path, 'r', encoding='utf-8') as f:
-        messages = f.readlines(-1)
-        
-        # 清除换行符
-        for i in range(len(messages)):
-            messages[i] = messages[i].strip()
-
-        return messages
 
 class VirtualCrawler(CrawlerInterface):
     def __init__(self):
@@ -27,7 +16,7 @@ class VirtualCrawler(CrawlerInterface):
         info = self._read_config()
 
         self.__delay = info['delay'] / 1000
-        self.__messages = file_to_list(info['messages_path'])
+        self.__messages = load_lines(info['messages_path'])
 
         if len(self.__messages) == 0:
             print("[warning] messages is empty")

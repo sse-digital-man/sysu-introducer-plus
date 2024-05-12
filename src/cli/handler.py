@@ -1,22 +1,22 @@
 from typing import List
 from tabulate import tabulate
 
-from module.interface.info import moduleStatusMap
+from module.interface.info import moduleStatusMap, ModuleName
 from core import BasicCore
 from message import Message, MessageKind
 from . import manager
 from .kind import CommandHandleError, CommandUsageError
 
-booter = manager.object("booter")
+BOOTER = ModuleName.Booter.value
 
 def handle_start(args: List[str]):
     length = len(args)
     # 如果运行没有参数，则运行所有参数
     if length == 1:
-        booter.start()
+        manager.start(BOOTER)
     elif length == 2:
         module = args[1]
-        booter.start_sub_module(module)
+        manager.start(module)
     else:
         raise CommandUsageError(args[0])
 
@@ -25,10 +25,10 @@ def handle_stop(args: List[str] = ["stop"]):
     length = len(args)
 
     if length == 1:
-        booter.stop()
+        manager.stop(BOOTER)
     elif length == 2:
         module = args[1]
-        booter.stop_sub_module(module)
+        manager.stop(module)
     else:
         raise CommandUsageError(args[0])
 
@@ -63,7 +63,7 @@ def handle_status(args: List[str]):
     print(tabulate(rows, headers, tablefmt="github"))
 
 def handle_exit(ignored): 
-    booter.stop()
+    manager.stop(BOOTER)
     raise InterruptedError()
 
 def handle_change(args: List[str]):
@@ -83,5 +83,5 @@ def handle_send(args: List[str]):
         raise CommandUsageError(args[0])
 
     # 如果消息未能发送成功，则说明模块未启动
-    if not booter.send(message):
+    if not manager.module(BOOTER).send(message):
         raise CommandHandleError("module is not running, can't send message")

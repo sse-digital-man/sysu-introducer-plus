@@ -8,10 +8,17 @@ yarl~=1.9.3
 
 # llm module
 openai
+elasticsearch
+
+# tts module
+azure-cognitiveservices-speech
+
+# renderer module
+requests
 
 # config
 pyyaml
 
-# 表格化数据
+# cli
 tabulate
 wcwidth
