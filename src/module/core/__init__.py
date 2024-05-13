@@ -1,11 +1,11 @@
 import time
 from typing import Callable
 
-from core.msg_queue.fifo_queue import FIFOQueue as MessageQueue
-
 from message import MessageKind, Message
 from module.interface.log import MessageLog
 from module.interface import BasicModule
+
+from .msg_queue.fifo_queue import FIFOQueue as MessageQueue
 
 
 class HandleResult:

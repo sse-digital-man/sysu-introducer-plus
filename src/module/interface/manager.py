@@ -10,7 +10,7 @@ from .info import ModuleInfo, ModuleStatus
 from .log.interface import ModuleLog, ModuleCallback
 from .log import ModuleStatusLog
 
-CONFIG_PATH = "src/modules.json"
+CONFIG_PATH = "modules.json"
 
 NULL = "null"
 BASIC = "basic"
@@ -163,6 +163,7 @@ class ModuleManager:
         # 1. 收集包路径
         names: List[str] = []
 
+        names.append("module")
         if len(info.path) != 0:
             names.append(info.path)
         names.append(info.name)

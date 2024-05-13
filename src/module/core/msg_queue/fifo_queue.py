@@ -1,5 +1,7 @@
-from dynamic_queue import DynamicMessageQueue
 from message import Message, MessageKind
+
+from .dynamic_queue import DynamicMessageQueue
+
 
 class FIFOQueue(DynamicMessageQueue):
     def __init__(self) -> None:
@@ -7,7 +9,7 @@ class FIFOQueue(DynamicMessageQueue):
 
     def push(self, message: Message):
         # 介绍到管理员消息时，将其放在第队首
-        if(message.kind == MessageKind.Admin):
+        if message.kind == MessageKind.Admin:
             self.queue.insert(0, message)
         else:
             self.queue.append(message)
@@ -17,7 +19,7 @@ class FIFOQueue(DynamicMessageQueue):
             raise ValueError("the queue is empty")
 
         return self.queue.pop(0)
-    
+
     def clear(self):
         self.queue.clear()
 

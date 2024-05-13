@@ -1,7 +1,7 @@
 from typing import Callable
 
 from message import Message
-from ..interface import BasicModule
+from module.interface import BasicModule
 
 
 CrawlerCallback = Callable[[Message], None]

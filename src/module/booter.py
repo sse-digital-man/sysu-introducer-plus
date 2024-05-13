@@ -1,13 +1,13 @@
-from core import BasicCore, HandleResult
 from message import Message, MessageKind
 
-from module.interface import BasicModule, ModuleName
-from module.interface.info import ModuleStatus
-from module.crawler.interface import CrawlerInterface
-from module.renderer.interface import RendererInterface
+from .core import BasicCore, HandleResult
+from .interface import ModuleName, BooterInterface
+from .interface.info import ModuleStatus
+from .crawler.interface import CrawlerInterface
+from .renderer.interface import RendererInterface
 
 
-class BasicBooter(BasicModule):
+class BasicBooter(BooterInterface):
     """数字人 Core 的引导程序，用于封装包括 Core，Communicate，Interface 在内的多个组件，并提供以下操作：
     1. 控制各个子部件的运行与停止
     2. 连接组件之间的交互
