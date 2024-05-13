@@ -1,4 +1,5 @@
 import time
+from typing import Callable
 
 from core.msg_queue.fifo_queue import FIFOQueue as MessageQueue
 
@@ -6,13 +7,24 @@ from message import MessageKind, Message
 from module.interface.log import MessageLog
 from module.interface import BasicModule
 
+
+class HandleResult:
+    def __init__(self, sound_path: str):
+        self.sound_path = sound_path
+
+
+HandleCallback = Callable[[HandleResult], None]
+
+
 class BasicCore(BasicModule):
     def __init__(self):
         super().__init__()
-    
+
         # 初始化消息队列
         self.__msg_queue = MessageQueue()
-        
+
+        self.__handle_callback: HandleCallback | None = None
+
     def _load_config(self):
         pass
 
@@ -24,7 +36,7 @@ class BasicCore(BasicModule):
             time.sleep(0.5)
             if self.__msg_queue.empty():
                 continue
-            
+
             # 接收消息
             message = self.__msg_queue.pop()
             print("receive:", message.content)
@@ -34,8 +46,8 @@ class BasicCore(BasicModule):
             response = self._sub_module("bot").talk(message.content)
             print("answer:", response)
             self._log(MessageLog(
-                MessageKind.Assistant, 
-                response, 
+                MessageKind.Assistant,
+                response,
                 # 如果是管理员发送的消息 则需要专门发给管理员
                 to_admin=message.kind == MessageKind.Admin
             ))
@@ -43,6 +55,11 @@ class BasicCore(BasicModule):
             # 生成语音
             speech = self._sub_module("speaker").speak(response)
             print("speech:", speech)
+
+            # 响应处理结果, 只有对应回调函数非空时, 才进行处理
+            if self.__handle_callback is not None:
+                result = HandleResult(sound_path=speech)
+                self.__handle_callback(result)
 
         # 核心处理完毕之后 清除消息队列
         self.__msg_queue.clear()
@@ -54,6 +71,10 @@ class BasicCore(BasicModule):
         # 只有当处理核心运行时 才能向其添加消息
         if not self.is_running:
             return False
-        
+
         self.__msg_queue.push(text)
         return True
+
+    def set_handle_callback(self, callback: HandleCallback):
+        print("set")
+        self.__handle_callback = callback

@@ -1,44 +1,41 @@
-from typing import Tuple
-
+from core import BasicCore, HandleResult
 from message import Message, MessageKind
 
-from module.interface.info import ModuleStatus
 from module.interface import BasicModule
+from module.interface.info import ModuleName, ModuleStatus
 from module.crawler.interface import CrawlerInterface
+from module.renderer.interface import RendererInterface
 
-'''
-数字人 Core 的引导程序，用于封装包括 Core，Communicate，Interface 在内的多个组件，并提供以下操作：
-1. 控制各个子部件的运行与停止
-2. 连接组件之间的交互
-'''
+
 class BasicBooter(BasicModule):
-    def __init__(self):
-        super().__init__()
-        
+    """数字人 Core 的引导程序，用于封装包括 Core，Communicate，Interface 在内的多个组件，并提供以下操作：
+    1. 控制各个子部件的运行与停止
+    2. 连接组件之间的交互
+
+    """
     def _load_config(self):
         pass
-    
-    def _before_starting(self):
-        self.__set_receive_callback()
 
-    # 单独运行和停止模块子模块
-    def start_sub_module(self, name: str) -> Tuple[bool, ModuleStatus]:
-        if name == "crawler":
-            self.__set_receive_callback()
+    def _before_starting_submodules(self):
+        core: BasicCore = self._sub_module(ModuleName.Core)
 
-        return self._sub_module(name).start()
+        # 1. 设置爬虫的接受回调函数
+        crawler: CrawlerInterface = self._sub_module(ModuleName.Crawler)
 
-    def stop_sub_module(self, name: str) -> Tuple[bool, ModuleStatus]:
-        # 验证当前是否只有最后一个启动
-        return self._sub_module(name).stop()
-
-    def send(self, message: Message) -> bool:
-        return self._sub_module("core").send(message)
-
-    def __set_receive_callback(self):
-        def crawler_callback(text: str):
+        def receive_callback(text: str):
             message = Message(MessageKind.Watcher, text)
-            self.send(message)
+            core.send(message)
 
-        crawler_module: CrawlerInterface = self._sub_module("crawler")
-        crawler_module.set_receive_callback(crawler_callback)
+        crawler.set_receive_callback(receive_callback)
+
+        # 2. 设置 处理核心处理完成的回调函数
+        renderer: RendererInterface = self._sub_module(ModuleName.Renderer)
+
+        def handle_callback(result: HandleResult):
+            # TODO: 完善处理核心处理完成后的回调函数
+            if renderer is None or renderer.status != ModuleStatus.Starting:
+                return
+
+            renderer.speak(result.sound_path)
+
+        core.set_handle_callback(handle_callback)

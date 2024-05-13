@@ -8,6 +8,7 @@ class ModuleName(Enum):
     Caller = "caller"
     Searcher = "searcher"
     Crawler = "crawler"
+    Renderer = "renderer"
 
 @unique
 class ModuleStatus(IntEnum):

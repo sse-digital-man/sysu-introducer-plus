@@ -1,7 +1,7 @@
 {
     "booter": {
         "alias": "引导程序",
-        "modules": ["core", "crawler"]
+        "modules": ["core", "crawler", "renderer"]
     },
     "core": {
         "alias": "核心",
@@ -43,6 +43,7 @@
         "alias": "人物渲染器",
         "path": "module",
         "kinds": ["easyaivtuber"],
-        "default": "easyaivtuber"
+        "default": "null",
+        "notNull": false
     }
 }
