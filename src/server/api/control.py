@@ -32,7 +32,8 @@ def start(name: str, control: str):
         return result
 
     if control == "start":
-        flag, status = MANAGER.start(name)
+        # Notice: 启动子模块时，也会递归启动父模块
+        flag, status = MANAGER.start(name, with_sup=True)
     elif control == "stop":
         flag, status = MANAGER.stop(name)
 

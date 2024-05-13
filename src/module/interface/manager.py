@@ -54,9 +54,10 @@ class ModuleManageCell:
 class ModuleManager:
     def __init__(self):
         self.__module_cells: Dict[str, ModuleManageCell] = {}
-        self.__is_loaded = False
         # Notice: 模块依赖树的根节点必须是一个 Booter
-        self.__booter: BooterInterface = None
+        self.__booter_cell: ModuleManageCell = None
+
+        self.__is_loaded = False
         self.__log_callback: None | LogCallBack = None
 
         self.__load_modules()
@@ -136,6 +137,11 @@ class ModuleManager:
 
         if len(queue) == 0:
             raise ImportError("circular dependency between modules")
+        elif len(queue) == 1:
+            self.__booter_cell = self.__module_cells[queue[0]]
+        else:
+            # TODO: 出现多个根节点
+            raise ValueError()
 
         # 使用 BFS 计算所有节点深度
         depth = 0
@@ -213,16 +219,22 @@ class ModuleManager:
 
     # 启动模块单元
     def start(
-        self, name: str, with_submodules: bool = True
+        self, name: str, with_sub: bool = True, with_sup: bool = False
     ) -> Tuple[bool, ModuleStatus]:
-        """启动模块
+        """启动模块。
+        注意递归启动有方向性，递归父模块时只会递归启动父模块，子模块同理
 
         Args:
             name (str): 模块名称
-            with_submodules (bool, optional): 是否自动运行子模块. Defaults to True.
+            with_sub (bool, optional): 是否递归启动父模块. Defaults to True.
+            with_sup (bool, optional): 是否递归启动父模块. Defaults to False.
+
+        Raises:
+            FileNotFoundError: _description_
+            e: _description_
 
         Returns:
-            bool: 是否运行成功，当前的状态（运行成功为None）
+            Tuple[bool, ModuleStatus]: 是否运行成功，当前的状态（运行成功为None）
         """
 
         cell = self.__module_cells.get(name)
@@ -239,10 +251,10 @@ class ModuleManager:
         module.before_starting_submodules()
         self._update_status(cell, ModuleStatus.Starting)
 
-        if with_submodules:
+        if with_sub:
             for sub_name, submodule in cell.sub.items():
                 if submodule is not None:
-                    self.start(sub_name)
+                    self.start(sub_name, with_sub=True, with_sup=False)
 
         # 2. 更新配置信息
         module.load_config()
@@ -257,6 +269,9 @@ class ModuleManager:
 
         # 5. 钩子函数
         self._update_status(cell, ModuleStatus.Started)
+
+        if with_sup and cell.sup is not None:
+            self.start(cell.sup.name, with_sub=False, with_sup=True)
 
         return True, None
 
@@ -306,10 +321,12 @@ class ModuleManager:
         return True, None
 
     def send(self, msg: Message):
-        if self.__booter is None:
+        if self.__booter_cell is None:
             return
 
-        self.__booter.send(msg)
+        # 只能通过 booter 进行交互
+        booter: BooterInterface = self.__booter_cell.module
+        booter.send(msg)
 
     def change_module_kind(self, name: str, kind: str) -> Tuple[bool, ModuleStatus]:
         """切换模块的实现类型，并返回是否切换成功
