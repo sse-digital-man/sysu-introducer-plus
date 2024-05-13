@@ -13,11 +13,11 @@ BOOTER = ModuleName.BOOTER.value
 def handle_start(args: List[str]):
     length = len(args)
     # 如果运行没有参数，则运行所有参数
-    if length == 1:
-        MANAGER.start(BOOTER)
-    elif length == 2:
-        module = args[1]
-        MANAGER.start(module)
+    if length in (1, 2):
+        name = BOOTER
+        if length == 2:
+            name = args[1]
+        MANAGER.start(name, with_sub=True, with_sup=True)
     else:
         raise CommandUsageError(args[0])
 
@@ -25,11 +25,11 @@ def handle_start(args: List[str]):
 def handle_stop(args: List[str]):
     length = len(args)
 
-    if length == 1:
-        MANAGER.stop(BOOTER)
-    elif length == 2:
-        module = args[1]
-        MANAGER.stop(module)
+    if length in (1, 2):
+        name = BOOTER
+        if length == 2:
+            name = args[1]
+        MANAGER.stop(name)
     else:
         raise CommandUsageError(args[0])
 
@@ -88,5 +88,4 @@ def handle_send(args: List[str]):
         raise CommandUsageError(args[0])
 
     # 如果消息未能发送成功，则说明模块未启动
-    if not MANAGER.module(BOOTER).send(message):
-        raise CommandHandleError("module is not running, can't send message")
+    MANAGER.send(message)

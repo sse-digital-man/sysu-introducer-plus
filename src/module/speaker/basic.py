@@ -76,7 +76,7 @@ class BasicSpeaker(SpeakerInterface):
 
         # 创建语音合成器对象，设置语音合成的配置和输出
         speech_synthesizer = speechsdk.SpeechSynthesizer(
-            speech_config=self.speech_config, audio_config=audio_config
+            speech_config=self.__speech_config, audio_config=audio_config
         )
 
         # 调用语音合成器进行语音合成，并获取合成结果

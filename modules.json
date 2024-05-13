@@ -29,7 +29,7 @@
     "speaker": {
         "alias": "文本转语音",
         "kinds": ["basic", "gsv"],
-        "default": "gsv"
+        "default": "basic"
     },
     "crawler": {
         "alias": "直播间爬虫",
