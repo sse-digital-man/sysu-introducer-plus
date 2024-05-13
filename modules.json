@@ -28,8 +28,8 @@
     },
     "speaker": {
         "alias": "文本转语音",
-        "kinds": ["basic"],
-        "default": "basic"
+        "kinds": ["basic", "gsv"],
+        "default": "gsv"
     },
     "crawler": {
         "alias": "直播间爬虫",

@@ -4,10 +4,6 @@ from module.interface import BasicModule
 
 
 class SpeakerInterface(BasicModule, metaclass=ABCMeta):
-
-    def _load_config(self):
-        pass
-
     def _generate_filename(self, suffix: str = "wav") -> str:
         return (
             datetime.now().strftime(f"{self.__class__.__name__}-%Y%m%d%H%M%S")

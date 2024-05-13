@@ -61,8 +61,7 @@ class BasicSpeaker(SpeakerInterface):
         """
 
         # 获取修改后的XML内容字符串
-        modified_ssml = etree.tostring(root, encoding="utf-8").decode("utf-8")
-        return modified_ssml
+        return ssml.format(text=text)
 
     def speak(self, text) -> str:
         if not os.path.exists(self.__output_dir):
@@ -78,8 +77,6 @@ class BasicSpeaker(SpeakerInterface):
         # 创建语音合成器对象，设置语音合成的配置和输出
         speech_synthesizer = speechsdk.SpeechSynthesizer(
             speech_config=self.speech_config, audio_config=audio_config
-        )
-            speech_config=self.__speech_config, audio_config=audio_config
         )
 
         # 调用语音合成器进行语音合成，并获取合成结果

@@ -15,10 +15,13 @@ class GsvSpeaker(SpeakerInterface):
         self.__url = f"http://{self.__host}:{self.__port}/"
         self.__output_dir = "./data/sound"
 
+    def load_config(self):
+        pass
+
     def speak(self, text) -> str:
         # 此处应在start后调用
         # 拼接请求构成GET请求
-        query = self.__url + f"?text={text}"
+        query = self.__url
 
         print(query)
         # 发送请求
@@ -41,7 +44,7 @@ class GsvSpeaker(SpeakerInterface):
         else:
             raise RuntimeError()
 
-    def _before_starting(self):
+    def handle_starting(self):
         root_path = "src/module/speaker/GSV/"
         program_path = "api.py"
         interpreter_path = "C:/Users/Student/anaconda3/envs/GSV/python.exe"
