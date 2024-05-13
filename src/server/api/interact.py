@@ -1,11 +1,11 @@
 from flask import Blueprint, request
 
 from message import Message, MessageKind
-
-from server import MANAGER
+from module.interface.manager import MANAGER
 from .result import Result
 
-interact_api = Blueprint('interact_api', __name__)
+interact_api = Blueprint("interact_api", __name__)
+
 
 @interact_api.route("/interact/message", methods=["POST"])
 def send_message():
