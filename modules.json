@@ -28,7 +28,7 @@
     },
     "speaker": {
         "alias": "文本转语音",
-        "kinds": ["basic"],
+        "kinds": ["basic", "gsv"],
         "default": "basic"
     },
     "crawler": {

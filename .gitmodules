@@ -1,3 +1,6 @@
 [submodule "EasyAIVtuber"]
 	path = src/module/renderer/EasyAIVtuber
 	url = https://github.com/sse-digital-man/EasyAIVtuber.git
+[submodule "src/module/speaker/GSV"]
+	path = src/module/speaker/GSV
+	url = https://github.com/sse-digital-man/GPT-SoVITS
