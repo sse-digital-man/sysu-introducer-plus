@@ -2,8 +2,6 @@ import os
 
 import azure.cognitiveservices.speech as speechsdk
 from azure.cognitiveservices.speech import AudioDataStream
-from datetime import datetime
-from lxml import etree
 
 from .interface import SpeakerInterface
 
@@ -13,28 +11,30 @@ class BasicSpeaker(SpeakerInterface):
         super().__init__()
 
         self.__output_dir = "./data/sound"
+        self.__speech_config = None
+
+        # self.__speech_synthesis_voice_name_list = [
+        #     "zh-CN-XiaoyiNeural",
+        #     "zh-CN-XiaomengNeural",
+        # ]
+        # self.__speech_synthesis_voice_style_list = [
+        #     "cheerful",
+        #     "hopeful",
+        #     "excited",
+        #     "friendly",
+        #     "gentle",
+        #     "whispering",
+        # ]
 
     def load_config(self):
         info = self._read_config()
-        self.speech_config = speechsdk.SpeechConfig(
+        self.__speech_config = speechsdk.SpeechConfig(
             subscription=info["apiKey"], region="eastasia"
         )
 
-        # TODO 找到合适的声音，考虑使用SSML来风格化
-        self.speech_config.speech_synthesis_voice_name = "zh-CN-XiaohanNeural"
+        self.__speech_config.speech_synthesis_voice_name = "zh-CN-XiaohanNeural"
+
         # TODO 筛选后合适的说话人和声音风格（后续可供控制器进行选择？）
-        self.speech_synthesis_voice_name_list = [
-            "zh-CN-XiaoyiNeural",
-            "zh-CN-XiaomengNeural",
-        ]
-        self.speech_synthesis_voice_style_list = [
-            "cheerful",
-            "hopeful",
-            "excited",
-            "friendly",
-            "gentle",
-            "whispering",
-        ]
 
     # TODO 添加选择说话人、声音风格以及风格强度的逻辑（目前仅支持默认）
     def _prepare_ssml(self, text: str) -> str:
@@ -46,30 +46,19 @@ class BasicSpeaker(SpeakerInterface):
         Returns:
             str: ssml文件对应的字符串
         """
-        namespace = {
-            "xmlns": "http://www.w3.org/2001/10/synthesis",
-            "mstts": "https://www.w3.org/2001/mstts",
-        }
-        # 解析XML文件
-        tree = etree.parse(
-            "data/ssml/ssml.xml", parser=etree.XMLParser(encoding="utf-8")
-        )
-        root = tree.getroot()
 
-        # 修改name属性
-        voice_element = root.find(".//xmlns:voice", namespaces=namespace)
-        voice_element.attrib["name"] = "zh-CN-XiaoyiNeural"
-
-        # 修改style和styledegree属性
-        express_as_element = root.find(".//mstts:express-as", namespaces=namespace)
-        express_as_element.attrib["style"] = "hopeful"
-        express_as_element.attrib["styledegree"] = "2"
-
-        # 修改mstts标签内的内容
-        express_as_element.text = text
-
-        # 保存修改后的XML文件
-        tree.write("data/ssml/ssml.xml", encoding="utf-8", xml_declaration=False)
+        # ssml 风格模版
+        ssml = """
+            <speak 
+                xmlns="http://www.w3.org/2001/10/synthesis"
+                xmlns:mstts="https://www.w3.org/2001/mstts"
+                version="1.0" xml:lang="zh-CN"
+            >
+                <voice name="zh-CN-XiaoyiNeural">
+                    <mstts:express-as style="hopeful" styledegree="2">{text}</mstts:express-as>
+                </voice>
+            </speak>
+        """
 
         # 获取修改后的XML内容字符串
         modified_ssml = etree.tostring(root, encoding="utf-8").decode("utf-8")
@@ -89,6 +78,8 @@ class BasicSpeaker(SpeakerInterface):
         # 创建语音合成器对象，设置语音合成的配置和输出
         speech_synthesizer = speechsdk.SpeechSynthesizer(
             speech_config=self.speech_config, audio_config=audio_config
+        )
+            speech_config=self.__speech_config, audio_config=audio_config
         )
 
         # 调用语音合成器进行语音合成，并获取合成结果
@@ -119,6 +110,3 @@ class BasicSpeaker(SpeakerInterface):
                     raise Exception()
 
         return output_path
-
-    def __generate_filename(self) -> str:
-        return datetime.now().strftime("BasicSpeaker-%Y%m%d%H%M%S") + ".wav"

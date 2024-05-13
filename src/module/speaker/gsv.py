@@ -1,9 +1,11 @@
+import os
+import time
+from typing import Tuple
 import subprocess
 import requests
-import os
+
 from .interface import SpeakerInterface
-from typing import Tuple
-import time
+
 
 class GsvSpeaker(SpeakerInterface):
     def __init__(self):
@@ -11,7 +13,7 @@ class GsvSpeaker(SpeakerInterface):
         self.__host = "127.0.0.1"
         self.__port = 9880
         self.__url = f"http://{self.__host}:{self.__port}/"
-        self.__output_dir = './data/sound'
+        self.__output_dir = "./data/sound"
 
     def speak(self, text) -> str:
         # 此处应在start后调用
@@ -20,7 +22,10 @@ class GsvSpeaker(SpeakerInterface):
 
         print(query)
         # 发送请求
-        response = requests.get(query, params={"text": text, "text_language": "zh"})
+        response = requests.get(
+            query, params={"text": text, "text_language": "zh"}, timeout=5
+        )
+
         if response.status_code == 200:
             # 获取音频流内容
             audio_data = response.content
@@ -34,24 +39,24 @@ class GsvSpeaker(SpeakerInterface):
 
             return output_path
         else:
-            raise Exception()
-    
+            raise RuntimeError()
+
     def _before_starting(self):
         root_path = "src/module/speaker/GSV/"
         program_path = "api.py"
         interpreter_path = "C:/Users/Student/anaconda3/envs/GSV/python.exe"
 
         command = [
-            interpreter_path, program_path,
+            interpreter_path,
+            program_path,
         ]
-        self.process = subprocess.Popen(command,cwd=root_path, shell=True, env=os.environ)
-        # print(self.process.pid)
-        # self.process = subprocess.Popen(command,cwd=root_path, shell=True, env=os.environ, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+
+        subprocess.Popen(command, cwd=root_path, shell=True, env=os.environ)
 
     def check(self) -> Tuple[bool, Exception | None]:
         total_time = 60
-        iter_time =10
-        for _ in range(total_time//iter_time):
+        iter_time = 10
+        for _ in range(total_time // iter_time):
             try:
                 output_path = self.speak("你好")
                 if os.path.exists(output_path):
@@ -61,4 +66,5 @@ class GsvSpeaker(SpeakerInterface):
             except Exception as e:
                 print(e)
                 time.sleep(iter_time)
+
         return False, TimeoutError()
