@@ -11,7 +11,11 @@ class GptCaller(CallerInterface):
     def __init__(self):
         super().__init__()
 
-        self.__client = openai.OpenAI(api_key="", base_url=None, timeout=5)
+        # 设置超时和重连次数
+        self.__timeout = 2
+        self.__retry_n = 2
+
+        self.__client = openai.OpenAI(api_key="", base_url=None, timeout=self.__timeout)
 
     def load_config(self):
         info = self._read_config()
@@ -30,12 +34,17 @@ class GptCaller(CallerInterface):
 
         messages.append({"role": "user", "content": query})
 
-        response = self.__client.chat.completions.create(
-            model=self.model_type,
-            timeout=5,
-            temperature=0.8,
-            stream=False,
-            messages=messages,
-        )
+        for _ in range(self.__retry_n):
+            try:
+                response = self.__client.chat.completions.create(
+                    model=self.model_type,
+                    temperature=0.8,
+                    stream=False,
+                    messages=messages,
+                )
 
-        return response.choices[0].message.content
+                return response.choices[0].message.content
+            except openai.APITimeoutError:
+                pass
+
+        raise TimeoutError()
