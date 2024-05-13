@@ -15,7 +15,7 @@ def send_message():
 
     message = Message(MessageKind.Admin, content)
 
-    if MANAGER.module("booter").send(message):
-        return Result.create(), 200
-    else:
-        return Result.create(), 200
+    if MANAGER.send(message):
+        return Result.create()
+
+    return Result.create()
