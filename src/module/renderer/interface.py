@@ -1,13 +1,10 @@
 from abc import ABCMeta, abstractmethod
-from typing import List, Dict
+from typing import Dict
 
 from module.interface import BasicModule
 
 
 class RendererInterface(BasicModule, metaclass=ABCMeta):
-    def __init__(self):
-        super().__init__()
-
     @abstractmethod
     def speak(self, path: str) -> Dict[str, str]:
         """数字人视图说话，并播放 path 路径下的音频文件
@@ -18,7 +15,6 @@ class RendererInterface(BasicModule, metaclass=ABCMeta):
         Returns:
             Dict[str, str]: 返回结果
         """
-        ...
 
     @abstractmethod
     def background_music(self, path: str) -> Dict[str, str]:
@@ -30,10 +26,7 @@ class RendererInterface(BasicModule, metaclass=ABCMeta):
         Returns:
             Dict[str, str]: 返回结果
         """
-        ...
 
     @abstractmethod
     def stop_move(self) -> Dict[str, str]:
-        """停止数字人任何动作
-        """
-        ...
+        """停止数字人任何动作"""

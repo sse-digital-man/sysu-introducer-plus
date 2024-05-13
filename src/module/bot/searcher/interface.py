@@ -3,6 +3,7 @@ from typing import List, Dict
 
 from .. import BasicModule
 
+
 class SearcherInterface(BasicModule, metaclass=ABCMeta):
     def __init__(self):
         super().__init__()

@@ -1,13 +1,14 @@
 from typing import List
 from tabulate import tabulate
 
-from module.interface.info import moduleStatusMap, ModuleName
-from core import BasicCore
+from module.interface import ModuleName
+from module.interface.info import moduleStatusMap
+from module.interface.manager import MANAGER
 from message import Message, MessageKind
-from . import MANAGER
 from .kind import CommandHandleError, CommandUsageError
 
-BOOTER = ModuleName.Booter.value
+BOOTER = ModuleName.BOOTER.value
+
 
 def handle_start(args: List[str]):
     length = len(args)
@@ -20,8 +21,8 @@ def handle_start(args: List[str]):
     else:
         raise CommandUsageError(args[0])
 
-# m
-def handle_stop(args: List[str] = ["stop"]):
+
+def handle_stop(args: List[str]):
     length = len(args)
 
     if length == 1:
@@ -37,8 +38,9 @@ def handle_status(args: List[str]):
     info_list = MANAGER.module_info_list
 
     # 输入显示的字段名
-    headers = args[1:] if len(args) > 1 \
-        else ["name", "alias", "kind", "kinds", "status"]
+    headers = (
+        args[1:] if len(args) > 1 else ["name", "alias", "kind", "kinds", "status"]
+    )
 
     # 将信息对象处理成行数据
     rows = []
@@ -53,18 +55,20 @@ def handle_status(args: List[str]):
                     cell = ", ".join(cell)
 
                 row.append(cell)
-            
+
             except KeyError:
                 raise CommandHandleError(f"unknown field name '{header}'")
-        
+
         rows.append(row)
 
     print()
     print(tabulate(rows, headers, tablefmt="github"))
 
-def handle_exit(ignored): 
+
+def handle_exit(_ignored):
     MANAGER.stop(BOOTER)
     raise InterruptedError()
+
 
 def handle_change(args: List[str]):
     try:
@@ -74,12 +78,13 @@ def handle_change(args: List[str]):
     except ValueError:
         raise CommandUsageError(args[0])
 
+
 def handle_send(args: List[str]):
     try:
         if len(args) != 2:
             raise ValueError()
         message = Message(MessageKind.Admin, eval(args[1]))
-    except:
+    except BaseException:
         raise CommandUsageError(args[0])
 
     # 如果消息未能发送成功，则说明模块未启动

@@ -1,8 +1,11 @@
-from collections.abc import Callable
+from typing import Callable
 
+from message import Message
 from ..interface import BasicModule
 
-CrawlerCallback = Callable[[str], None]
+
+CrawlerCallback = Callable[[Message], None]
+
 
 class CrawlerInterface(BasicModule):
     def __init__(self):
@@ -14,9 +17,9 @@ class CrawlerInterface(BasicModule):
         super().__init__()
         self._receive_callback = lambda message: None
 
-    def _load_config(self):
+    def load_config(self):
         info = self._read_config()
-        
+
         self._room_id = info["roomId"]
 
     @property
@@ -27,7 +30,8 @@ class CrawlerInterface(BasicModule):
             int: 房间号
         """
         return self._room_id
-    
-    ''' ----- Setter ----- '''
+
+    """ ----- Setter ----- """
+
     def set_receive_callback(self, receive_callback: CrawlerCallback):
         self._receive_callback = receive_callback

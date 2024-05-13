@@ -1,7 +1,9 @@
 from typing import Dict, List
-from .interface import SearcherInterface
-from elasticsearch import Elasticsearch
 import json
+from elasticsearch import Elasticsearch
+
+from .interface import SearcherInterface
+
 
 class EsSearcher(SearcherInterface):
     def __init__(self):
@@ -9,7 +11,7 @@ class EsSearcher(SearcherInterface):
         self._es = Elasticsearch(["http://localhost:9200"])
         self._es_index = "school_library"
 
-    def _before_started(self):
+    def handle_starting(self):
         # Notice: 不能够在 __init__() 中编写除了定义之外的操作
         self.build_index()
 
@@ -31,7 +33,6 @@ class EsSearcher(SearcherInterface):
             _document = doc["_source"]["document"]
             res.append(_query + ":" + _document)
         return res
-    
 
     def search_with_label(self, query: str, size: int) -> Dict[str, str]:
         """返回与 query 相似的文本列表，以及对应的标签信息(query/id)
@@ -42,7 +43,7 @@ class EsSearcher(SearcherInterface):
             Dict[str, str]: 文本字典 { query1: text1, query2: text2, ...}
         """
         dsl = {"query": {"match": {"query": query}}, "size": size}
-        search_res = self._es.search(index = self._es_index, body=dsl)
+        search_res = self._es.search(index=self._es_index, body=dsl)
         res = {}
         # 遍历得到前size个相似问题
         for doc in search_res["hits"]["hits"]:
@@ -51,10 +52,10 @@ class EsSearcher(SearcherInterface):
             res[_query] = _document
         return res
 
-    def build_index(self)-> bool:
+    def build_index(self) -> bool:
         """基于数据库建立es索引
-            Returns:
-            bool: 是否之前就存在es索引,没有索引就建立
+        Returns:
+        bool: 是否之前就存在es索引,没有索引就建立
         """
 
         # FIXME: 当第一次异常加载时，可能会创建索引，但没有写入数据
@@ -64,7 +65,7 @@ class EsSearcher(SearcherInterface):
 
         if self._es.indices.exists(index=self._es_index):
             return True
-        else :
+        else:
             # self._es.indices.delete(index=self._es_index)
             self._es.indices.create(index=self._es_index)
 
@@ -74,6 +75,5 @@ class EsSearcher(SearcherInterface):
             for _, dict in _dict.items():
                 self._es.index(index=self._es_index, body=dict)
             return False
-    
-    def _load_config(self):
-        ...
+
+    def load_config(self): ...

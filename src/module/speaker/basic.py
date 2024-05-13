@@ -6,20 +6,21 @@ from datetime import datetime
 
 from module.interface import BasicModule
 
+
 class BasicSpeaker(BasicModule):
     def __init__(self):
         super().__init__()
 
-        self.__output_dir = './data/sound'
+        self.__output_dir = "./data/sound"
 
-    def _load_config(self):
+    def load_config(self):
         info = self._read_config()
         self.speech_config = speechsdk.SpeechConfig(
-            subscription=info['apiKey'], region='eastasia')
+            subscription=info["apiKey"], region="eastasia"
+        )
 
         # TODO 找到合适的声音，考虑使用SSML来风格化
-        self.speech_config.speech_synthesis_voice_name = 'zh-CN-XiaohanNeural'
-
+        self.speech_config.speech_synthesis_voice_name = "zh-CN-XiaohanNeural"
 
     def speak(self, text) -> str:
         if not os.path.exists(self.__output_dir):
@@ -34,7 +35,8 @@ class BasicSpeaker(BasicModule):
 
         # 创建语音合成器对象，设置语音合成的配置和输出
         speech_synthesizer = speechsdk.SpeechSynthesizer(
-            speech_config=self.speech_config, audio_config=audio_config)
+            speech_config=self.speech_config, audio_config=audio_config
+        )
 
         # 调用语音合成器进行语音合成，并获取合成结果
         speech_synthesis_result = speech_synthesizer.speak_text_async(text).get()
@@ -56,11 +58,11 @@ class BasicSpeaker(BasicModule):
                 if cancellation_details.error_details:
                     # print("Error details: {}".format(cancellation_details.error_details))
                     # print("Did you set the speech resource key and region values?")
-                    
+
                     # FIXME: raise exception instead of printing error directly
                     raise Exception()
-                    
+
         return output_path
-    
+
     def __generate_filename(self) -> str:
-        return datetime.now().strftime("BasicSpeaker-%Y%m%d%H%M%S") + '.wav'
+        return datetime.now().strftime("BasicSpeaker-%Y%m%d%H%M%S") + ".wav"

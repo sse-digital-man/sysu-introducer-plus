@@ -25,8 +25,11 @@ class BasicCore(BasicModule):
 
         self.__handle_callback: HandleCallback | None = None
 
-    def _load_config(self):
+    def load_config(self):
         pass
+
+    def handle_starting(self):
+        self._make_thread(self.__handle)
 
     # 线程循环处理消息队列（需要开启多线程）
     def __handle(self):
@@ -45,12 +48,14 @@ class BasicCore(BasicModule):
             # 生成回答
             response = self._sub_module("bot").talk(message.content)
             print("answer:", response)
-            self._log(MessageLog(
-                MessageKind.Assistant,
-                response,
-                # 如果是管理员发送的消息 则需要专门发给管理员
-                to_admin=message.kind == MessageKind.Admin
-            ))
+            self._log(
+                MessageLog(
+                    MessageKind.Assistant,
+                    response,
+                    # 如果是管理员发送的消息 则需要专门发给管理员
+                    to_admin=message.kind == MessageKind.Admin,
+                )
+            )
 
             # 生成语音
             speech = self._sub_module("speaker").speak(response)
@@ -64,9 +69,6 @@ class BasicCore(BasicModule):
         # 核心处理完毕之后 清除消息队列
         self.__msg_queue.clear()
 
-    def _before_started(self):
-        self._make_thread(self.__handle)
-
     def send(self, text: Message) -> bool:
         # 只有当处理核心运行时 才能向其添加消息
         if not self.is_running:
@@ -76,5 +78,4 @@ class BasicCore(BasicModule):
         return True
 
     def set_handle_callback(self, callback: HandleCallback):
-        print("set")
         self.__handle_callback = callback

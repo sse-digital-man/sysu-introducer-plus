@@ -5,7 +5,7 @@ from module.renderer.interface import RendererInterface
 
 
 def get_url(port: str) -> str:
-    return f'http://localhost:{port}/alive'
+    return f"http://localhost:{port}/alive"
 
 
 class EasyaivtuberRenderer(RendererInterface):
@@ -17,12 +17,12 @@ class EasyaivtuberRenderer(RendererInterface):
 
         self.__url = get_url(7888)
         self.__beat = 1
-        self.__mouth_offset = 0.
-        self.__work_dir = 'src/module/renderer/EasyAIVtuber/'
+        self.__mouth_offset = 0.0
+        self.__work_dir = "src/module/renderer/EasyAIVtuber/"
 
-    def _load_config(self):
+    def load_config(self):
         # 该函数的父类函数是抽象函数
-        # super()._load_config()
+        # super().load_config()
         info = self._read_config()
 
         def is_startup_arg(name: str) -> bool:
@@ -36,8 +36,8 @@ class EasyaivtuberRenderer(RendererInterface):
 
         # 2. 设置生成参数
         self.__url = get_url(info["port"])
-        self.__beat = info['beat']
-        self.__mouth_offset = info['mouth_offset']
+        self.__beat = info["beat"]
+        self.__mouth_offset = info["mouth_offset"]
 
     def _run_command(self):
         command = ["python", "main.py"]
@@ -45,14 +45,18 @@ class EasyaivtuberRenderer(RendererInterface):
             command.extend([f"--{key}", str(value)])
 
         # 通过cwd参数指定工作目录
-        subprocess.run(
-            command, cwd=self.__work_dir)
+        subprocess.run(command, cwd=self.__work_dir)
 
-    def _before_started(self):
-        super()._before_started()
+    def handle_starting(self):
         self._make_thread(self._run_command)
 
-    def speak(self, path: str, bgm_path: str = None, mouth_offset: float = None, beat: int = None) -> Dict[str, str]:
+    def speak(
+        self,
+        path: str,
+        bgm_path: str = None,
+        mouth_offset: float = None,
+        beat: int = None,
+    ) -> Dict[str, str]:
         data = {}
         if bgm_path is None:
             data["type"] = "speak"
@@ -80,9 +84,7 @@ class EasyaivtuberRenderer(RendererInterface):
         return self.send_message(data)
 
     def stop_move(self) -> Dict[str, str]:
-        data = {
-            "type": "stop"
-        }
+        data = {"type": "stop"}
         return self.send_message(data)
 
     def change_img(self, img_path: str):
