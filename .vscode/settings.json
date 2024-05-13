@@ -1,0 +1,11 @@
+{
+    "pylint.args": [
+        "--source-roots=./src",
+        "--disable=C0114, C0115, C0116, W0123, W0707, W0718"
+    ],
+    "flake8.args": ["--max-line-length=99"],
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true
+    }
+}
