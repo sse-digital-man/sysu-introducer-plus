@@ -300,15 +300,8 @@ class ModuleManager:
         module.handle_stopping()
         self._update_status(cell, ModuleStatus.Stopping)
 
-        module = cell.module
-
-        # 1. 先设置标志位
-        module.handle_stopping()
-        self._update_status(cell, ModuleStatus.Stopping)
-
-        # # 2. 关闭内部的线程处理
-        # for thread in module.__threads:
-        #     thread.join()
+        # 2. 关闭内部的线程处理
+        module.wait_threads()        
 
         # 3. 关闭子线程
         for sub_name, submodule in cell.sub.items():
