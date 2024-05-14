@@ -41,7 +41,7 @@ class BasicBooter(BooterInterface):
         def handle_callback(result: HandleResult):
             # TODO: 完善处理核心处理完成后的回调函数
             if renderer is None or renderer.status != ModuleStatus.Started:
-                return  
+                return
 
             renderer.speak(result.sound_path)
 
