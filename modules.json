@@ -38,7 +38,7 @@
     },
     "renderer": {
         "alias": "人物渲染器",
-        "kinds": ["easyaivtuber"],
+        "kinds": ["easyaivtuber", "sound"],
         "default": "easyaivtuber",
         "notNull": false
     }
