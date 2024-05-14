@@ -106,4 +106,4 @@ class BasicSpeaker(SpeakerInterface):
                     # FIXME: raise exception instead of printing error directly
                     raise Exception()
 
-        return output_path
+        return os.path.join(os.getcwd(), output_path)

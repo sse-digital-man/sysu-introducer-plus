@@ -39,12 +39,9 @@ class BasicBooter(BooterInterface):
         renderer: RendererInterface = self._sub_module(ModuleName.RENDERER)
 
         def handle_callback(result: HandleResult):
-            if renderer is None or renderer.status != ModuleStatus.Starting:
-                return
-
             # TODO: 完善处理核心处理完成后的回调函数
-            if renderer is None or renderer.status != ModuleStatus.Starting:
-                return
+            if renderer is None or renderer.status != ModuleStatus.Started:
+                return  
 
             renderer.speak(result.sound_path)
 
