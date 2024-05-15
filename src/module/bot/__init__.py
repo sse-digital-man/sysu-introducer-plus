@@ -7,8 +7,8 @@ class BasicBot(BasicModule):
     def __init__(self):
         super().__init__()
 
-    def _load_config(self):
+    def load_config(self):
         pass
 
     def talk(self, query: str) -> str:
-        return self._sub_module("caller").single_call(query , True)
+        return self._sub_module("caller").single_call(query, True)

@@ -16,6 +16,8 @@ azure-cognitiveservices-speech
 
 # renderer module
 requests
+# - sound 确保ffmpeg已经安装
+pydub
 
 # config
 pyyaml

@@ -4,8 +4,9 @@ import websockets
 
 # refs: https://blog.csdn.net/m0_61560439/article/details/130569160
 
+
 class WSServer:
-    def __init__(self, host: str="0.0.0.0", port: str="8083"):
+    def __init__(self, host: str = "0.0.0.0", port: str = "8083"):
         self.__host = host
         self.__port = port
 
@@ -24,13 +25,13 @@ class WSServer:
         # 如果线程存活 则不能继续使用
         if self.__thread.is_alive():
             return
-        
+
         self.__is_running = True
         self.__thread.start()
 
     def stop(self):
         self.__is_running = False
-        
+
     def send(self, message):
         self.__message_queue.append(message)
 
@@ -65,6 +66,7 @@ class WSServer:
                 websockets.broadcast(self.__clients, message)
 
             await asyncio.sleep(self.__delay)
+
 
 # 测试
 if __name__ == "__main__":

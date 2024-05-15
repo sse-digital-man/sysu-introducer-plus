@@ -3,12 +3,8 @@ import random as ra
 
 from .interface import CallerInterface
 
-RANDOM_ANSWERS = [
-    "欢迎欢迎",
-    "见到你很高兴",
-    "谢谢夸奖",
-    "你说得对"
-]
+RANDOM_ANSWERS = ["欢迎欢迎", "见到你很高兴", "谢谢夸奖", "你说得对"]
+
 
 class VirtualCaller(CallerInterface):
     def __init__(self):
@@ -21,20 +17,19 @@ class VirtualCaller(CallerInterface):
         # 2. false: 输出我回答了 XXX
         self.__is_random: bool
 
-    def _load_config(self):
+    def load_config(self):
         info = self._read_config()
 
-        self.__delay = info['delay'] / 1000
-        self.__is_random = info['isRandom']
+        self.__delay = info["delay"] / 1000
+        self.__is_random = info["isRandom"]
 
         if self.__delay < 0:
             raise ValueError("delay must be not negative")
 
-    def single_call(self, query: str, with_system_prompt: bool=True) -> str:
+    def single_call(self, query: str, with_system_prompt: bool = True) -> str:
         time.sleep(self.__delay)
 
         if self.__is_random:
             return ra.sample(RANDOM_ANSWERS, 1)[0]
         else:
             return f"我回答了 {query}"
-

@@ -1,44 +1,46 @@
 from typing import List
 from tabulate import tabulate
 
-from module.interface.info import moduleStatusMap, ModuleName
-from core import BasicCore
+from module.interface import ModuleName
+from module.interface.info import moduleStatusMap
+from module.interface.manager import MANAGER
 from message import Message, MessageKind
-from . import manager
 from .kind import CommandHandleError, CommandUsageError
 
-BOOTER = ModuleName.Booter.value
+BOOTER = ModuleName.BOOTER.value
+
 
 def handle_start(args: List[str]):
     length = len(args)
     # 如果运行没有参数，则运行所有参数
-    if length == 1:
-        manager.start(BOOTER)
-    elif length == 2:
-        module = args[1]
-        manager.start(module)
+    if length in (1, 2):
+        name = BOOTER
+        if length == 2:
+            name = args[1]
+        MANAGER.start(name, with_sub=True, with_sup=True)
     else:
         raise CommandUsageError(args[0])
 
-# m
-def handle_stop(args: List[str] = ["stop"]):
+
+def handle_stop(args: List[str]):
     length = len(args)
 
-    if length == 1:
-        manager.stop(BOOTER)
-    elif length == 2:
-        module = args[1]
-        manager.stop(module)
+    if length in (1, 2):
+        name = BOOTER
+        if length == 2:
+            name = args[1]
+        MANAGER.stop(name)
     else:
         raise CommandUsageError(args[0])
 
 
 def handle_status(args: List[str]):
-    info_list = manager.module_info_list
+    info_list = MANAGER.module_info_list
 
     # 输入显示的字段名
-    headers = args[1:] if len(args) > 1 \
-        else ["name", "alias", "kind", "kinds", "status"]
+    headers = (
+        args[1:] if len(args) > 1 else ["name", "alias", "kind", "kinds", "status"]
+    )
 
     # 将信息对象处理成行数据
     rows = []
@@ -53,35 +55,37 @@ def handle_status(args: List[str]):
                     cell = ", ".join(cell)
 
                 row.append(cell)
-            
+
             except KeyError:
                 raise CommandHandleError(f"unknown field name '{header}'")
-        
+
         rows.append(row)
 
     print()
     print(tabulate(rows, headers, tablefmt="github"))
 
-def handle_exit(ignored): 
-    manager.stop(BOOTER)
+
+def handle_exit(_ignored):
+    MANAGER.stop(BOOTER)
     raise InterruptedError()
+
 
 def handle_change(args: List[str]):
     try:
         name, kind = args[1:]
 
-        manager.change_module_kind(name, kind)
+        MANAGER.change_module_kind(name, kind)
     except ValueError:
         raise CommandUsageError(args[0])
+
 
 def handle_send(args: List[str]):
     try:
         if len(args) != 2:
             raise ValueError()
         message = Message(MessageKind.Admin, eval(args[1]))
-    except:
+    except BaseException:
         raise CommandUsageError(args[0])
 
     # 如果消息未能发送成功，则说明模块未启动
-    if not manager.module(BOOTER).send(message):
-        raise CommandHandleError("module is not running, can't send message")
+    MANAGER.send(message)
