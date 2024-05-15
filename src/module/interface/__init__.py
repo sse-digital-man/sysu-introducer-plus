@@ -63,6 +63,10 @@ class BasicModule(metaclass=ABCMeta):
         self.__threads.append(thread)
         thread.start()
 
+    def wait_threads(self):
+        for thread in self.__threads:
+            thread.join()
+
     def _log(self, log: ModuleLog):
         """发送日志, 需要由管理器注入回调函数
 

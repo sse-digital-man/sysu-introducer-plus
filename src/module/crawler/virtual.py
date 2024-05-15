@@ -1,7 +1,7 @@
 import time
 
 from utils.file import load_lines
-from ..interface import CrawlerInterface
+from .interface import CrawlerInterface
 
 DEFAULT_DELAY = 1
 
