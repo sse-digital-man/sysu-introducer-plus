@@ -4,3 +4,6 @@
 [submodule "src/module/speaker/GSV"]
 	path = src/module/speaker/GSV
 	url = https://github.com/sse-digital-man/GPT-SoVITS
+[submodule "blivedm"]
+    path = src/module/crawler/bilibili/blivedm
+    url = https://github.com/sse-digital-man/blivedm.git
