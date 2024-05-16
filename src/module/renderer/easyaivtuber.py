@@ -45,10 +45,15 @@ class EasyaivtuberRenderer(RendererInterface):
             command.extend([f"--{key}", str(value)])
 
         # 通过cwd参数指定工作目录
-        subprocess.run(command, cwd=self.__work_dir)
+        self.__process = subprocess.Popen(command, cwd=self.__work_dir)
 
     def handle_starting(self):
         self._make_thread(self._run_command)
+
+    def handle_stopping(self):
+        data = {"type": "stop_process"}
+        self.send_message(data)
+        self.__process.kill()
 
     def speak(
         self,
