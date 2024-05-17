@@ -28,18 +28,18 @@
     },
     "speaker": {
         "alias": "文本转语音",
-        "kinds": ["basic", "gsv"],
-        "default": "basic"
+        "kinds": ["basic", "gsv", "bv2"],
+        "default": "bv2"
     },
     "crawler": {
         "alias": "直播间爬虫",
-        "kinds": ["bilibili", "virtual"],
+        "kinds": ["bilibili","virtual"],
         "default": "virtual"
     },
     "renderer": {
         "alias": "人物渲染器",
         "kinds": ["easyaivtuber", "sound"],
-        "default": "easyaivtuber",
+        "default": "sound",
         "notNull": false
     }
 }
