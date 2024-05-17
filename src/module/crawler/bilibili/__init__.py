@@ -65,4 +65,7 @@ class BilibiliCrawler(CrawlerInterface):
 
     def handle_stopping(self):
         # 控制客户端关闭
+        if self.__client is None:
+            return
+
         self.__client.stop()

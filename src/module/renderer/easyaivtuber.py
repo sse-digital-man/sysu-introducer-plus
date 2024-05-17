@@ -55,9 +55,18 @@ class EasyaivtuberRenderer(RendererInterface):
         self._make_thread(self._run_command)
 
     def handle_stopping(self):
+        # 进程对象为空, 说明进程未正常启动
+        if self.__process is None:
+            return
+
         data = {"type": "stop_process"}
         self.send_message(data)
         self.__process.kill()
+        self.__process = None
+
+    def check(self):
+        # TODO: 通过预先发送消息保证后台是可运行的
+        pass
 
     def speak(
         self,
