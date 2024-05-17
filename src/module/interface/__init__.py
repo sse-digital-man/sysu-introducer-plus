@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABCMeta
-from typing import List, Dict, Tuple, Callable, Self
+from typing import List, Dict, Callable, Self
 from threading import Thread
 from enum import Enum
 
@@ -49,10 +49,12 @@ class BasicModule(metaclass=ABCMeta):
         # 需要每次更新配置文件以保证最新
         pass
 
-    # 如果验证成功则直接通过，失败则 raise 错误
-    # 主要是用于是否能够正常启动模块
-    def check(self) -> Tuple[bool, Exception]:
-        return (True, None)
+    def check(self):
+        """验证模块是否能够正常运行，成功无需处理，失败则会抛出异常。
+
+        Raises:
+            BaseExceptions: 产生错误
+        """
 
     def _read_config(self) -> Dict:
         return CONFIG.get(self.name, self.kind)
