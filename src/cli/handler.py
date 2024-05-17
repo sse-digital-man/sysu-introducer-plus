@@ -1,6 +1,7 @@
 from typing import List
 from tabulate import tabulate
 
+from utils.config import CONFIG
 from utils.error import ModuleLoadError
 
 from module.interface import ModuleName
@@ -93,3 +94,7 @@ def handle_send(args: List[str]):
 
     # 如果消息未能发送成功，则说明模块未启动
     MANAGER.send(message)
+
+
+def handle_reload(_ignored):
+    CONFIG.reload()
