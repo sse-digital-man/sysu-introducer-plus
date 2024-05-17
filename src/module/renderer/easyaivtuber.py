@@ -1,7 +1,9 @@
 import subprocess
-import requests
 from typing import Dict
-from module.renderer.interface import RendererInterface
+import requests
+
+
+from .interface import RendererInterface
 
 
 def get_url(port: str) -> str:
@@ -19,6 +21,8 @@ class EasyaivtuberRenderer(RendererInterface):
         self.__beat = 1
         self.__mouth_offset = 0.0
         self.__work_dir = "src/module/renderer/EasyAIVtuber/"
+
+        self.__process = None
 
     def load_config(self):
         # 该函数的父类函数是抽象函数
