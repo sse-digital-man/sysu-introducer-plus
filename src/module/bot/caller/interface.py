@@ -1,5 +1,4 @@
 from abc import ABCMeta, abstractmethod
-from typing import Tuple
 from module.interface import BasicModule
 
 
@@ -19,7 +18,7 @@ class CallerInterface(BasicModule, metaclass=ABCMeta):
             else CallerInterface.default_system_prompt
         )
 
-    def check(self) -> Tuple[bool, Exception]:
+    def check(self):
         """如果调用后不会报错且能够正常返回，则检验正常。
         在调用该函数时，会重新加载配置文件中的配置信息。
         因此该函数只运行一次即可。
@@ -27,11 +26,7 @@ class CallerInterface(BasicModule, metaclass=ABCMeta):
         Returns:
             bool: 是否正常
         """
-        try:
-            response = self.single_call("hello", with_system_prompt=False)
-            return (response is not None and len(response) > 0, None)
-        except Exception as e:
-            return (False, e)
+        self.single_call("hello", with_system_prompt=False)
 
     # 单条消息的调用（只能输入一条 query）
     @abstractmethod
