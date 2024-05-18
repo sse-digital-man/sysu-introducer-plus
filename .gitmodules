@@ -1,12 +1,17 @@
-[submodule "EasyAIVtuber"]
-	path = src/module/renderer/EasyAIVtuber
-	url = https://github.com/sse-digital-man/EasyAIVtuber.git
-[submodule "src/module/speaker/GSV"]
-	path = src/module/speaker/GSV
-	url = https://github.com/sse-digital-man/GPT-SoVITS
+# crawler
 [submodule "blivedm"]
     path = src/module/crawler/bilibili/blivedm
     url = https://github.com/sse-digital-man/blivedm.git
+
+# speaker
+[submodule "src/module/speaker/GSV"]
+	path = src/module/speaker/GSV
+	url = https://github.com/sse-digital-man/GPT-SoVITS
 [submodule "src/module/speaker/BV2"]
 	path = src/module/speaker/BV2
 	url = https://github.com/sse-digital-man/Bert-VITS2
+
+# renderer
+[submodule "EasyAIVtuber"]
+	path = src/module/renderer/EasyAIVtuber
+	url = https://github.com/sse-digital-man/EasyAIVtuber.git
