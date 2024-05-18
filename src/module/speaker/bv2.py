@@ -25,8 +25,8 @@ class Bv2Speaker(SpeakerInterface):
         print(query)
 
         params = {
-            "model_id": 0,
-            "speaker_name": "tiejun",
+            "model_id": 0, 
+            "speaker_name": "babala",
             "sdp_ratio": 0.2,
             "noise": 0.2,
             "noisew": 0.9,
@@ -70,19 +70,3 @@ class Bv2Speaker(SpeakerInterface):
         ]
 
         subprocess.Popen(command, cwd=root_path, shell=True, env=os.environ)
-
-    def check(self) -> Tuple[bool, Exception | None]:
-        total_time = 60
-        iter_time = 10
-        for _ in range(total_time // iter_time):
-            try:
-                output_path = self.speak("你好，我是中大校史介绍官中小大，很高兴能为您介绍中大校史。")
-                if os.path.exists(output_path):
-                    return True, None
-                else:
-                    return False, Exception()
-            except Exception as e:
-                print(e)
-                time.sleep(iter_time)
-
-        return False, TimeoutError()
