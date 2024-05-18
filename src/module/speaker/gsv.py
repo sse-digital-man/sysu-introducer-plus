@@ -54,19 +54,3 @@ class GsvSpeaker(SpeakerInterface):
         ]
 
         subprocess.Popen(command, cwd=root_path, shell=True, env=os.environ)
-
-    def check(self):
-        total_time = 60
-        iter_time = 10
-        for _ in range(total_time // iter_time):
-            try:
-                output_path = self.speak("你好")
-                if not os.path.exists(output_path):
-                    raise FileNotFoundError()
-
-                return
-            except Exception as e:
-                print(e)
-                time.sleep(iter_time)
-
-        raise TimeoutError()
