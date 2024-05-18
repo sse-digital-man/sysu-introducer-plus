@@ -1,6 +1,4 @@
 import os
-import time
-from typing import Tuple
 import subprocess
 import requests
 
