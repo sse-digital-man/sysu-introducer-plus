@@ -1,6 +1,4 @@
 import os
-import time
-from typing import Tuple
 import subprocess
 import requests
 
@@ -25,7 +23,7 @@ class Bv2Speaker(SpeakerInterface):
         print(query)
 
         params = {
-            "model_id": 0, 
+            "model_id": 0,
             "speaker_name": "babala",
             "sdp_ratio": 0.2,
             "noise": 0.2,
@@ -35,7 +33,7 @@ class Bv2Speaker(SpeakerInterface):
             "auto_translate": "false",
             "auto_split": "false",
             "emotion": "",
-            "style_weight": 0.7
+            "style_weight": 0.7,
         }
 
         files = {
