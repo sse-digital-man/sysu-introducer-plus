@@ -4,8 +4,7 @@ from tabulate import tabulate
 from utils.config import CONFIG
 from utils.error import ModuleLoadError
 
-from module.interface import ModuleName
-from module.interface.info import moduleStatusMap
+from module.interface.info import moduleStatusMap, ModuleName
 from module.interface.manager import MANAGER
 from message import Message, MessageKind
 from .kind import CommandHandleError, CommandUsageError

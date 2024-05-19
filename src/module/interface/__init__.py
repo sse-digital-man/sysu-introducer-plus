@@ -1,26 +1,14 @@
 from abc import abstractmethod, ABCMeta
 from typing import List, Dict, Callable, Self
 from threading import Thread
-from enum import Enum
 
 from utils.config import CONFIG
 from utils.time import now, sub_time
 from message import Message
 
-from .info import ModuleStatus
+from .info import ModuleStatus, ModuleName
 from .log.interface import ModuleLog, ModuleCallback
 from .log import HandleLog
-
-
-class ModuleName(Enum):
-    BOOTER = "booter"
-    CORE = "core"
-    BOT = "bot"
-    CALLER = "caller"
-    SEARCHER = "searcher"
-    SPEAKER = "speaker"
-    CRAWLER = "crawler"
-    RENDERER = "renderer"
 
 
 class BasicModule(metaclass=ABCMeta):

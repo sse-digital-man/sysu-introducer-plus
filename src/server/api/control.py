@@ -1,8 +1,7 @@
 from typing import Dict
 from flask import Blueprint, request
 
-from module.interface import ModuleName
-from module.interface.info import moduleStatusMap
+from module.interface.info import ModuleName, moduleStatusMap
 from module.interface.manager import MANAGER
 from utils.config import CONFIG
 
