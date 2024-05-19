@@ -5,6 +5,7 @@ class SimpleBot(BasicBot):
     def load_config(self):
         pass
 
+    @BasicBot._handle_log
     def talk(self, query: str) -> str:
         caller = self._sub_module("caller")
         searcher = self._sub_module("searcher")

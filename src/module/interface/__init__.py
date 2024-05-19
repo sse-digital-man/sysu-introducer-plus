@@ -4,10 +4,12 @@ from threading import Thread
 from enum import Enum
 
 from utils.config import CONFIG
+from utils.time import now, sub_time
 from message import Message
 
 from .info import ModuleStatus
 from .log.interface import ModuleLog, ModuleCallback
+from .log import HandleLog
 
 
 class ModuleName(Enum):
@@ -42,6 +44,27 @@ class BasicModule(metaclass=ABCMeta):
 
         # 线程相关
         self.__threads: List[Thread] = []
+
+    @staticmethod
+    def _handle_log(fn):
+        def wrapper(self: Self, *args):
+            # 如果不是在运行中调用，则
+            if self.status is not ModuleStatus.Started:
+                return fn(self, *args)
+
+            start_time = now()
+
+            # 处理结果
+            result = fn(self, *args)
+
+            # 记录处理日志
+            BasicModule._log(
+                self, HandleLog(self.name, self.kind, sub_time(start_time, now()))
+            )
+
+            return result
+
+        return wrapper
 
     # 该函数主要由模块管理器统一进行管理，统一进行更新
     @abstractmethod
