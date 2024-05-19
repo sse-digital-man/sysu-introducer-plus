@@ -32,16 +32,16 @@ def start(name: str, control: str):
 
     if control == "start":
         # Notice: 启动子模块时，也会递归启动父模块
-        flag, status = MANAGER.start(name, with_sup=True)
+        MANAGER.start(name, with_sup=True)
     elif control == "stop":
-        flag, status = MANAGER.stop(name)
+        MANAGER.stop(name)
 
     # 如果模块启动失败，则说明是当前状态不支持
-    if not flag:
-        return Result.create(
-            code=ErrorCode.ModuleStatusNotSupported,
-            data={"status": status, "statusLabel": moduleStatusMap[status]},
-        )
+    # if not flag:
+    #     return Result.create(
+    #         code=ErrorCode.ModuleStatusNotSupported,
+    #         data={"status": status, "statusLabel": moduleStatusMap[status]},
+    #     )
 
     return Result.create()
 
