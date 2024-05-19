@@ -435,7 +435,7 @@ class ModuleManager:
 
             # 更新父模块的子模块
             print(sup_cell.module.name)
-            sup_cell.module.update_sub_module(cell.module)
+            sup_cell.module.update_submodule(cell.name, cell.module)
 
         # FIXME: 使用抛出异常解决运行不成功的问题
         return True, None

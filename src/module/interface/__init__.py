@@ -173,8 +173,14 @@ class BasicModule(metaclass=ABCMeta):
     def update_status(self, status: ModuleStatus):
         self.__status = status
 
-    def update_sub_module(self, sub_module: Self):
-        self.__sub_modules[sub_module.name] = sub_module
+    def update_submodule(self, name: str, sub_module: Self):
+        """更新模块的子模块指针，由于子模块可能为空，因此需要传入名称
+
+        Args:
+            name (str): 模块名称
+            sub_module (Self): 子模块指针
+        """
+        self.__sub_modules[name] = sub_module
 
 
 class BooterInterface(BasicModule, metaclass=ABCMeta):
