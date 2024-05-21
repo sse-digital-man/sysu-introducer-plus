@@ -9,8 +9,9 @@ from message import Message
 from . import BasicModule, BooterInterface
 from .info import ModuleInfo, ModuleStatus
 
+from .log.database import DATABASE
 from .log.interface import ModuleLog, ModuleCallback
-from .log import ModuleStatusLog
+from .log import StatusLog
 
 CONFIG_PATH = "modules.json"
 
@@ -255,10 +256,12 @@ class ModuleManager:
             )
 
     def log(self, log: ModuleLog):
-        # TODO: 发送日志后的处理函数
+        # 存在其他线程使用回调函数调用此线程，可能会造成线程不安全
 
         if self.__log_callback is not None:
             self.__log_callback(log)
+
+        DATABASE.append(log)
 
     # ----- 模块控制 ----- #
 
@@ -432,7 +435,7 @@ class ModuleManager:
 
             # 更新父模块的子模块
             print(sup_cell.module.name)
-            sup_cell.module.update_sub_module(cell.module)
+            sup_cell.module.update_submodule(cell.name, cell.module)
 
         # FIXME: 使用抛出异常解决运行不成功的问题
         return True, None
@@ -487,7 +490,7 @@ class ModuleManager:
         cell.status = new_status
         if cell.module is not None:
             cell.module.update_status(new_status)
-        self.log(ModuleStatusLog(name, new_status))
+        self.log(StatusLog(name, new_status))
 
     def set_log_callback(self, callback: LogCallBack):
         self.__log_callback = callback

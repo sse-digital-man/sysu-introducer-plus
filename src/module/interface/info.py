@@ -1,5 +1,5 @@
 from typing import List, Self
-from enum import IntEnum, unique
+from enum import Enum, IntEnum, unique
 
 
 @unique
@@ -44,6 +44,17 @@ moduleStatusMap = {
     ModuleStatus.RunError: "运行异常",
     ModuleStatus.StopError: "停止异常",
 }
+
+
+class ModuleName(Enum):
+    BOOTER = "booter"
+    CORE = "core"
+    BOT = "bot"
+    CALLER = "caller"
+    SEARCHER = "searcher"
+    SPEAKER = "speaker"
+    CRAWLER = "crawler"
+    RENDERER = "renderer"
 
 
 class ModuleInfo:

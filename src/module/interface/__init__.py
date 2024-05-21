@@ -1,24 +1,14 @@
 from abc import abstractmethod, ABCMeta
 from typing import List, Dict, Callable, Self
 from threading import Thread
-from enum import Enum
 
 from utils.config import CONFIG
+from utils.time import now, sub_time
 from message import Message
 
-from .info import ModuleStatus
+from .info import ModuleStatus, ModuleName
 from .log.interface import ModuleLog, ModuleCallback
-
-
-class ModuleName(Enum):
-    BOOTER = "booter"
-    CORE = "core"
-    BOT = "bot"
-    CALLER = "caller"
-    SEARCHER = "searcher"
-    SPEAKER = "speaker"
-    CRAWLER = "crawler"
-    RENDERER = "renderer"
+from .log import HandleLog
 
 
 class BasicModule(metaclass=ABCMeta):
@@ -42,6 +32,27 @@ class BasicModule(metaclass=ABCMeta):
 
         # 线程相关
         self.__threads: List[Thread] = []
+
+    @staticmethod
+    def _handle_log(fn):
+        def wrapper(self: Self, *args):
+            # 如果不是在运行中调用，则
+            if self.status is not ModuleStatus.Started:
+                return fn(self, *args)
+
+            start_time = now()
+
+            # 处理结果
+            result = fn(self, *args)
+
+            # 记录处理日志
+            BasicModule._log(
+                self, HandleLog(self.name, self.kind, sub_time(start_time, now()))
+            )
+
+            return result
+
+        return wrapper
 
     # 该函数主要由模块管理器统一进行管理，统一进行更新
     @abstractmethod
@@ -162,8 +173,14 @@ class BasicModule(metaclass=ABCMeta):
     def update_status(self, status: ModuleStatus):
         self.__status = status
 
-    def update_sub_module(self, sub_module: Self):
-        self.__sub_modules[sub_module.name] = sub_module
+    def update_submodule(self, name: str, sub_module: Self):
+        """更新模块的子模块指针，由于子模块可能为空，因此需要传入名称
+
+        Args:
+            name (str): 模块名称
+            sub_module (Self): 子模块指针
+        """
+        self.__sub_modules[name] = sub_module
 
 
 class BooterInterface(BasicModule, metaclass=ABCMeta):
