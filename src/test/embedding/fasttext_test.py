@@ -1,6 +1,7 @@
 import unittest
-from module.bot.searcher.fasttext_search import FTSearcher
 import psutil
+from module.bot.searcher.fasttext_search import FTSearcher
+
 
 class TestFTSearcher(unittest.TestCase):
 
