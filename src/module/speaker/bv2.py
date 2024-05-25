@@ -5,12 +5,12 @@ import requests
 from .interface import SpeakerInterface
 
 
-class GsvSpeaker(SpeakerInterface):
+class Bv2Speaker(SpeakerInterface):
     def __init__(self):
         super().__init__()
         self.__host = "127.0.0.1"
-        self.__port = 9880
-        self.__url = f"http://{self.__host}:{self.__port}/"
+        self.__port = 5000
+        self.__url = f"http://{self.__host}:{self.__port}/voice"
         self.__output_dir = "./data/sound"
 
     def load_config(self):
@@ -20,12 +20,27 @@ class GsvSpeaker(SpeakerInterface):
         # 此处应在start后调用
         # 拼接请求构成GET请求
         query = self.__url
-
         print(query)
-        # 发送请求
-        response = requests.get(
-            query, params={"text": text, "text_language": "zh"}, timeout=5
-        )
+
+        params = {
+            "model_id": 0,
+            "speaker_name": "babala",
+            "sdp_ratio": 0.2,
+            "noise": 0.2,
+            "noisew": 0.9,
+            "length": 1,
+            "language": "ZH",
+            "auto_translate": "false",
+            "auto_split": "false",
+            "emotion": "",
+            "style_weight": 0.7,
+        }
+
+        files = {
+            "text": (None, text),
+        }
+
+        response = requests.post(query, params=params, files=files)
 
         if response.status_code == 200:
             # 获取音频流内容
@@ -43,9 +58,9 @@ class GsvSpeaker(SpeakerInterface):
             raise RuntimeError()
 
     def handle_starting(self):
-        root_path = "src/module/speaker/GSV/"
-        program_path = "api.py"
-        interpreter_path = "C:/Users/Student/anaconda3/envs/GSV/python.exe"
+        root_path = "src/module/speaker/BV2/"
+        program_path = "hiyoriUI.py"
+        interpreter_path = "C:/Users/Student/anaconda3/envs/BV2/python.exe"
 
         command = [
             interpreter_path,

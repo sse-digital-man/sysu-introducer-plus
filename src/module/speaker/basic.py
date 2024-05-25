@@ -63,6 +63,7 @@ class BasicSpeaker(SpeakerInterface):
         # 获取修改后的XML内容字符串
         return ssml.format(text=text)
 
+    @SpeakerInterface._handle_log
     def speak(self, text) -> str:
         if not os.path.exists(self.__output_dir):
             os.makedirs(self.__output_dir)

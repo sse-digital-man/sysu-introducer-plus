@@ -42,12 +42,10 @@ class BasicCore(BasicModule):
 
             # 接收消息
             message = self.__msg_queue.pop()
-            print("receive:", message.content)
             self._log(MessageLog.from_message(message))
 
             # 生成回答
             response = self._sub_module("bot").talk(message.content)
-            print("answer:", response)
             self._log(
                 MessageLog(
                     MessageKind.Assistant,
@@ -59,7 +57,6 @@ class BasicCore(BasicModule):
 
             # 生成语音
             speech = self._sub_module("speaker").speak(response)
-            print("speech:", speech)
 
             # 响应处理结果, 只有对应回调函数非空时, 才进行处理
             if self.__handle_callback is not None:

@@ -2,6 +2,7 @@ import sys
 from typing import List
 from importlib import import_module
 
+from utils.error import ModuleError
 from .args import args
 from .kind import check_cmd, CommandHandleError, UnknownCommandError
 from .handler import handle_stop
@@ -47,11 +48,11 @@ class CliApp:
                 handle_function(input_args)
 
             # 当出现指令处理错误时 只需要打印即可
-            except CommandHandleError as e:
+            except (CommandHandleError, ModuleError) as e:
                 print_error(e)
             except InterruptedError:
                 # 退出程序时 应该先停止该程序
-                handle_stop()
+                handle_stop(["stop"])
                 sys.exit()
             except Exception as e:
                 if args.force:

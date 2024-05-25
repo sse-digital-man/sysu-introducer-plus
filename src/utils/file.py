@@ -1,6 +1,6 @@
 import json
 
-from typing import Dict, List
+from typing import Dict, List, Any
 
 
 def load_json(path: str) -> Dict | List:
@@ -25,3 +25,11 @@ def load_lines(path: str) -> List[str]:
             return messages
     except BaseException:
         return []
+
+
+def join_path(*args: str):
+    return "/".join(args)
+
+
+def dump_json(o: Any, indent: int = 0) -> str:
+    return json.dumps(o, ensure_ascii=False, indent=indent)

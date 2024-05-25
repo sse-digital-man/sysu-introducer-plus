@@ -23,15 +23,29 @@ class EsSearcher(SearcherInterface):
         Returns:
             List[str]: 文本列表 [text1, text2, text3, ...]
         """
-        dsl = {"query": {"match": {"query": query}}, "size": size}
+        # dsl = {"query": {"match": {"query": query}}, "size": size}
+        dsl = {
+            "query": {
+                "bool": {
+                    "should": [
+                        {"match": {"query": query}},
+                        {"match": {"metadata": query}},
+                    ],
+                    "minimum_should_match": 1,
+                }
+            },
+            "sort": [{"_score": {"order": "desc"}}],
+        }
         search_res = self._es.search(index=self._es_index, body=dsl)
-        res = []
-
+        res, count = [], 0
         # 遍历得到前size个相似问题
         for doc in search_res["hits"]["hits"]:
+            if count >= size:
+                break
             _query = doc["_source"]["query"]
             _document = doc["_source"]["document"]
             res.append(_query + ":" + _document)
+            count = count + 1
         return res
 
     def search_with_label(self, query: str, size: int) -> Dict[str, str]:
@@ -55,25 +69,22 @@ class EsSearcher(SearcherInterface):
     def build_index(self) -> bool:
         """基于数据库建立es索引
         Returns:
-        bool: 是否之前就存在es索引,没有索引就建立
+            bool: 是否之前就存在es索引,没有索引就建立
         """
 
-        # FIXME: 当第一次异常加载时，可能会创建索引，但没有写入数据
-        # 现在的逻辑会导致此后一直读取错误的数据，无法重载
-        # 建议通过校验内部数据项的大小来确定是否需要重新加载
-        # 此部分逻辑建议放在 check() 中, 并且需要建议 ElasticSearch 连通性
-
+        with open("data/database.json", "r", encoding="utf-8") as f:
+            _dict = json.load(f)
+        # 存在索引,且索引的数据项的size与当前数据一致时,不需要重新加载
         if self._es.indices.exists(index=self._es_index):
-            return True
-        else:
-            # self._es.indices.delete(index=self._es_index)
-            self._es.indices.create(index=self._es_index)
+            result = self._es.count(index=self._es_index)
+            if result["count"] == len(_dict):
+                return True
+            self._es.indices.delete(index=self._es_index)
 
-            # Notice: 路径使用正斜杠
-            with open("data/database.json", "r", encoding="utf-8") as f:
-                _dict = json.load(f)
-            for _, dict in _dict.items():
-                self._es.index(index=self._es_index, body=dict)
-            return False
+        # 需要重新建立索引
+        self._es.indices.create(index=self._es_index)
+        for _, dict in _dict.items():
+            self._es.index(index=self._es_index, body=dict)
+        return False
 
     def load_config(self): ...

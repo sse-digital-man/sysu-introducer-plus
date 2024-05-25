@@ -48,5 +48,8 @@ class Config:
         if save:
             save_json(CONFIG_PATH, self._data)
 
+    def reload(self):
+        self._data = load_json(CONFIG_PATH)
+
 
 CONFIG = Config()
