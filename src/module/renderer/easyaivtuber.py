@@ -1,7 +1,9 @@
 import subprocess
-import requests
 from typing import Dict
-from module.renderer.interface import RendererInterface
+import requests
+
+
+from .interface import RendererInterface
 
 
 def get_url(port: str) -> str:
@@ -19,6 +21,8 @@ class EasyaivtuberRenderer(RendererInterface):
         self.__beat = 1
         self.__mouth_offset = 0.0
         self.__work_dir = "src/module/renderer/EasyAIVtuber/"
+
+        self.__process = None
 
     def load_config(self):
         # 该函数的父类函数是抽象函数
@@ -45,10 +49,24 @@ class EasyaivtuberRenderer(RendererInterface):
             command.extend([f"--{key}", str(value)])
 
         # 通过cwd参数指定工作目录
-        subprocess.run(command, cwd=self.__work_dir)
+        self.__process = subprocess.Popen(command, cwd=self.__work_dir)
 
     def handle_starting(self):
         self._make_thread(self._run_command)
+
+    def handle_stopping(self):
+        # 进程对象为空, 说明进程未正常启动
+        if self.__process is None:
+            return
+
+        data = {"type": "stop_process"}
+        self.send_message(data)
+        self.__process.kill()
+        self.__process = None
+
+    def check(self):
+        # TODO: 通过预先发送消息保证后台是可运行的
+        pass
 
     def speak(
         self,

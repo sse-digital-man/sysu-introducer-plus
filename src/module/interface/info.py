@@ -1,5 +1,5 @@
 from typing import List, Self
-from enum import IntEnum, unique
+from enum import Enum, IntEnum, unique
 
 
 @unique
@@ -10,8 +10,28 @@ class ModuleStatus(IntEnum):
     Started = 3
     Stopping = 4
 
+    # 发生异常，模块发生异常，就相当于
+    StartError = 5
+    RunError = 6
+    StopError = 7
+
     def can_change(self: Self) -> bool:
-        return self in [ModuleStatus.NotLoaded, ModuleStatus.Stopped]
+        """当模块处于运行中、启动中和停止中时，模块是羡慕类型不能被切换
+
+        Returns:
+            bool: 能否被切换
+        """
+        return self in [
+            ModuleStatus.NotLoaded,
+            ModuleStatus.Stopped,
+        ]
+
+    def is_error(self: Self) -> bool:
+        return self in [
+            ModuleStatus.StartError,
+            ModuleStatus.RunError,
+            ModuleStatus.StopError,
+        ]
 
 
 moduleStatusMap = {
@@ -20,7 +40,21 @@ moduleStatusMap = {
     ModuleStatus.Starting: "启动中",
     ModuleStatus.Started: "运行中",
     ModuleStatus.Stopping: "停止中",
+    ModuleStatus.StartError: "启动异常",
+    ModuleStatus.RunError: "运行异常",
+    ModuleStatus.StopError: "停止异常",
 }
+
+
+class ModuleName(Enum):
+    BOOTER = "booter"
+    CORE = "core"
+    BOT = "bot"
+    CALLER = "caller"
+    SEARCHER = "searcher"
+    SPEAKER = "speaker"
+    CRAWLER = "crawler"
+    RENDERER = "renderer"
 
 
 class ModuleInfo:

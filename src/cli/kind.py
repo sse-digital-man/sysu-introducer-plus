@@ -5,6 +5,7 @@ COMMANDS = {
     "exit": {"usage": ""},
     "change": {"usage": "name kind"},
     "send": {"usage": '"content"'},
+    "reload": {"usage": ""},
 }
 
 
