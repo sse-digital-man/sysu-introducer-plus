@@ -1,5 +1,4 @@
 import os
-import subprocess
 import requests
 
 from .interface import SpeakerInterface
@@ -43,13 +42,13 @@ class GsvSpeaker(SpeakerInterface):
             raise RuntimeError()
 
     def handle_starting(self):
-        root_path = "src/module/speaker/GSV/"
-        program_path = "api.py"
-        interpreter_path = "C:/Users/Student/anaconda3/envs/GSV/python.exe"
+        '''
+        TODO: 使用DockerSDK for python 启动Docker容器提供服务
+        手动启动命令如下：
+        pull image: `docker pull kingkia/gpt-sovits-api`
+        run: `docker run -it -d --gpus=all --shm-size="16G" --env=is_half=False -v=D:\GSV\GPT-SoVITS\output:/workspace/output -v=D:\GSV\GPT-SoVITS\logs:/workspace/logs -v=D:\GSV\GPT-SoVITS\SoVITS_weights:/workspace/SoVITS_weights -v=D:\GSV\GPT-SoVITS\GPT_weights:/workspace/GPT_weights -v=D:\GSV\GPT-SoVITS\reference:/workspace/reference -v=D:\GSV\GPT-SoVITS\config.py:/workspace/config.py -p 9880:9880 --name gpt-sovits-api kingkia/gpt-sovits-api`
 
-        command = [
-            interpreter_path,
-            program_path,
-        ]
-
-        subprocess.Popen(command, cwd=root_path, shell=True, env=os.environ)
+        > 根据需要修改volume路径，必须写的包括SoVITS_weights、GPT_weights、reference以及config.py（可以通过配置来配置）
+        > 需要修改config.py文件中的一些参数，如模型路径、参考音频路径、参考音频文字、参考语言等
+        '''
+        pass

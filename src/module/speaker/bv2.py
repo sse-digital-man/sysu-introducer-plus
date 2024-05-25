@@ -1,5 +1,4 @@
 import os
-import subprocess
 import requests
 
 from .interface import SpeakerInterface
@@ -58,13 +57,12 @@ class Bv2Speaker(SpeakerInterface):
             raise RuntimeError()
 
     def handle_starting(self):
-        root_path = "src/module/speaker/BV2/"
-        program_path = "hiyoriUI.py"
-        interpreter_path = "C:/Users/Student/anaconda3/envs/BV2/python.exe"
-
-        command = [
-            interpreter_path,
-            program_path,
-        ]
-
-        subprocess.Popen(command, cwd=root_path, shell=True, env=os.environ)
+        '''
+        TODO: 使用DockerSDK for python 启动Docker容器提供服务
+        手动启动命令如下：
+        pull image: `docker pull kingkia/bert-vits2-api`
+        run: `docker run -d --it --gpus=all --shm-size="16G" --name bert-vits2-container -v D:\SIP\BV2\Data:/workspace/Data -v D:\SIP\BV2\bert:/workspace/bert -v D:\SIP\BV2\config.yml:/workspace/config.yml -p 5000:5000 kingkia/bert-vits2-api`
+        
+        > 根据需要修改volume路径，必须写的包括Data、bert两个文件夹以及配置文件config.yml
+        '''
+        pass
