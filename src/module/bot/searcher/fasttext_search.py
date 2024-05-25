@@ -1,6 +1,5 @@
 import json
 import chromadb
-from chromadb.api.models.Collection import Collection
 from gensim.models.fasttext import load_facebook_vectors
 from typing import List
 import time
@@ -31,8 +30,6 @@ class FTSearcher(SearcherInterface):
         print("加载FastText模型...")
         self.model = load_facebook_vectors(self.model_path)
         print("FastText模型加载完成。")
-
-        self.collection = self.build_database()
 
     def handle_starting(self):
         self.build_database()
@@ -66,7 +63,7 @@ class FTSearcher(SearcherInterface):
     def search_with_label(self):
         pass
 
-    def build_database(self) -> Collection:
+    def build_database(self) -> bool:
         """
         基于数据库建立fasttext向量索引。
         """
@@ -76,15 +73,17 @@ class FTSearcher(SearcherInterface):
         # Raises:
         #     ValueError: If the collection does not exist
         try:
-            collection = self.client.get_collection(name=self.collection_id)
-            return collection
+            self.collection = self.client.get_collection(name=self.collection_id)
+            print("集合已经存在。")
+            return True
         except ValueError:
+            print("集合不存在。")
             pass
 
         # 创建集合
         # self.collection = self.client.get_or_create_collection(name=self.collection_id)
 
-        collection = self.create_collection(name=self.collection_id)
+        self.collection = self.client.create_collection(name=self.collection_id)
 
         # 从本地文件加载数据
         print("从本地文件加载数据...")
@@ -104,7 +103,7 @@ class FTSearcher(SearcherInterface):
 
         embeddings = [self.model.get_vector(text).tolist() for text in queries]
 
-        collection.add(
+        self.collection.add(
             embeddings=embeddings,
             documents=documents,
             metadatas=metadatas,
@@ -112,3 +111,4 @@ class FTSearcher(SearcherInterface):
         )
 
         print("数据收集完成。")
+        return False
