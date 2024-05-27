@@ -1,14 +1,12 @@
 from abc import abstractmethod, ABCMeta
-from typing import List, Dict, Callable, Self
+from typing import List, Dict, Any, Callable, Self
 from threading import Thread
 
-from utils.config import CONFIG
 from utils.time import now, sub_time
 from message import Message
 
 from .info import ModuleStatus, ModuleName
-from .log.interface import ModuleLog, ModuleCallback
-from .log import HandleLog
+from .log import HandleLog, LOGGER
 
 
 class BasicModule(metaclass=ABCMeta):
@@ -26,7 +24,9 @@ class BasicModule(metaclass=ABCMeta):
         self.__kind = None
         self.__status = ModuleStatus.NotLoaded
         self.__sub_modules: Dict[str, Self | None]
-        self.__log_callback: ModuleCallback | None = None
+
+        # 模块的配置信息由 Cell 进行注入
+        self.__config: Dict[str, Any] = {}
 
         self.__has_injected = False
 
@@ -46,9 +46,7 @@ class BasicModule(metaclass=ABCMeta):
             result = fn(self, *args)
 
             # 记录处理日志
-            BasicModule._log(
-                self, HandleLog(self.name, self.kind, sub_time(start_time, now()))
-            )
+            LOGGER.log(HandleLog(self.name, self.kind, sub_time(start_time, now())))
 
             return result
 
@@ -68,7 +66,7 @@ class BasicModule(metaclass=ABCMeta):
         """
 
     def _read_config(self) -> Dict:
-        return CONFIG.get(self.name, self.kind)
+        return self.__config
 
     # 开辟一个线程用于处理
     def _make_thread(self, target: Callable):
@@ -79,14 +77,6 @@ class BasicModule(metaclass=ABCMeta):
     def wait_threads(self):
         for thread in self.__threads:
             thread.join()
-
-    def _log(self, log: ModuleLog):
-        """发送日志, 需要由管理器注入回调函数
-
-        Args:
-            _log (Message): 日志
-        """
-        self.__log_callback(log)
 
     # ----- Hook -----
 
@@ -145,11 +135,7 @@ class BasicModule(metaclass=ABCMeta):
     # ----- 管理器依赖注入 -----
 
     def inject(
-        self,
-        name: str,
-        kind: str,
-        sub_modules: Dict[str, Self],
-        log_callback: ModuleCallback,
+        self, name: str, kind: str, sub_modules: Dict[str, Self], config: Dict[str, Any]
     ):
         """管理器初次注入信息
 
@@ -165,8 +151,7 @@ class BasicModule(metaclass=ABCMeta):
         self.__name = name
         self.__kind = kind
         self.__sub_modules = sub_modules
-
-        self.__log_callback = log_callback
+        self.__config = config
 
         self.__has_injected = True
 

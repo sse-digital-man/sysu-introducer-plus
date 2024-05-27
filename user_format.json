@@ -1,0 +1,16 @@
+{
+    "crawler": {
+        "bilibili": {
+            "roomId": {
+                "label": "房间号",
+                "type": "number"
+            }
+        }
+    },
+    "caller": {
+        "gpt": {
+            "apiKey": "API秘钥",
+            "url": "代理网址"
+        }
+    }
+}

@@ -2,7 +2,7 @@ import time
 from typing import Callable
 
 from message import MessageKind, Message
-from module.interface.log import MessageLog
+from module.interface.log import LOGGER, MessageLog
 from module.interface import BasicModule
 
 from .msg_queue.fifo_queue import FIFOQueue as MessageQueue
@@ -42,11 +42,11 @@ class BasicCore(BasicModule):
 
             # 接收消息
             message = self.__msg_queue.pop()
-            self._log(MessageLog.from_message(message))
+            LOGGER.log(MessageLog.from_message(message))
 
             # 生成回答
             response = self._sub_module("bot").talk(message.content)
-            self._log(
+            LOGGER.log(
                 MessageLog(
                     MessageKind.Assistant,
                     response,
