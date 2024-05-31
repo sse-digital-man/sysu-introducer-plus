@@ -1,0 +1,9 @@
+searcher:
+    es:
+        image: "elasticsearch:8.13.4"
+        envs:
+            discovery.type: "single-node"
+            xpack.security.enabled: false
+        ports:
+            http: 9200
+            tcp: 9300

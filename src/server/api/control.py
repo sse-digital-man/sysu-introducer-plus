@@ -61,6 +61,8 @@ def change_module_kind(name: str):
     except ValueError:
         return Result.create(code=ErrorCode.ModuleKindNotFound)
 
+    return Result.create()
+
     # return (
     #     Result.create()
     #     if flag

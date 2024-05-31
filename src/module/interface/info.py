@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Self
+from typing import List, Self
 from enum import Enum, IntEnum, unique
 
 
@@ -143,40 +143,3 @@ class ModuleInfo:
     @sup.setter
     def sup(self, name: str):
         self.__sup = name
-
-
-class ModuleDockerInfo:
-    class Port:
-        def __init__(self, in_port: int, out_port: int, protocol: str = "tcp"):
-            self.in_port = in_port
-            self.out_port = out_port
-            self.protocol = protocol
-
-    def __init__(
-        self, tag: str, envs: Dict[str, str], ports: Dict[str, Port], is_daemon: bool
-    ):
-        self.tag = tag
-        self.envs = envs
-        self.ports = ports
-        self.is_daemon = is_daemon
-
-    def out_port(self, field: str):
-        return self.ports[field].out_port
-
-    @staticmethod
-    def from_dict(d: Dict[str, Any]) -> Self:
-        format_ports = {}
-        for field, content in format_ports.items():
-            if isinstance(content, int):
-                port = ModuleDockerInfo.Port(content, content)
-            elif isinstance(content, dict):
-                in_port = content["in"]
-                port = ModuleDockerInfo.Port(
-                    in_port, content.get("out", in_port), content.get("protocol", "tcp")
-                )
-            else:
-                raise ValueError("docker config info error")
-
-            format_ports[field] = port
-
-        return ModuleDockerInfo(d["tag"], d["envs"], format_ports, d["isDaemon"])

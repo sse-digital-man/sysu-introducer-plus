@@ -3,7 +3,7 @@ from typing import Dict, Any, Self
 from utils import error
 
 from .. import BasicModule
-from ..info import ModuleInfo, ModuleStatus, ModuleDockerInfo
+from ..info import ModuleInfo, ModuleStatus
 from ..log import LOGGER, StatusLog
 from ..config import ModuleConfig
 
@@ -25,9 +25,6 @@ class ModuleManageCell:
         # 记录管理单元的父子关系
         self._sup: ModuleManageCell | None = None
         self._sub: Dict[str, ModuleManageCell] = {}
-
-        # Docker 相关配置文件
-        self._docker: Dict[str, ModuleDockerInfo] = {}
 
         self._load_module()
 
@@ -68,80 +65,46 @@ class ModuleManageCell:
             Tuple[bool, ModuleStatus]: 是否运行成功，当前的状态（运行成功为None）
         """
 
+        # 0. 如果当前模块状态不是在停止状态 则不能停止
+        cur_status = self._status
+        if cur_status != ModuleStatus.Stopped:
+            return False, cur_status
+
+        # 1. 首先启动启动子模块
+        module = self._module
+        module.before_starting_submodules()
+
+        self.update_status(ModuleStatus.Starting)
+
+        if with_sub:
+            for sub_cell in self._sub.values():
+                if sub_cell.is_null:
+                    continue
+
+                sub_cell.start(with_sub=True, with_sup=False)
+
+        # 2. 更新配置信息
         try:
-            # 0. 如果当前模块状态不是在停止状态 则不能停止
-            cur_status = self._status
-            if cur_status != ModuleStatus.Stopped:
-                return False, cur_status
+            module.load_config()
+        except KeyError:
+            raise error.ModuleRuntimeError(
+                f"configuration about module '{module.name}' is missing"
+            )
 
-            # 1. 首先启动启动子模块
-            module = self._module
-            module.before_starting_submodules()
+        # 3. 模块的自定义启动逻辑
+        module.handle_starting()
 
-            self.update_status(ModuleStatus.Starting)
+        # 4. 模块自检
+        try:
+            module.check()
+        except BaseException as e:
+            raise error.ModuleCheckError(self.name, e)
 
-            if with_sub:
-                for sub_cell in self._sub.values():
-                    if sub_cell.is_null:
-                        continue
+        # 5. 钩子函数
+        self.update_status(ModuleStatus.Started)
 
-                    sub_cell.start(with_sub=True, with_sup=False)
-
-            # 2. 更新配置信息
-            try:
-                module.load_config()
-            except KeyError:
-                raise error.ModuleRuntimeError(
-                    f"configuration about module '{module.name}' is missing"
-                )
-
-            # Docker 相关启动
-            # kind = cell.info.kind
-            # try:
-            #     docker_info = self.__docker_info[name][kind]
-
-            #     # 验证模块对应 Docker 镜像是否存在
-            #     docker_name = docker_info.tag
-            #     if not self.__docker_client.check_image(docker_name):
-            #         raise error.ModuleRuntimeError(
-            #             f"docker image '{docker_name}' not found"
-            #         )
-
-            #     self.__docker_client.create_module_container(
-            #         name, kind, docker_info, no_exists=True
-            #     )
-            #     # 验证 Docker 对应镜像是否存在
-            #     # 验证 Docker 对应容器是否存在
-            #     # 不存在则需要创建容器
-            #     # 启动 Docker 容器
-
-            # except KeyError:
-            #     pass
-
-            # TODO: 在配置信息更新之后，启动子模块对应的线程
-
-            # 3. 模块的自定义启动逻辑
-            module.handle_starting()
-
-            # 4. 模块自检
-            try:
-                module.check()
-            except BaseException as e:
-                raise error.ModuleCheckError(self.name, e)
-
-            # 5. 钩子函数
-            self.update_status(ModuleStatus.Started)
-
-            if with_sup and self._sup is not None:
-                self._sup.start(with_sub=False, with_sup=True)
-
-        except error.ModuleError as e:
-            # 如果模块启动曹组
-            self.update_status(ModuleStatus.StartError)
-            self.stop()
-            raise e
-
-        # 停止模块单元
+        if with_sup and self._sup is not None:
+            self._sup.start(with_sub=False, with_sup=True)
 
     def stop(self):
         """停止模块
@@ -175,6 +138,7 @@ class ModuleManageCell:
             sub_cell.stop()
 
         module.after_stopping_submodules()
+
         self.update_status(ModuleStatus.Stopped)
 
     def change_module_kind(self, kind: str):
@@ -200,6 +164,7 @@ class ModuleManageCell:
         self._check_kind_exist(kind)
 
         # 加载模块并进行依赖注入
+        self._kind = kind
         self._load_module()
         self.inject()
 
@@ -265,7 +230,3 @@ class ModuleManageCell:
 
     def set_config(self, config: ModuleConfig):
         self._config = config
-
-    # 使用装饰器模式
-    def set_docker(self, docker_config: Dict[str, ModuleDockerInfo]):
-        self._docker = docker_config
