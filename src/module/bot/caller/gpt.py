@@ -33,7 +33,8 @@ class GptCaller(CallerInterface):
             messages.append({"role": "system", "content": self._system_prompt})
 
         messages.append({"role": "user", "content": query})
-
+        # print(self._system_prompt)
+        # print(query)
         for _ in range(self.__retry_n):
             try:
                 response = self.__client.chat.completions.create(
@@ -42,7 +43,7 @@ class GptCaller(CallerInterface):
                     stream=False,
                     messages=messages,
                 )
-
+                # print(response.choices[0].message.content)
                 return response.choices[0].message.content
             except openai.APITimeoutError:
                 pass
