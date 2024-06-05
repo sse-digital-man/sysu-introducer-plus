@@ -9,3 +9,6 @@ data/sound
 
 # webui 控制器静态文件
 static
+
+# 向量数据库
+data/vectorstores

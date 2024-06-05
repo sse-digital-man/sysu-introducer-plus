@@ -9,8 +9,8 @@
     },
     "bot": {
         "alias": "大语言模型",
-        "kinds": ["basic", "simple"],
-        "default": "simple",
+        "kinds": ["basic", "simple", "hyde"],
+        "default": "hyde",
         "modules": ["caller", "searcher"]
     },
     "caller": {
@@ -22,14 +22,14 @@
     "searcher": {
         "alias": "文本检索器",
         "path": "bot",
-        "kinds": ["es"],
-        "default": "null",
+        "kinds": ["es", "vector"],
+        "default": "vector",
         "notNull": false
     },
     "speaker": {
         "alias": "文本转语音",
         "kinds": ["basic", "gsv", "bv2"],
-        "default": "bv2"
+        "default": "basic"
     },
     "crawler": {
         "alias": "直播间爬虫",
