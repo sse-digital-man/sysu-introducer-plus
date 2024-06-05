@@ -18,13 +18,13 @@ class VectorSearcher(SearcherInterface):
         # 定义llm_chain和vector_store
         self.__llm_chain = None
         self.__vector_store = None
+        self.__prompt_template = """请回答用户关于中山大学信息的查询\n查询: {query}\n回答: """
 
     def handle_starting(self):
         # Notice: 不能够在 __init__() 中编写除了定义之外的操作
-        
+
         # 定义prompt
-        prompt_template = """请回答用户关于中山大学信息的查询，并且把查询连接到回答中\n查询: {query}\n回答: """
-        prompt = PromptTemplate(input_variables=["query"], template=prompt_template)
+        prompt = PromptTemplate(input_variables=["query"], template=self.__prompt_template)
         # 获取llm实例
         llm = OpenAI(temperature=0, openai_api_key=self.__openai_api_key, openai_api_base=self.__openai_api_base)
         # 获取openai的embedding实例
@@ -44,8 +44,10 @@ class VectorSearcher(SearcherInterface):
         Returns:
             List[str]: 文本列表 [text1, text2, text3, ...]
         """
-        query += '\n' + self.__llm_chain.invoke(query)['text']
-
+        # 获取假设性回答，嵌入到查询中
+        query = self.__prompt_template.format(query=query)
+        query += self.__llm_chain.invoke(query)['text']
+        
         docs = self.__vector_store.similarity_search_with_score(query, k=3)
 
         pattern = re.compile(r'查询: (.*?)\n回答: (.*)', re.DOTALL)
