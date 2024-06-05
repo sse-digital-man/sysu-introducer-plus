@@ -1,6 +1,5 @@
 from typing import Dict, List, Tuple
 from langchain_openai import OpenAI, OpenAIEmbeddings
-from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain_openai import OpenAI, OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
