@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 import json
 from langchain_openai import OpenAI, OpenAIEmbeddings
 from langchain.chains import LLMChain
@@ -21,8 +21,6 @@ class VectorSearcher(SearcherInterface):
         self.__prompt_template = """请回答用户关于中山大学信息的查询\n查询: {query}\n回答: """
 
     def handle_starting(self):
-        # Notice: 不能够在 __init__() 中编写除了定义之外的操作
-
         # 定义prompt
         prompt = PromptTemplate(input_variables=["query"], template=self.__prompt_template)
         # 获取llm实例
@@ -34,7 +32,17 @@ class VectorSearcher(SearcherInterface):
         self.__llm_chain = LLMChain(llm=llm, prompt=prompt)
         # vectorstore实例化
         self.__vector_store = Chroma(persist_directory = 'data/vectorstores', embedding_function = base_embeddings)
-        # self.build_index()
+
+        # 建立索引
+        self.build_index()
+
+    def similarity_search(self, query: str, size: int) -> List[Tuple[Document, float]]:
+        # 获取假设性回答，嵌入到查询中
+        query = self.__prompt_template.format(query=query)
+        query += self.__llm_chain.invoke(query)['text']
+        
+        docs = self.__vector_store.similarity_search_with_score(query, k=size)
+        return docs
 
     def search(self, query: str, size: int) -> List[str]:
         """使用elasticsearch搜索返回与 query 相似的文本列表
@@ -44,16 +52,9 @@ class VectorSearcher(SearcherInterface):
         Returns:
             List[str]: 文本列表 [text1, text2, text3, ...]
         """
-        # 获取假设性回答，嵌入到查询中
-        query = self.__prompt_template.format(query=query)
-        query += self.__llm_chain.invoke(query)['text']
-        
-        docs = self.__vector_store.similarity_search_with_score(query, k=3)
+        docs = self.similarity_search(query, size)
 
-        pattern = re.compile(r'查询: (.*?)\n回答: (.*)', re.DOTALL)
-        doc_list = ['标题:'+pattern.search(doc[0].page_content).group(1) +'\n内容:'+pattern.search(doc[0].page_content).group(2) for doc in docs]
-
-        return doc_list
+        return [doc[0].metadata['document'] for doc in docs]
 
     def search_with_label(self, query: str, size: int) -> Dict[str, str]:
         """返回与 query 相似的文本列表，以及对应的标签信息(query/id)
@@ -63,13 +64,31 @@ class VectorSearcher(SearcherInterface):
         Returns:
             Dict[str, str]: 文本字典 { query1: text1, query2: text2, ...}
         """
-        ...
+        docs = self.similarity_search(query, size)
+
+        return {doc[0].metadata['query']: doc[0].metadata['document'] for doc in docs}
 
     def build_index(self) -> bool:
         """基于数据库建立Chroma索引
         Returns:
             bool: 是否之前就存在Chroma索引,没有索引就建立
         """
+        # 加载 JSON 文件
+        with open("data/database.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        # 创建文档列表
+        documents = [Document(page_content=self.__prompt_template.format(query=value['query'])+value['document'], metadata={'id': key, 'query': value['query'], 'document': value['document'], 'keyword': value['metadata']}) for key, value in data.items() if not any(item['id'] == str(key) for item in self.__vector_store.get()['metadatas'])]
+
+        add_doc_count = len(documents)
+        if add_doc_count == 0:
+            print('No new documents to add to the vector store.')
+            return True
+        
+        # 添加文档到 vector store
+        self.__vector_store.add_documents(documents)
+        print(f"Added {add_doc_count} documents to the vector store.")
+
         return False
 
     def load_config(self):

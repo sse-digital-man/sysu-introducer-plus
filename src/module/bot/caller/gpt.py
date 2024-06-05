@@ -34,7 +34,7 @@ class GptCaller(CallerInterface):
 
         messages.append({"role": "user", "content": query})
         # print(self._system_prompt)
-        print(messages)
+        # print(query)
         for _ in range(self.__retry_n):
             try:
                 response = self.__client.chat.completions.create(

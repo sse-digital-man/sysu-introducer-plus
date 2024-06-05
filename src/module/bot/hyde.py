@@ -15,11 +15,11 @@ class HydeBot(BasicBot):
             return caller.single_call(query, True)
 
 
-        # 2.使用es查询得到相似问题
-        sim_query = searcher.search(query, 3)
+        # 2.使用hyde查询得到相似问题
+        sim_query = searcher.search_with_label(query, 3)
 
-        demonstrate_prompt = """
-### 示范一
+        # 3.添加few-shot示范
+        demonstrate_prompt = """### 示范一
 [用户问题]
 国际学生政策是怎样的？
 [参考资料]
@@ -53,11 +53,22 @@ class HydeBot(BasicBot):
 很抱歉，我是中大介绍官，不能回答关于皮卡丘的问题哦~
 
 ### 开始任务
+[用户问题]
+{query}
+[参考资料]
+{data_str}
+[回答]"""
+
+        data_prompt = """参考资料{i}:
+标题:{query}
+内容:{document}
 """
 
-        final_query = demonstrate_prompt + "\n[用户问题]\n" + query + "\n[参考资料]"
+        # 4.拼接回答
+        data_str = ""
+        for _id, (_query, _document) in enumerate(sim_query.items()):
+            data_str += data_prompt.format(i=_id + 1, query=_query, document=_document)
 
-        for _id, _query in enumerate(sim_query):
-            final_query += "\n参考资料" + str(_id + 1) + ":\n" + _query
+        final_query = demonstrate_prompt.format(query=query, data_str=data_str)
 
         return caller.single_call(final_query, True)
