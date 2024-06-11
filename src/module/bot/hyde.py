@@ -11,15 +11,20 @@ class HydeBot(BasicBot):
         searcher = self._sub_module("searcher")
 
         # 如果Searcher为空，直接使用调用器返回
-        if searcher is None:
+        if searcher is None or searcher.kind != 'vector' or caller.kind != 'gpt':
             return caller.single_call(query, True)
 
+        # 1. 生成 hyde 假设性回答
+        query = searcher.prompt_template.format(query=query)
+        query += caller.single_call(query, False)
+        
 
-        # 2.使用hyde查询得到相似问题
+        # 2.使用 hyde 查询得到 top3 相似问题
         sim_query = searcher.search_with_label(query, 3)
 
         # 3.添加few-shot示范
-        demonstrate_prompt = """### 示范一
+        demonstrate_prompt = \
+"""### 示范一
 [用户问题]
 国际学生政策是怎样的？
 [参考资料]
@@ -59,7 +64,8 @@ class HydeBot(BasicBot):
 {data_str}
 [回答]"""
 
-        data_prompt = """参考资料{i}:
+        data_prompt = \
+"""参考资料{i}:
 标题:{query}
 内容:{document}
 """

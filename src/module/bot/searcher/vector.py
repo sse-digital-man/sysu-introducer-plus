@@ -1,7 +1,6 @@
 from typing import Dict, List, Tuple
-from langchain_openai import OpenAI, OpenAIEmbeddings
-from langchain.prompts import PromptTemplate
-from langchain_openai import OpenAI, OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain.docstore.document import Document
 import json
@@ -13,21 +12,14 @@ class VectorSearcher(SearcherInterface):
     def __init__(self):
         super().__init__()
         # 定义llm_chain和vector_store
-        self.__llm_chain = None
         self.__vector_store = None
-        self.__prompt_template = """请回答用户关于中山大学信息的查询\n查询: {query}\n回答: """
+        self.prompt_template = """请回答用户关于中山大学信息的查询\n查询: {query}\n回答: """
 
 
     def handle_starting(self):
-        # 定义prompt
-        prompt = PromptTemplate(input_variables=["query"], template=self.__prompt_template)
-        # 获取llm实例
-        llm = OpenAI(temperature=0, openai_api_key=self.__openai_api_key, openai_api_base=self.__openai_api_base)
         # 获取openai的embedding实例
         base_embeddings = OpenAIEmbeddings(openai_api_key = self.__openai_api_key, openai_api_base = self.__openai_api_base)
         
-        # llm_chain实例化
-        self.__llm_chain = prompt | llm
         # vectorstore实例化
         self.__vector_store = Chroma(persist_directory = 'data/vectorstores', embedding_function = base_embeddings)
 
@@ -36,9 +28,6 @@ class VectorSearcher(SearcherInterface):
 
 
     def similarity_search(self, query: str, size: int) -> List[Tuple[Document, float]]:
-        # 获取假设性回答，嵌入到查询中
-        query = self.__prompt_template.format(query=query)
-        query += self.__llm_chain.invoke(query)
         
         docs = self.__vector_store.similarity_search_with_score(query, k=size)
         return docs
@@ -79,9 +68,25 @@ class VectorSearcher(SearcherInterface):
         with open("data/database.json", "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        # 创建文档列表
-        documents = [Document(page_content=self.__prompt_template.format(query=value['query'])+value['document'], metadata={'id': key, 'query': value['query'], 'document': value['document'], 'keyword': value['metadata']}) for key, value in data.items() if not any(item['id'] == str(key) for item in self.__vector_store.get()['metadatas'])]
+        # 初始化一个空的文档列表
+        documents = []
 
+        # 遍历数据字典中的每一项
+        for key, value in data.items():
+            # 检查当前的键是否已经存在于元数据列表中
+            if not any(item['id'] == str(key) for item in self.__vector_store.get()['metadatas']):
+                # 如果不存在，则创建一个新的Document对象
+                # 对内容添加 prompt
+                page_content = self.prompt_template.format(query=value['query']) + value['document']
+                # 元数据组织
+                metadata = {'id': key, 'query': value['query'], 'document': value['document'], 'keyword': value['metadata']}
+                # 合成 document
+                document = Document(page_content=page_content, metadata=metadata)
+                
+                # 将新创建的Document对象添加到文档列表中
+                documents.append(document)
+
+        # 若没有新的数据，不修改 vector store
         add_doc_count = len(documents)
         if add_doc_count == 0:
             print('No new documents to add to the vector store.')
