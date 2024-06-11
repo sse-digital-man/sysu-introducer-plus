@@ -9,7 +9,7 @@
     },
     "bot": {
         "alias": "大语言模型",
-        "kinds": ["basic", "simple", "hyde"],
+        "kinds": ["basic", "keyword", "hyde"],
         "default": "hyde",
         "modules": ["caller", "searcher"]
     },

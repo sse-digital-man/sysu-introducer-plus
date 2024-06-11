@@ -3,7 +3,7 @@ from typing import Dict
 from . import RagBot
 
 
-class SimpleBot(RagBot):
+class KeywordBot(RagBot):
     def load_config(self):
         pass
 
