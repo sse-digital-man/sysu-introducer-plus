@@ -1,6 +1,8 @@
 flask
 websockets
 
+docker
+
 # blivedm
 aiohttp~=3.9.0
 Brotli~=1.1.0

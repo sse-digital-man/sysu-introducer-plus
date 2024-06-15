@@ -1,9 +1,8 @@
 from typing import Dict
 from flask import Blueprint, request
 
-from module.interface.info import ModuleName, moduleStatusMap
+from module.interface.info import ModuleName
 from module.interface.manager import MANAGER
-from utils.config import CONFIG
 
 from .result import Result, ErrorCode
 
@@ -13,9 +12,9 @@ BOOTER = ModuleName.BOOTER.value
 
 
 def check_module_can_control(name: str) -> bool:
-    if MANAGER.module(name) is None:
+    if MANAGER.check_module_exist(name):
         return Result.create(code=ErrorCode.ModuleNotFound)
-    elif name == "booter" or name in MANAGER.info(BOOTER).sub:
+    elif MANAGER.is_controllable(name):
         # 目前只有 booter 与其子模块才可以单独地启动的暂停
         return None
     else:
@@ -56,19 +55,21 @@ def change_module_kind(name: str):
 
     # 验证模块状态是否修改成功
     try:
-        flag, status = MANAGER.change_module_kind(name, kind)
+        MANAGER.change_module_kind(name, kind)
     except FileNotFoundError:
         return Result.create(code=ErrorCode.ModuleNotFound)
     except ValueError:
         return Result.create(code=ErrorCode.ModuleKindNotFound)
 
-    return (
-        Result.create()
-        if flag
-        else Result.create(
-            code=ErrorCode.ModuleStatusNotSupported, data={"status": status}
-        )
-    )
+    return Result.create()
+
+    # return (
+    #     Result.create()
+    #     if flag
+    #     else Result.create(
+    #         code=ErrorCode.ModuleStatusNotSupported, data={"status": status}
+    #     )
+    # )
 
 
 @control_api.route("/module/config/<name>", methods=["PUT"])
@@ -82,7 +83,7 @@ def modify_module_config(name: str):
         return Result.create(code=ErrorCode.KeyDataMissing)
 
     try:
-        CONFIG.update(name, kind, content, save=True)
+        MANAGER.modify_instance_config(name, kind, content)
     except KeyError:
         # 出现未知的配置信息条目
         return Result.create(code=ErrorCode.ModuleConfigItemNotFound)
@@ -95,17 +96,23 @@ def modify_module_config(name: str):
 
 @control_api.route("/module/list/all", methods=["GET"])
 def get_all_module():
-    return Result.create(data={"list": MANAGER.module_info_list})
+    return Result.create(data={"list": MANAGER.module_list})
 
 
-@control_api.route("/module/config/<name>", methods=["GET"])
-def get_module_config(name: str):
-    try:
-        config_list = CONFIG.get(name)
-    except KeyError:
-        config_list = {}
+# 直接返回全局信息
+@control_api.route("/module/config/all", methods=["GET"])
+def get_all_config():
+    return Result.create(data={"list": MANAGER.user_config_list})
 
-    return Result.create(
-        code=ErrorCode.ModuleConfigEmpty if len(config_list) == 0 else ErrorCode.Ok,
-        data={"config": config_list},
-    )
+
+# @control_api.route("/module/config/<name>", methods=["GET"])
+# def get_module_config(name: str):
+#     try:
+#         config_list = Config.get(name)
+#     except KeyError:
+#         config_list = {}
+
+#     return Result.create(
+#         code=ErrorCode.ModuleConfigEmpty if len(config_list) == 0 else ErrorCode.Ok,
+#         data={"config": config_list},
+#     )

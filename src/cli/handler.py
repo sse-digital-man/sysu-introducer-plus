@@ -1,7 +1,6 @@
 from typing import List
 from tabulate import tabulate
 
-from utils.config import CONFIG
 from utils.error import ModuleLoadError
 
 from module.interface.info import moduleStatusMap, ModuleName
@@ -37,7 +36,7 @@ def handle_stop(args: List[str]):
 
 
 def handle_status(args: List[str]):
-    info_list = MANAGER.module_info_list
+    info_list = MANAGER.module_list
 
     # 输入显示的字段名
     headers = (
@@ -95,5 +94,4 @@ def handle_send(args: List[str]):
     MANAGER.send(message)
 
 
-def handle_reload(_ignored):
-    CONFIG.reload()
+def handle_reload(_ignored): ...

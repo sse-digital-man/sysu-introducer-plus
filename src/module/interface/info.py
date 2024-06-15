@@ -62,8 +62,8 @@ class ModuleInfo:
         self,
         name: str,
         alias: str,
+        default: str,
         kinds: List[str],
-        kind: str,
         not_null: bool,
         path: str,
         submodules: List[str],
@@ -71,14 +71,10 @@ class ModuleInfo:
         # 基本信息
         self.__name = name
         self.__alias = alias
-        self.__kind = kind
         self.__kinds: List[str] = kinds
+        self.__default: str = default
         self.__not_null = not_null
         self.__path = path
-
-        # Notice: 当这个模块支持空时 则需要添加空值类型
-        if len(kinds) == 0 and kind == "basic":
-            self.__kinds.append("basic")
 
         if not not_null:
             self.__kinds.insert(0, "null")
@@ -95,7 +91,6 @@ class ModuleInfo:
         return {
             "alias": self.alias,
             "name": self.name,
-            "kind": self.kind,
             "kinds": self.kinds,
             "modules": self.sub,
         }
@@ -111,9 +106,8 @@ class ModuleInfo:
         return self.__alias
 
     @property
-    def kind(self) -> str:
-        """返回当前实现类型"""
-        return self.__kind
+    def default(self) -> str:
+        return self.__default
 
     @property
     def kinds(self) -> List[str]:
@@ -141,10 +135,6 @@ class ModuleInfo:
         return self.__depth
 
     # ---- Setter ------ #
-
-    @kind.setter
-    def kind(self, kind: str):
-        self.__kind = kind
 
     @depth.setter
     def depth(self, depth: int):
