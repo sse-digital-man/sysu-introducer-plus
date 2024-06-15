@@ -1,6 +1,9 @@
 __pycache__
 
 config.json
+cc.zh.300.bin
+
+data/chromadb
 
 data/music
 
