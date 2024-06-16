@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect
 from werkzeug.routing import BaseConverter
 
-from module.interface.manager import MANAGER
+from module.interface.log import LOGGER
 
 from .ws import WSServer
 
@@ -11,8 +11,7 @@ from .api.result import ResultResponse
 ws_server = WSServer()
 
 # 这部分需要首先进行加载
-MANAGER.set_log_callback(lambda log: ws_server.send(log.to_json()))
-
+LOGGER.add_listener("websocket", lambda log: ws_server.send(log.to_json()))
 
 # 0. 创建对象
 FOLDER = "../../static"
