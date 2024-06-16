@@ -9,8 +9,8 @@
     },
     "bot": {
         "alias": "大语言模型",
-        "kinds": ["basic", "simple"],
-        "default": "simple",
+        "kinds": ["basic", "dense", "sparse"],
+        "default": "sparse",
         "modules": ["caller", "searcher"]
     },
     "caller": {
@@ -33,7 +33,7 @@
     },
     "crawler": {
         "alias": "直播间爬虫",
-        "kinds": ["bilibili","virtual"],
+        "kinds": ["bilibili", "virtual"],
         "default": "virtual"
     },
     "renderer": {
