@@ -66,6 +66,7 @@ class RagBotInterface(BotInterface, metaclass=ABCMeta):
         data = self._searcher.search_with_label(process_query, 3)
 
         # 3. 当效果不好时使用兜底策略
+        # TODO: 衡量检索效果
         if len(data) == 0:
             return self._last_strategy(query)
 

@@ -10,7 +10,7 @@
     "bot": {
         "alias": "大语言模型",
         "kinds": ["basic", "dense", "sparse"],
-        "default": "sparse",
+        "default": "dense",
         "modules": ["caller", "searcher"]
     },
     "caller": {
