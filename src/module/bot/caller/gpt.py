@@ -42,6 +42,7 @@ class GptCaller(CallerInterface):
                     stream=False,
                     messages=messages,
                 )
+
                 return response.choices[0].message.content
             except openai.APITimeoutError:
                 pass

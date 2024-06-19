@@ -10,7 +10,7 @@
     "bot": {
         "alias": "大语言模型",
         "kinds": ["basic", "dense", "sparse"],
-        "default": "dense",
+        "default": "sparse",
         "modules": ["caller", "searcher"]
     },
     "caller": {
@@ -22,14 +22,14 @@
     "searcher": {
         "alias": "文本检索器",
         "path": "bot",
-        "kinds": ["es", "vector"],
-        "default": "vector",
+        "kinds": ["es"],
+        "default": "null",
         "notNull": false
     },
     "speaker": {
         "alias": "文本转语音",
         "kinds": ["basic", "gsv", "bv2"],
-        "default": "basic"
+        "default": "bv2"
     },
     "crawler": {
         "alias": "直播间爬虫",
@@ -39,7 +39,7 @@
     "renderer": {
         "alias": "人物渲染器",
         "kinds": ["easyaivtuber", "sound"],
-        "default": "easyaivtuber",
+        "default": "sound",
         "notNull": false
     }
 }
