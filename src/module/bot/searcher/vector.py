@@ -13,7 +13,7 @@ class VectorSearcher(SearcherInterface):
         super().__init__()
         # 定义llm_chain和vector_store
         self.__vector_store = None
-        self.prompt_template = """请回答用户关于中山大学信息的查询\n查询: {query}\n回答: """
+        self.__prompt_template = """请回答用户关于中山大学信息的查询\n查询: {query}\n回答: {answer}"""
 
 
     def handle_starting(self):
@@ -77,7 +77,7 @@ class VectorSearcher(SearcherInterface):
             if not any(item['id'] == str(key) for item in self.__vector_store.get()['metadatas']):
                 # 如果不存在，则创建一个新的Document对象
                 # 对内容添加 prompt
-                page_content = self.prompt_template.format(query=value['query']) + value['document']
+                page_content = self.__prompt_template.format(query=value['query'], answer=value['document'])
                 # 元数据组织
                 metadata = {'id': key, 'query': value['query'], 'document': value['document'], 'keyword': value['metadata']}
                 # 合成 document

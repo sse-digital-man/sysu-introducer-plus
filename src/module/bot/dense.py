@@ -1,6 +1,7 @@
 from typing import Any
 from .interface import RagBotInterface
 
+from .prompt import HYDE_PROMPT
 
 class DenseBot(RagBotInterface):
     def load_config(self):
@@ -16,7 +17,7 @@ class DenseBot(RagBotInterface):
             return self.talk(_query)
     
         # 1. 生成 hyde 假设性回答
-        query = self._searcher.prompt_template.format(query=_query)
+        query = HYDE_PROMPT.format(query=_query)
         query += self._caller.single_call(query, False)
 
         # 2.使用 hyde 检索得到 top3 相似结果
