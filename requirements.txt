@@ -12,6 +12,11 @@ yarl~=1.9.3
 openai
 elasticsearch
 
+# llm-vector-searcher
+langchain
+langchain_openai
+langchain_community
+
 # tts module
 azure-cognitiveservices-speech
 

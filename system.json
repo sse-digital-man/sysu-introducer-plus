@@ -18,6 +18,12 @@
             "isRandom": true
         }
     },
+    "searcher": {
+        "vector": {
+            "apiKey": "sk-xxx",
+            "url": "https://api.chatanywhere.tech/v1"
+        }
+    },
     "renderer": {
         "easyaivtuber": {
             "character": "lambda_05",
