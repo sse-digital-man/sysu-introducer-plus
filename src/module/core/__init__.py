@@ -1,5 +1,5 @@
-import time
-from typing import Callable
+import asyncio
+from typing import Callable, Optional, Awaitable
 
 from message import MessageKind, Message
 from module.interface.log import LOGGER, MessageLog
@@ -13,7 +13,7 @@ class HandleResult:
         self.sound_path = sound_path
 
 
-HandleCallback = Callable[[HandleResult], None]
+HandleCallback = Callable[[HandleResult], Awaitable[None]]
 
 
 class BasicCore(BasicModule):
@@ -23,20 +23,22 @@ class BasicCore(BasicModule):
         # 初始化消息队列
         self.__msg_queue = MessageQueue()
 
-        self.__handle_callback: HandleCallback | None = None
+        self.__handle_callback: Optional[HandleCallback] = None
+        self.__loop = None
 
     def load_config(self):
         pass
 
     def handle_starting(self):
-        self._make_thread(self.__handle)
+         self.__loop = asyncio.new_event_loop()
+         self.__loop.run_until_complete(self.__handle())
 
     # 线程循环处理消息队列（需要开启多线程）
-    def __handle(self):
+    async def __handle(self):
 
         # 当 Core 停止后，处理线程也需要停止
         while self._is_ready:
-            time.sleep(0.5)
+            await asyncio.sleep(0.5)
             if self.__msg_queue.empty():
                 continue
 
@@ -61,7 +63,7 @@ class BasicCore(BasicModule):
             # 响应处理结果, 只有对应回调函数非空时, 才进行处理
             if self.__handle_callback is not None:
                 result = HandleResult(sound_path=speech)
-                self.__handle_callback(result)
+                await self.__handle_callback(result)
 
         # 核心处理完毕之后 清除消息队列
         self.__msg_queue.clear()

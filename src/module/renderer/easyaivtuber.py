@@ -1,6 +1,7 @@
 import subprocess
 from typing import Dict
 import requests
+import asyncio
 
 
 from .interface import RendererInterface
@@ -111,6 +112,6 @@ class EasyaivtuberRenderer(RendererInterface):
         data["img"] = img_path
         return self.send_message(data)
 
-    def send_message(self, data: dict) -> Dict[str, str]:
+    async def send_message(self, data: dict) -> Dict[str, str]:
         res = requests.post(self.__url, json=data)
         return res.json()
