@@ -3,6 +3,8 @@ from tabulate import tabulate
 
 from utils.error import ModuleLoadError
 
+from framework.docker.client import DOCKER_CLIENT
+
 from module.interface.info import moduleStatusMap, ModuleName
 from module.interface.manager import MANAGER
 from message import Message, MessageKind
@@ -92,6 +94,26 @@ def handle_send(args: List[str]):
 
     # 如果消息未能发送成功，则说明模块未启动
     MANAGER.send(message)
+
+
+def handle_docker(args: List[str]):
+    if len(args) < 4:
+        raise CommandUsageError(args[0])
+
+    [cmd, name, kind] = args[1:]
+
+    if cmd not in ["start", "stop"]:
+        raise CommandUsageError(args[0])
+
+    if not DOCKER_CLIENT.check_instance_has_docker(name, kind):
+        raise CommandHandleError(
+            f"the kind '{kind}' of name '{name}' doesn't have docker"
+        )
+
+    if cmd == "start":
+        DOCKER_CLIENT.start_module_container(name, kind)
+    elif cmd == "stop":
+        DOCKER_CLIENT.stop_module_container(name, kind)
 
 
 def handle_reload(_ignored): ...
