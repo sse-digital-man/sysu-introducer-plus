@@ -163,6 +163,24 @@ class ModuleDockerClient(DockerClient):
 
         return self.get_container_status(_to_container_name(name, kind))
 
+    def check_instance_has_docker(self, name: str, kind: str) -> bool:
+        """校验实现实例是否存在 docker
+
+        Args:
+            name (str): 模块名称
+            kind (str): 模块实现类型
+
+        Returns:
+            bool: 结果
+        """
+
+        info_dict = self.__docker_info_list
+
+        if name not in info_dict or kind not in info_dict[name]:
+            return False
+
+        return info_dict[name][kind] is not None
+
     @property
     def docker_info_list(self) -> List[Dict[str, Any]]:
         """获取 Docker 信息列表
