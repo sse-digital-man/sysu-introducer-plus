@@ -1,97 +1,90 @@
-from typing import Dict, List, Any
-from utils import error
-from utils.file import load_json, save_json
+from typing import Dict, List, Tuple, Any
+
+from utils.file import load_yaml, save_json
 
 from ..config import load_config, ModuleConfig
-from ..info import ModuleInfo
+from ..info import ModuleInfo, ModuleDescriptor
 
 from .cell import ModuleManageCell
-from .utils import dynamic_import_module
+from .check import check_module
+
+
+def _convert_module_descriptor(raw_descriptor: str) -> Tuple[str, ModuleDescriptor]:
+    parts = raw_descriptor.replace(" ", "").split(":")
+    name, expr = parts[0], parts[1]
+
+    if len(parts) == 1 or expr == "*":
+        descriptor = ModuleDescriptor.new_all(name)
+
+    elif expr.startswith("[") or expr.startswith("!["):
+        if expr[-1] != "]":
+            raise ValueError(f"expr '{expr}' in module'{name}' is invalid")
+
+        if expr.startswith("["):
+            kinds = expr[1:-1].split(",")
+            descriptor = ModuleDescriptor.new_some(name, kinds)
+        else:
+            kinds = expr[2:-1].split(",")
+            descriptor = ModuleDescriptor.new_some(name, kinds)
+    else:
+        descriptor = ModuleDescriptor.new_some(name, [expr])
+
+    return name, descriptor
+
+
+def _convert_module_descriptors(
+    descriptor_list: List[str],
+) -> Dict[str, ModuleDescriptor]:
+    descriptors = {}
+    for raw_descriptor in descriptor_list:
+        name, descriptor = _convert_module_descriptor(raw_descriptor)
+        descriptors[name] = descriptor
+
+    return descriptors
 
 
 def _load_module(path: str):
-    # 1. 从配置文件中加载模块信息
-    raw_modules_info: Dict[str, Dict] = load_json(path)
+    raw_modules_info: Dict[str, Dict] = load_yaml(path)
 
     modules_info: Dict[str, Dict] = {}
-    for name, content in raw_modules_info.items():
-        kinds: List[str] = content.get("kinds", [])
-        default_kind = content.get("default", "basic")
+    for name, module in raw_modules_info.items():
+        default_kind = module.get("default", "basic")
+        not_null = module.get("notNull", True)
 
-        # 转换语法糖
-        if len(kinds) == 0 and default_kind == "basic":
-            kinds.append("basic")
+        # 1. 加载子模块
+        submodules = _convert_module_descriptors(module.get("modules", []))
 
-        info = ModuleInfo(
+        # 2. 加载实现类型
+        raw_kinds: List[str] = module.get("kinds", [])
+
+        if len(raw_kinds) == 0 and default_kind == "basic":
+            raw_kinds.append("basic")
+        if not not_null:
+            raw_kinds.append("null")
+
+        kinds = {}
+        for instance in raw_kinds:
+            if isinstance(instance, str):
+                kinds[instance] = {}
+            else:
+                kinds[instance["kind"]] = _convert_module_descriptors(
+                    instance.get("modules", [])
+                )
+
+        # 3. 创建模块信息对象
+        modules_info[name] = ModuleInfo(
             name,
-            content["alias"],
-            default_kind,
+            module["alias"],
+            module.get("path", ""),
+            submodules,
             kinds,
-            content.get("notNull", True),
-            content.get("path", ""),
-            content.get("modules", []),
+            default_kind,
+            not_null,
         )
 
-        modules_info[name] = info
-
-    # 2. 验证模块情况, 并返回根节点
-    root_name = _check_module(modules_info)
+    root_name = check_module(modules_info)
 
     return modules_info, root_name
-
-
-def _check_module(module_info: Dict[str, ModuleInfo]) -> str:
-    # 验证所有子模块是否存在, 并加载子模块的嵌套深度
-    in_degree = dict.fromkeys(module_info.keys(), 0)
-
-    for info in module_info.values():
-        for submodule in info.sub:
-            sub_info = module_info.get(submodule, None)
-            if sub_info is None:
-                raise FileNotFoundError(f"{submodule} in {info.name} not found")
-
-            in_degree[submodule] = in_degree.get(submodule) + 1
-
-            # 设置 ModuleInfo 中子节点指向父节点的指针
-            sub_info.sup = info.name
-
-    # 存储添加入度为0的模块
-    queue = list(filter(lambda name: in_degree[name] == 0, module_info.keys()))
-
-    # 如果没有入度为 0 的节点，说明存在循环依赖
-    if len(queue) == 0:
-        raise error.ModuleLoadError("circular dependency between modules")
-    # 出现多个booter
-    if len(queue) != 1:
-        raise error.ModuleLoadError("multiple root module are loaded")
-
-    root_name = queue[0]
-
-    # 使用 BFS 计算所有节点深度
-    depth = 0
-    while len(queue) > 0:
-        size = len(queue)
-
-        for _ in range(size):
-            name = queue.pop(0)
-            info = module_info[name]
-            info.depth = depth
-
-            for submodule in info.sub:
-                in_degree[submodule] -= 1
-
-                if in_degree[submodule] == 0:
-                    queue.append(submodule)
-
-        depth += 1
-
-    # 验证模块实现实例
-    for info in module_info.values():
-        # 验证所支持的模块是否实现
-        for kind in info.kinds:
-            dynamic_import_module(info, kind)
-
-    return root_name
 
 
 ConfigType = Dict[str, Dict[str, Dict[str, Any]]]
@@ -102,7 +95,7 @@ SYSTEM_PATH = "system.json"
 USER_PATH = "user.json"
 USER_FORMAT_PATH = "user_format.json"
 
-MODULES_PATH = "modules.json"
+MODULES_PATH = "conf/modules.yaml"
 
 
 class ModuleLoader:
