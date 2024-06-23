@@ -1,5 +1,5 @@
 from message import MessageKind, Message
-from module.interface.info import ModuleStatus, ModuleName
+from framework.info import ModuleStatus, ModuleName
 
 from .interface import ModuleLog, ModuleLogKind
 from .logger import Logger

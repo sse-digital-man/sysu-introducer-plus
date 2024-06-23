@@ -3,10 +3,10 @@ from tabulate import tabulate
 
 from utils.error import ModuleLoadError
 
+from framework.info import moduleStatusMap, ModuleName
+from framework.manager import MANAGER
 from framework.docker.client import DOCKER_CLIENT
 
-from module.interface.info import moduleStatusMap, ModuleName
-from module.interface.manager import MANAGER
 from message import Message, MessageKind
 from .kind import CommandHandleError, CommandUsageError
 
