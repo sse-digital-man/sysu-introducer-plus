@@ -246,7 +246,7 @@ class ModuleManageCell:
         if self._module is not None:
             self._module.update_status(status)
 
-        LOGGER.log(StatusLog(self.name, status))
+        LOGGER.log(StatusLog(self.name, self.kind, status))
 
     def update_submodule(self, name: str, module: BasicModule):
         self._module.update_submodule(name, module)
