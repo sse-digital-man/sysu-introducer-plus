@@ -100,6 +100,13 @@ class ModuleManager:
         booter: RootInterface = self.__root_cell.module
         booter.send(msg)
 
+    def check_exist(self, full_name: str) -> bool:
+        try:
+            self._translate_full_name(full_name)
+            return True
+        except error.ModuleRuntimeError:
+            return False
+
     def change_module_kind(self, name: str, kind: str):
         # self._cell(name, force=True).change_module_kind(kind)
         ...
@@ -127,7 +134,7 @@ class ModuleManager:
         return name == self.__root_cell.name or name in self.__root_cell.info.sub
 
     @property
-    def module_info_list(self) -> List[dict]:
+    def instance_list(self) -> List[dict]:
         """列表组成 name, alias, kind, status
 
         Returns:
@@ -136,19 +143,22 @@ class ModuleManager:
 
         result = []
         for _, cell in self.__cell_pool.items():
+            info = {
+                "name": cell.name,
+                "kind": cell.kind,
+                "alias": cell.info.alias,
+                "status": cell.status,
+            }
 
-            result.append(
-                {
-                    "name": cell.name,
-                    "kind": cell.kind,
-                    "alias": cell.info.alias,
-                    "submodules": [
+            if len(cell.sub_cells) != 0:
+                info["modules"] = (
+                    [
                         to_instance_label(sub_cell.name, sub_cell.kind)
                         for sub_cell in cell.sub_cells.values()
                     ],
-                    "status": cell.status,
-                }
-            )
+                )
+
+            result.append(info)
 
         # 可以不排序，默认是嵌套关系的顺序
         # result = sorted(result, key=lambda item: item["name"])
@@ -156,7 +166,7 @@ class ModuleManager:
         return result
 
     @property
-    def module_info_tree(self) -> Dict:
+    def instance_tree(self) -> Dict:
         """返回以根模块信息字典对应的节点
 
         Returns:
@@ -172,7 +182,7 @@ class ModuleManager:
                 result = cell.cell_info
 
                 if len(cell.sub_cells) > 0:
-                    result["submodules"] = [
+                    result["modules"] = [
                         __translate(sub_cell) for sub_cell in cell.sub_cells.values()
                     ]
 
