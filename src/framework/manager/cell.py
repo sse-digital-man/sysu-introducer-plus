@@ -16,6 +16,9 @@ class ModuleManageCell:
         self._status: ModuleStatus = ModuleStatus.NotLoaded
         self._kind: str = info.default if kind is None else kind
 
+        # 使用计数器，记录被使用的个数
+        self.__used_count: int = 0
+
         # 模块对象指针
         self._module: BasicModule = None
 
@@ -49,27 +52,27 @@ class ModuleManageCell:
 
         self._module.inject(self._info.name, self._kind, submodules, config)
 
-    def start(self, with_sub: bool = True, with_sup: bool = False):
-        """启动模块。
-        注意递归启动有方向性，递归父模块时只会递归启动父模块，子模块同理
+    def start(self, with_sub: bool = True):
+        """启动模块，如果设置级联启动子模块，则会递归调用子模块。
+        如果不级联启动，则说明是单独启动，则不会记录 使用计数器
 
         Args:
-            name (str): 模块名称
-            with_sub (bool, optional): 是否递归启动父模块. Defaults to True.
-            with_sup (bool, optional): 是否递归启动父模块. Defaults to False.
-
-        Raises:
-            FileNotFoundError: _description_
-            e: _description_
-
-        Returns:
-            Tuple[bool, ModuleStatus]: 是否运行成功，当前的状态（运行成功为None）
+            with_sub (bool, optional): 是否递归调用子模块. Defaults to True.
         """
+
+        # 如果不是
+        if with_sub and self.__used_count > 0:
+            return
+
+        # 如果使用计数器大于 0 ，说明已经启动
+        if self.__used_count > 0:
+            return
+        self.__used_count += 1
 
         # 0. 如果当前模块状态不是在停止状态 则不能停止
         cur_status = self._status
         if cur_status != ModuleStatus.Stopped:
-            return False, cur_status
+            return
 
         # 1. 首先启动启动子模块
         module = self._module
@@ -82,7 +85,7 @@ class ModuleManageCell:
                 if sub_cell.is_null:
                     continue
 
-                sub_cell.start(with_sub=True, with_sup=False)
+                sub_cell.start(with_sub=True)
 
         # 2. 更新配置信息
         try:
@@ -104,9 +107,6 @@ class ModuleManageCell:
         # 5. 钩子函数
         self.update_status(ModuleStatus.Started)
 
-        if with_sup and self._sup is not None:
-            self._sup.start(with_sub=False, with_sup=True)
-
     def stop(self):
         """停止模块
 
@@ -116,6 +116,9 @@ class ModuleManageCell:
         Returns:
             bool: 是否运行成功，当前的状态（运行成功为None）
         """
+        self.__used_count -= 1
+        if self.__used_count > 0:
+            return
 
         # 运行成功之后可以停止, 发生异常需要级联停止
         if not (
@@ -170,9 +173,9 @@ class ModuleManageCell:
         self.inject()
 
         # 2. 重新设置父模块中的指针
-        if self._sup is not None:
-            # 更新父模块的子模块
-            self._sup.update_submodule(self.name, self._module)
+        # if self._sup is not None:
+        #     # 更新父模块的子模块
+        #     self._sup.update_submodule(self.name, self._module)
 
     def modify_instance_config(self, kind: str, content: Dict[str, Any]):
         self._check_kind_exist(kind)

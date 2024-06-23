@@ -4,7 +4,7 @@ from utils import error
 
 from message import Message
 from .. import RootInterface
-from ..info import ModuleStatus, to_instance_label
+from ..info import to_instance_label
 
 from .cell import ModuleManageCell
 from .load import ModuleLoader
@@ -25,37 +25,72 @@ class ModuleManager:
 
     # ----- 模块控制 ----- #
 
-    # 启动模块单元
-    def start(self, name: str, with_sub: bool = True, with_sup: bool = False):
-        """启动模块
-        注意递归启动有方向性，递归父模块时只会递归启动父模块，子模块同理
+    def _translate_full_name(self, full_name: str) -> List[ModuleManageCell]:
+        """将 全模块名 解析校验，返回 cell 的列表
+        1. "root.module1.module2": 以根模块打头
+        2. ".module1.module2": 省略根模块名
+        3. "module1.module2": 省略分隔符
 
         Args:
-            name (str): 模块名称
-            with_sub (bool, optional): 是否递归启动父模块. Defaults to True.
-            with_sup (bool, optional): 是否递归启动父模块. Defaults to False.
-
-        Raises:
-            FileNotFoundError: _description_
-            e: _description_
+            full_name (str): 全模块名
 
         Returns:
-            Tuple[bool, ModuleStatus]: 是否运行成功，当前的状态（运行成功为None）
+             List[ModuleManageCell]: 分片结果
+        """
+        name_list = full_name.split(".")
+
+        if len(name_list) == 0:
+            raise error.ModuleRuntimeError("the full_name is empty")
+
+        root_name = self.__root_cell.name
+
+        if name_list[0] in [None, root_name]:
+            name_list.pop(0)
+
+        cur_cell = self.__root_cell
+        cell_list = [cur_cell]
+        while len(name_list) > 0:
+            sub_name = name_list.pop(0)
+
+            cell = cur_cell.sub_cells.get(sub_name)
+
+            if cell is None:
+                raise error.ModuleRuntimeError(
+                    f"full_name is error, module '{sub_name}'w is not found"
+                )
+
+            cur_cell = cell
+            cell_list.append(cell)
+
+        return cell_list
+
+    # 启动模块单元
+    def start(self, full_name: str):
+        """根据 全模块名 启动模块，其会启动包含链路的所有模块，
+        以及最后模块的所有子模块。
+        注意，在启动所在链路上的模块时，只会启动模块本身。
+
+        Args:
+            full_name (str): 全模块名
         """
 
-        cell = self._cell(name, force=True)
+        # 按照自底向上的启动顺序
+        cell_list = self._translate_full_name(full_name)
 
-        try:
-            cell.start(with_sub, with_sup)
-        except error.ModuleError as e:
-            # 如果模块启动曹组
-            cell.update_status(cell, ModuleStatus.StartError)
-            cell.stop()
-            raise e
+        bottom_cell = cell_list.pop()
+        bottom_cell.start(with_sub=True)
 
-    def stop(self, name: str):
-        cell = self._cell(name, force=True)
-        cell.stop()
+        cell_list.reverse()
+        for cell in cell_list:
+            try:
+                cell.start(with_sub=False)
+            except error.ModuleError as e:
+                cell.stop()
+                raise e
+
+    def stop(self, full_name: str):
+        cell_list = self._translate_full_name(full_name)
+        cell_list[-1].stop()
 
     def send(self, msg: Message):
         if self.__root_cell is None:
@@ -66,7 +101,8 @@ class ModuleManager:
         booter.send(msg)
 
     def change_module_kind(self, name: str, kind: str):
-        self._cell(name, force=True).change_module_kind(kind)
+        # self._cell(name, force=True).change_module_kind(kind)
+        ...
 
     def modify_instance_config(self, name: str, kind: str, config: Dict[str, Any]):
         """修改指定模块实现实例的配置
@@ -80,23 +116,12 @@ class ModuleManager:
             error.ModuleRuntimeError: _description_
         """
 
-        cell = self._cell(name, force=True)
-        # 通过管理单元更新
-        cell.modify_instance_config(kind, config)
-        # 持久化到本地文件
-        self.__loader.save_instance_config(name, kind, config)
-
-    # ----- Getter ----- #
-    def _cell(self, name: str, force: bool = True) -> ModuleManageCell:
-        cell = self.__module_cells.get(name)
-
-        if cell is None and force:
-            raise error.ModuleRuntimeError(f"module '{name}' not found")
-
-        return cell
-
-    def check_module_exist(self, name: str) -> bool:
-        return name in self.__module_cells.values()
+        # cell = self._cell(name, force=True)
+        # # 通过管理单元更新
+        # cell.modify_instance_config(kind, config)
+        # # 持久化到本地文件
+        # self.__loader.save_instance_config(name, kind, config)
+        ...
 
     def is_controllable(self, name: str) -> bool:
         return name == self.__root_cell.name or name in self.__root_cell.info.sub
@@ -157,15 +182,15 @@ class ModuleManager:
 
         return __translate(self.__root_cell)
 
-    @property
-    def user_config_list(self):
-        """返回用户配置列表
+    # @property
+    # def user_config_list(self):
+    #     """返回用户配置列表
 
-        Returns:
-            Dict[str, dict]: _description_
-        """
-        return {
-            name: cell.config.user_config
-            for name, cell in self.__module_cells.items()
-            if len(cell.config.user_config) > 0
-        }
+    #     Returns:
+    #         Dict[str, dict]: _description_
+    #     """
+    #     return {
+    #         name: cell.config.user_config
+    #         for name, cell in self.__module_cells.items()
+    #         if len(cell.config.user_config) > 0
+    #     }
