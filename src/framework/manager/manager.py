@@ -4,7 +4,7 @@ from utils import error
 
 from message import Message
 from .. import RootInterface
-from ..info import ModuleStatus
+from ..info import ModuleStatus, to_instance_label
 
 from .cell import ModuleManageCell
 from .load import ModuleLoader
@@ -14,15 +14,14 @@ class ModuleManager:
     def __init__(self):
         self.__loader = ModuleLoader()
 
-        self.__module_cells: Dict[str, ModuleManageCell] = {}
-        # Notice: 模块依赖树的根节点必须是一个 Booter
-        self.__booter_cell: ModuleManageCell = None
+        self.__root_cell: ModuleManageCell = None
+        self.__cell_pool: Dict[str, ModuleManageCell] = []
 
     def load(self):
         self.__loader.load()
 
-        self.__module_cells = self.__loader.module_cells
-        self.__booter_cell = self.__loader.booter_cell
+        self.__root_cell = self.__loader.root_cell
+        self.__cell_pool = self.__loader.cell_pool
 
     # ----- 模块控制 ----- #
 
@@ -59,11 +58,11 @@ class ModuleManager:
         cell.stop()
 
     def send(self, msg: Message):
-        if self.__booter_cell is None:
+        if self.__root_cell is None:
             return
 
         # 只能通过 booter 进行交互
-        booter: RootInterface = self.__booter_cell.module
+        booter: RootInterface = self.__root_cell.module
         booter.send(msg)
 
     def change_module_kind(self, name: str, kind: str):
@@ -100,27 +99,63 @@ class ModuleManager:
         return name in self.__module_cells.values()
 
     def is_controllable(self, name: str) -> bool:
-        return name == self.__booter_cell.name or name in self.__booter_cell.info.sub
+        return name == self.__root_cell.name or name in self.__root_cell.info.sub
 
     @property
-    def module_list(self) -> List[Dict]:
+    def module_info_list(self) -> List[dict]:
         """列表组成 name, alias, kind, status
 
         Returns:
             List[Dict]: 信息的列表
         """
 
-        info_list = []
+        result = []
+        for _, cell in self.__cell_pool.items():
 
-        for cell in self.__module_cells.values():
-            info_dict = cell.info.to_dict()
+            result.append(
+                {
+                    "name": cell.name,
+                    "kind": cell.kind,
+                    "alias": cell.info.alias,
+                    "submodules": [
+                        to_instance_label(sub_cell.name, sub_cell.kind)
+                        for sub_cell in cell.sub_cells.values()
+                    ],
+                    "status": cell.status,
+                }
+            )
 
-            # 添加状态信息
-            info_dict["status"] = cell.status
-            info_dict["kind"] = cell.kind
-            info_list.append(info_dict)
+        # 可以不排序，默认是嵌套关系的顺序
+        # result = sorted(result, key=lambda item: item["name"])
 
-        return info_list
+        return result
+
+    @property
+    def module_info_tree(self) -> Dict:
+        """返回以根模块信息字典对应的节点
+
+        Returns:
+            Dict: 根模块字典
+        """
+        result_map = {}
+
+        def __translate(cell: ModuleManageCell):
+            instance_label = to_instance_label(cell.name, cell.kind)
+
+            # 如果 result 重复就不需要重复创建
+            if instance_label not in result_map:
+                result = cell.cell_info
+
+                if len(cell.sub_cells) > 0:
+                    result["submodules"] = [
+                        __translate(sub_cell) for sub_cell in cell.sub_cells.values()
+                    ]
+
+                result_map[instance_label] = result
+
+            return result_map[instance_label]
+
+        return __translate(self.__root_cell)
 
     @property
     def user_config_list(self):
