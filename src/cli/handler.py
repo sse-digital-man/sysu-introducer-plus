@@ -59,10 +59,13 @@ def handle_status(args: List[str]):
 
     # 将信息对象处理成行数据
     def gen_cell(info: dict, header: str):
-        cell = info[header]
-        if header == "status":
+        cell = info.get(header)
+
+        if cell is None:
+            cell = None
+        elif header == "status":
             cell = moduleStatusMap[cell]
-        elif header == "kinds" or header == "submodules":
+        elif header in ("kinds", "modules"):
             cell = ", ".join(cell)
 
         return cell

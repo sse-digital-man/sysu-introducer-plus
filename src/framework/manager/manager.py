@@ -151,12 +151,10 @@ class ModuleManager:
             }
 
             if len(cell.sub_cells) != 0:
-                info["modules"] = (
-                    [
-                        to_instance_label(sub_cell.name, sub_cell.kind)
-                        for sub_cell in cell.sub_cells.values()
-                    ],
-                )
+                info["modules"] = [
+                    to_instance_label(sub_cell.name, sub_cell.kind)
+                    for sub_cell in cell.sub_cells.values()
+                ]
 
             result.append(info)
 

@@ -39,12 +39,9 @@ def dynamic_import_module(info: ModuleInfo, kind: str):
 
         # 当导入 module 模块时发生错误，则说明未实现
         if path.startswith("module"):
-            names = path.split(".")
-            name = names[1]
-            kind = names[-1] if len(names) > 2 else "basic"
 
             raise error.ModuleLoadError(
-                f"the kind '{kind}' in '{name}' is not implemented"
+                f"the kind '{kind}' in '{info.name}' is not implemented or imported error"
             )
 
         raise e
