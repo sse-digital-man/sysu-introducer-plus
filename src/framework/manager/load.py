@@ -92,9 +92,9 @@ ConfigType = Dict[str, Dict[str, Dict[str, Any]]]
 
 
 # 配置文件路径
-SYSTEM_PATH = "system.json"
-USER_PATH = "user.json"
-USER_FORMAT_PATH = "user_format.json"
+SYSTEM_PATH = "conf/system.json"
+USER_PATH = "conf/user.json"
+USER_FORMAT_PATH = "conf/user_format.json"
 
 MODULES_PATH = "conf/modules.yaml"
 
@@ -128,12 +128,16 @@ class ModuleLoader:
             sub_descriptors.update(instance_descriptors)
 
         for sub_name, sub_descriptor in sub_descriptors.items():
+            sub_info = modules_info[sub_name]
+
             # 根据模块描述符，筛选支持的实现
-            sub_kinds = select_supported_kinds(modules_info[sub_name], sub_descriptor)
+            sub_kinds = select_supported_kinds(sub_info, sub_descriptor)
             if len(sub_kinds) == 0:
                 raise ValueError("not kind can't be supported")
 
-            sub_kind = info.default if info.default in sub_kinds else sub_kinds[0]
+            sub_kind = sub_info.default
+            if sub_kind not in sub_kinds:
+                sub_kind = sub_kinds[0]
 
             # 如果 cell 不存在则创建，存在则直接使用 dp 思想
             pool_name = to_instance_label(sub_name, sub_kind)
@@ -160,7 +164,9 @@ class ModuleLoader:
             SYSTEM_PATH, USER_PATH, USER_FORMAT_PATH
         )
 
-        for name, cell in self.__cell_pool.items():
+        for cell in self.__cell_pool.values():
+            # Notice: cell_poll 中 key 值为 instance_label
+            name = cell.name
             module_config = ModuleConfig(
                 system_config.get(name, {}),
                 user_format.get(name, {}),
