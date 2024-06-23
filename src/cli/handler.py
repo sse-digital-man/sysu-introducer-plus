@@ -38,7 +38,7 @@ def handle_stop(args: List[str]):
 
 
 def handle_status(args: List[str]):
-    info_list = MANAGER.module_info_list
+    info_list = MANAGER.instance_list
 
     if len(info_list) == 0:
         print()
