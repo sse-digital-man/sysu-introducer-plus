@@ -20,7 +20,7 @@ def handle_start(args: List[str]):
         name = BOOTER
         if length == 2:
             name = args[1]
-        MANAGER.start(name, with_sub=True, with_sup=True)
+        MANAGER.start(name)
     else:
         raise CommandUsageError(args[0])
 
