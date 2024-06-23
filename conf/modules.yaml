@@ -11,20 +11,20 @@ core:
         - "speaker:*"
 bot:
     alias: "大语言模型"
-    default: "basic"
+    default: "dense"
     kinds:
         - kind: "basic"
           modules:
               - "caller:*"
               - "searcher:es"
-        # - kind: "dense"
-        #   modules:
-        #       - "caller:![virtual]"
-        #       - "searcher:es"
-        # - kind: "sparse"
-        #   modules:
-        #       - "caller:![virtual]"
-        #       - "searcher:vector"
+        - kind: "dense"
+          modules:
+              - "caller:![virtual]"
+              - "searcher:es"
+        - kind: "sparse"
+          modules:
+              - "caller:![virtual]"
+              - "searcher:vector"
 caller:
     alias: "大模型调用器"
     path: "bot"
@@ -41,7 +41,7 @@ searcher:
         - kind: "es"
           modules:
               - "caller:gpt"
-        # - "vector"
+        - "vector"
 speaker:
     alias: "文本转语音"
     default: "basic"
