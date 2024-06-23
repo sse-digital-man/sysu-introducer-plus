@@ -26,7 +26,7 @@ def _convert_module_descriptor(raw_descriptor: str) -> Tuple[str, ModuleDescript
             descriptor = ModuleDescriptor.new_some(name, kinds)
         else:
             kinds = expr[2:-1].split(",")
-            descriptor = ModuleDescriptor.new_some(name, kinds)
+            descriptor = ModuleDescriptor.new_except(name, kinds)
     else:
         descriptor = ModuleDescriptor.new_some(name, [expr])
 

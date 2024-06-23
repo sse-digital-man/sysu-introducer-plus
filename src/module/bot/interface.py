@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Any, Dict
 from enum import Enum
 
-from module.interface import BasicModule
+from framework import BasicModule
 from .searcher.interface import SearcherInterface
 from .caller.interface import CallerInterface
 from .prompt import DEMONSTRATE_PROMPT, DATA_PROMPT
