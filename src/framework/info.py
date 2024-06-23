@@ -1,4 +1,4 @@
-from typing import List, Self
+from typing import List, Dict, Self
 from enum import Enum, IntEnum, unique
 
 
@@ -57,32 +57,73 @@ class ModuleName(Enum):
     RENDERER = "renderer"
 
 
+class ModuleDescriptorKind(Enum):
+    ALL = 0
+    SOME = 1
+    EXPECT = 2
+
+
+class ModuleDescriptor:
+    def __init__(
+        self,
+        name: str,
+        descriptor_kind: ModuleDescriptorKind,
+        cond_kinds: List[str],
+    ):
+        self.__name = name
+        self.__descriptor_kind = descriptor_kind
+        self.__cond_kinds = cond_kinds
+
+    @staticmethod
+    def new_all(name: str):
+        return ModuleDescriptor(name, ModuleDescriptorKind.ALL, [])
+
+    @staticmethod
+    def new_some(name: str, kinds: List[str]):
+        return ModuleDescriptor(name, ModuleDescriptorKind.SOME, kinds)
+
+    @staticmethod
+    def new_except(name: str, kinds: List[str]):
+        return ModuleDescriptor(name, ModuleDescriptorKind.EXPECT, kinds)
+
+    @property
+    def name(self) -> str:
+        return self.__name
+
+    @property
+    def descriptor_kind(self) -> ModuleDescriptorKind:
+        return self.__descriptor_kind
+
+    @property
+    def cond_kinds(self) -> List[str]:
+        return self.__cond_kinds
+
+
 class ModuleInfo:
+
     def __init__(
         self,
         name: str,
         alias: str,
-        default: str,
-        kinds: List[str],
-        not_null: bool,
         path: str,
-        submodules: List[str],
+        submodules: Dict[str, ModuleDescriptor],
+        kinds: Dict[str, Dict[str, ModuleDescriptor]],
+        default: str,
+        not_null: bool,
     ):
         # 基本信息
         self.__name = name
         self.__alias = alias
-        self.__kinds: List[str] = kinds
-        self.__default: str = default
-        self.__not_null = not_null
         self.__path = path
-
-        if not not_null:
-            self.__kinds.insert(0, "null")
 
         # 记录父子模块的关系 (只存储模块名, 不存储对象)
         self.__sup: str = None
-        self.__sub: List[str] = submodules
+        self.__sub: Dict[str, ModuleDescriptor] = submodules
         self.__depth = -1
+
+        self.__kinds: Dict[str, Dict[str, ModuleDescriptor]] = kinds
+        self.__default: str = default
+        self.__not_null = not_null
 
         # 运行状态信息 (运行阶段的状态, 不再此处存储)
         # self.__status: ModuleStatus = ModuleStatus.NotLoaded
@@ -112,7 +153,7 @@ class ModuleInfo:
     @property
     def kinds(self) -> List[str]:
         """返回支持的实现类型列表"""
-        return self.__kinds
+        return self.__kinds.keys()
 
     @property
     def not_null(self) -> bool:
@@ -128,11 +169,18 @@ class ModuleInfo:
 
     @property
     def sub(self) -> List[str]:
+        return self.__sub.keys()
+
+    @property
+    def sub_descriptors(self) -> Dict[str, ModuleDescriptor]:
         return self.__sub
 
     @property
     def depth(self) -> int:
         return self.__depth
+
+    def instance_submodules(self, kind: str) -> Dict[str, ModuleDescriptor] | None:
+        return self.__kinds.get(kind, None)
 
     # ---- Setter ------ #
 
