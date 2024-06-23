@@ -22,7 +22,7 @@ def _check_module_sub(module_info: Dict[str, ModuleInfo]) -> str:
         __check_submodule_exist(info.sub)
 
         for kind in info.kinds:
-            __check_submodule_exist(info.instance_submodules(kind).keys())
+            __check_submodule_exist(info.instance_sub_descriptors(kind).keys())
 
     # 存储添加入度为0的模块
     queue = list(filter(lambda name: in_degree[name] == 0, module_info.keys()))
@@ -85,7 +85,7 @@ def _check_module_kind(module_info: Dict[str, ModuleInfo]):
 
         # 验证实现类型的 子模块中的模块描述符中的 实现类型是否存在
         for kind in info.kinds:
-            __check_submodules_descriptors(info.instance_submodules(kind))
+            __check_submodules_descriptors(info.instance_sub_descriptors(kind))
 
 
 # 验证模块信息

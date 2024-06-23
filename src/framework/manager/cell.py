@@ -23,7 +23,8 @@ class ModuleManageCell:
         self._config: ModuleConfig = None
 
         # 记录管理单元的父子关系
-        self._sup: ModuleManageCell | None = None
+        # Notice: 现在支持子模块被多个父模块引用
+        self._sup: Dict[str, ModuleManageCell] = {}
         self._sub: Dict[str, ModuleManageCell] = {}
 
         self._load_module()
@@ -212,6 +213,31 @@ class ModuleManageCell:
     def is_null(self) -> bool:
         return self._module is None
 
+    @property
+    def cell_info(self) -> Dict[str, Any]:
+        """获取单元信息，格式如下所示。注意 cell_info 与 ModuleInfo 不同，
+        ModuleInfo 是模块配置的静态数据，而cell_info 则是随运行情况而定的。
+
+        name:       str,
+        alias:      str,
+        kind:       str,
+        status:     int,
+        submodules: dict
+
+        Returns:
+            Dict[str, Any]: 单元信息
+        """
+        return {
+            "name": self.name,
+            "alias": self.info.alias,
+            "kind": self.kind,
+            "status": self.status.value,
+        }
+
+    @property
+    def sub_cells(self) -> Dict[str, Self]:
+        return self._sub
+
     def update_status(self, status: ModuleStatus):
         self._status = status
         if self._module is not None:
@@ -225,8 +251,8 @@ class ModuleManageCell:
     def set_sub(self, name: str, sub_cell: Self):
         self._sub[name] = sub_cell
 
-    def set_sup(self, sup_cell: Self):
-        self._sup = sup_cell
+    def set_sup(self, name: str, sup_cell: Self):
+        self._sup[name] = sup_cell
 
     def set_config(self, config: ModuleConfig):
         self._config = config

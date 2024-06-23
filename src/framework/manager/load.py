@@ -3,8 +3,9 @@ from typing import Dict, List, Tuple, Any
 from utils.file import load_yaml, save_json
 
 from ..config import load_config, ModuleConfig
-from ..info import ModuleInfo, ModuleDescriptor
+from ..info import ModuleInfo, ModuleDescriptor, to_instance_label
 
+from .utils import BASIC, select_supported_kinds
 from .cell import ModuleManageCell
 from .check import check_module
 
@@ -43,10 +44,10 @@ def _convert_module_descriptors(
     return descriptors
 
 
-def _load_module(path: str):
+def _load_module(path: str) -> Tuple[Dict[str, ModuleInfo], str]:
     raw_modules_info: Dict[str, Dict] = load_yaml(path)
 
-    modules_info: Dict[str, Dict] = {}
+    modules_info: Dict[str, ModuleInfo] = {}
     for name, module in raw_modules_info.items():
         default_kind = module.get("default", "basic")
         not_null = module.get("notNull", True)
@@ -100,50 +101,76 @@ MODULES_PATH = "conf/modules.yaml"
 
 class ModuleLoader:
     def __init__(self):
-        self.__module_cells: Dict[str, ModuleManageCell] = {}
-        self.__booter_cell: ModuleManageCell = None
+        # 根管理单元
+        self.__root_cell: ModuleManageCell = None
+
+        # 模块管理单元池
+        # Notice: 不需要使用单独记录模块管理单元的引用次数
+        # ModuleManageCell.sup 可以记录引用次数
+        self.__cell_pool: Dict[str, ModuleManageCell] = {}
 
         # User 配置文件的原始数据在此处维护
         self.__raw_user_config: Dict[str, Dict[str, Dict[str, Any]]] = {}
+
+    # 创建模块管理单元
+    def __create_module_cells(
+        self, modules_info: Dict[str, ModuleInfo], name: str, kind: str
+    ) -> ModuleManageCell:
+
+        info = modules_info[name]
+        cell = ModuleManageCell(info, kind)
+        self.__cell_pool[to_instance_label(name, kind)] = cell
+
+        # 获取 子模块描述符 列表
+        sub_descriptors = info.sub_descriptors
+        instance_descriptors = info.instance_sub_descriptors(kind)
+        if instance_descriptors is not None:
+            sub_descriptors.update(instance_descriptors)
+
+        for sub_name, sub_descriptor in sub_descriptors.items():
+            # 根据模块描述符，筛选支持的实现
+            sub_kinds = select_supported_kinds(modules_info[sub_name], sub_descriptor)
+            if len(sub_kinds) == 0:
+                raise ValueError("not kind can't be supported")
+
+            sub_kind = info.default if info.default in sub_kinds else sub_kinds[0]
+
+            # 如果 cell 不存在则创建，存在则直接使用 dp 思想
+            pool_name = to_instance_label(sub_name, sub_kind)
+            sub_cell = self.__cell_pool.get(pool_name, None)
+            if sub_cell is None:
+                sub_cell = self.__create_module_cells(modules_info, sub_name, sub_kind)
+
+            # 在父模块中添加子模块
+            cell.set_sub(sub_name, sub_cell)
+            # 在子模块中添加父模块
+            sub_cell.set_sup(name, cell)
+
+        return cell
 
     def load(self):
         # 1. 导入基础模块信息
         modules_info, root_name = _load_module(MODULES_PATH)
 
-        # 2. 创建模块管理单元
-        module_cells: Dict[str, ModuleManageCell] = {
-            name: ModuleManageCell(info) for name, info in modules_info.items()
-        }
+        # 2. 通过树状关系创建模块管理单元，并且填充 cell 池
+        root_cell = self.__create_module_cells(modules_info, root_name, BASIC)
 
-        # 3. 设置父子模块管理单元指针,
-        for name, cell in module_cells.items():
-            # 遍历加载所有子模块
-            for submodule in cell.info.sub:
-                # 在父模块中添加子模块
-                cell.set_sub(submodule, module_cells[submodule])
-                # 在子模块中添加父模块
-                module_cells[submodule].set_sup(cell)
-
-        # 4. 设置 模块配置信息
+        # 3. 读取模块的配置信息
         system_config, raw_user_config, user_format = load_config(
             SYSTEM_PATH, USER_PATH, USER_FORMAT_PATH
         )
-        for name, module_cell in module_cells.items():
-            module_cell.set_config(
-                ModuleConfig(
-                    system_config.get(name, {}),
-                    user_format.get(name, {}),
-                )
+
+        for name, cell in self.__cell_pool.items():
+            module_config = ModuleConfig(
+                system_config.get(name, {}),
+                user_format.get(name, {}),
             )
 
-        # 5. 设置 docker 配置信息（将 Docker 配置担负划分出来）
-
-        # 6. 最后手动注入依赖信息
-        for cell in module_cells.values():
+            cell.set_config(module_config)
             cell.inject()
 
-        self.__module_cells = module_cells
-        self.__booter_cell = module_cells[root_name]
+        # 4. 赋值
+        self.__root_cell = root_cell
         self.__raw_user_config = raw_user_config
 
     def save_instance_config(self, name: str, kind: str, content: Dict[str, Any]):
@@ -153,9 +180,9 @@ class ModuleLoader:
         save_json(USER_PATH, self.__raw_user_config)
 
     @property
-    def module_cells(self):
-        return self.__module_cells
+    def root_cell(self) -> ModuleManageCell:
+        return self.__root_cell
 
     @property
-    def booter_cell(self):
-        return self.__booter_cell
+    def cell_pool(self) -> Dict[str, ModuleManageCell]:
+        return self.__cell_pool

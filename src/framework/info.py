@@ -2,6 +2,10 @@ from typing import List, Dict, Self
 from enum import Enum, IntEnum, unique
 
 
+def to_instance_label(name: str, kind: str):
+    return f"{name}_{kind}"
+
+
 @unique
 class ModuleStatus(IntEnum):
     NotLoaded = 0
@@ -67,11 +71,11 @@ class ModuleDescriptor:
     def __init__(
         self,
         name: str,
-        descriptor_kind: ModuleDescriptorKind,
+        kind: ModuleDescriptorKind,
         cond_kinds: List[str],
     ):
         self.__name = name
-        self.__descriptor_kind = descriptor_kind
+        self.__kind = kind
         self.__cond_kinds = cond_kinds
 
     @staticmethod
@@ -91,8 +95,8 @@ class ModuleDescriptor:
         return self.__name
 
     @property
-    def descriptor_kind(self) -> ModuleDescriptorKind:
-        return self.__descriptor_kind
+    def kind(self) -> ModuleDescriptorKind:
+        return self.__kind
 
     @property
     def cond_kinds(self) -> List[str]:
@@ -128,14 +132,6 @@ class ModuleInfo:
         # 运行状态信息 (运行阶段的状态, 不再此处存储)
         # self.__status: ModuleStatus = ModuleStatus.NotLoaded
 
-    def to_dict(self):
-        return {
-            "alias": self.alias,
-            "name": self.name,
-            "kinds": self.kinds,
-            "modules": self.sub,
-        }
-
     # ---- Getter ------ #
 
     @property
@@ -153,7 +149,7 @@ class ModuleInfo:
     @property
     def kinds(self) -> List[str]:
         """返回支持的实现类型列表"""
-        return self.__kinds.keys()
+        return list(self.__kinds.keys())
 
     @property
     def not_null(self) -> bool:
@@ -169,7 +165,7 @@ class ModuleInfo:
 
     @property
     def sub(self) -> List[str]:
-        return self.__sub.keys()
+        return list(self.__sub.keys())
 
     @property
     def sub_descriptors(self) -> Dict[str, ModuleDescriptor]:
@@ -179,7 +175,7 @@ class ModuleInfo:
     def depth(self) -> int:
         return self.__depth
 
-    def instance_submodules(self, kind: str) -> Dict[str, ModuleDescriptor] | None:
+    def instance_sub_descriptors(self, kind: str) -> Dict[str, ModuleDescriptor] | None:
         return self.__kinds.get(kind, None)
 
     # ---- Setter ------ #
