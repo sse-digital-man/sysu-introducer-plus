@@ -168,5 +168,5 @@ class BasicModule(metaclass=ABCMeta):
         self.__sub_modules[name] = sub_module
 
 
-class BooterInterface(BasicModule, metaclass=ABCMeta):
+class RootInterface(BasicModule, metaclass=ABCMeta):
     def send(self, _message: Message): ...

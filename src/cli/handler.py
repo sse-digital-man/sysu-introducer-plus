@@ -3,10 +3,10 @@ from tabulate import tabulate
 
 from utils.error import ModuleLoadError
 
+from framework.info import moduleStatusMap, ModuleName
+from framework.manager import MANAGER
 from framework.docker.client import DOCKER_CLIENT
 
-from module.interface.info import moduleStatusMap, ModuleName
-from module.interface.manager import MANAGER
 from message import Message, MessageKind
 from .kind import CommandHandleError, CommandUsageError
 
@@ -20,7 +20,7 @@ def handle_start(args: List[str]):
         name = BOOTER
         if length == 2:
             name = args[1]
-        MANAGER.start(name, with_sub=True, with_sup=True)
+        MANAGER.start(name)
     else:
         raise CommandUsageError(args[0])
 
@@ -38,31 +38,39 @@ def handle_stop(args: List[str]):
 
 
 def handle_status(args: List[str]):
-    info_list = MANAGER.module_list
+    info_list = MANAGER.instance_list
+
+    if len(info_list) == 0:
+        print()
+        print("not data")
+        return
 
     # 输入显示的字段名
-    headers = (
-        args[1:] if len(args) > 1 else ["name", "alias", "kind", "kinds", "status"]
-    )
+    keys = list(info_list[0].keys())
+    if len(args) > 1:
+        headers = args[1:]
+
+        # 对输入的头部进行校验
+        for header in headers:
+            if header not in keys:
+                raise CommandHandleError(f"unknown field name '{header}'")
+    else:
+        headers = keys
 
     # 将信息对象处理成行数据
-    rows = []
-    for info in info_list:
-        row = []
-        for header in headers:
-            try:
-                cell = info[header]
-                if header == "status":
-                    cell = moduleStatusMap[cell]
-                if header == "kinds":
-                    cell = ", ".join(cell)
+    def gen_cell(info: dict, header: str):
+        cell = info.get(header)
 
-                row.append(cell)
+        if cell is None:
+            cell = None
+        elif header == "status":
+            cell = moduleStatusMap[cell]
+        elif header in ("kinds", "modules"):
+            cell = ", ".join(cell)
 
-            except KeyError:
-                raise CommandHandleError(f"unknown field name '{header}'")
+        return cell
 
-        rows.append(row)
+    rows = [[gen_cell(info, header) for header in headers] for info in info_list]
 
     print()
     print(tabulate(rows, headers, tablefmt="github"))

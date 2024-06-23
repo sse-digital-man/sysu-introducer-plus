@@ -1,0 +1,64 @@
+booter:
+    alias: "引导程序"
+    modules:
+        - "core:*"
+        - "crawler:*"
+        - "renderer:*"
+core:
+    alias: "核心"
+    modules:
+        - "bot:*"
+        - "speaker:*"
+bot:
+    alias: "大语言模型"
+    default: "dense"
+    kinds:
+        - kind: "basic"
+          modules:
+              - "caller:*"
+              - "searcher:es"
+        - kind: "dense"
+          modules:
+              - "caller:![virtual]"
+              - "searcher:es"
+        - kind: "sparse"
+          modules:
+              - "caller:![virtual]"
+              - "searcher:vector"
+caller:
+    alias: "大模型调用器"
+    path: "bot"
+    default: "gpt"
+    kinds:
+        - "virtual"
+        - "gpt"
+searcher:
+    alias: "文本检索器"
+    path: "bot"
+    notNull: false
+    default: "null"
+    kinds:
+        - kind: "es"
+          modules:
+              - "caller:gpt"
+        - "vector"
+speaker:
+    alias: "文本转语音"
+    default: "basic"
+    kinds:
+        - "basic"
+        - "gsv"
+        - "bv2"
+crawler:
+    alias: "直播间爬虫"
+    default: "virtual"
+    kinds:
+        - "virtual"
+        - "bilibili"
+renderer:
+    alias: "人物渲染器"
+    default: "sound"
+    notNull: false
+    kinds:
+        - easyaivtuber
+        - sound
