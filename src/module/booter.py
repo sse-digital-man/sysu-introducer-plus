@@ -1,8 +1,8 @@
 from message import Message, MessageKind
 
+from framework import BooterInterface
+from framework.info import ModuleStatus, ModuleName
 from .core import BasicCore, HandleResult
-from .interface import BooterInterface
-from .interface.info import ModuleStatus, ModuleName
 from .crawler.interface import CrawlerInterface
 from .renderer.interface import RendererInterface
 

@@ -2,8 +2,8 @@ import asyncio
 from typing import Callable, Optional, Coroutine
 
 from message import MessageKind, Message
-from module.interface.log import LOGGER, MessageLog
 from module.interface import BasicModule
+from framework.log import LOGGER, MessageLog
 
 from .msg_queue.fifo_queue import FIFOQueue as MessageQueue
 

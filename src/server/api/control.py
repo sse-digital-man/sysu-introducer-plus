@@ -1,8 +1,8 @@
 from typing import Dict
 from flask import Blueprint, request
 
-from module.interface.info import ModuleName
-from module.interface.manager import MANAGER
+from framework.info import ModuleName
+from framework.manager import MANAGER
 
 from .result import Result, ErrorCode
 

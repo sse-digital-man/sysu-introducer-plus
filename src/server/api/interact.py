@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 
 from message import Message, MessageKind
-from module.interface.manager import MANAGER
+from framework.manager import MANAGER
 from .result import Result
 
 interact_api = Blueprint("interact_api", __name__)
