@@ -1,8 +1,10 @@
-from typing import Dict, List
+from typing import Dict, List, Any
 import json
 from elasticsearch import Elasticsearch
 
 from .interface import SearcherInterface
+from ..prompt import KEYWORD_EXTRACT_PROMPT
+from ..caller.interface import CallerInterface
 
 
 class EsSearcher(SearcherInterface):
@@ -10,6 +12,11 @@ class EsSearcher(SearcherInterface):
         super().__init__()
         self._es = Elasticsearch(["http://localhost:9200"])
         self._es_index = "school_library"
+
+    def _process(self, query: str) -> Any:
+        p_query = self._caller.single_call(KEYWORD_EXTRACT_PROMPT % query, False)
+
+        return p_query
 
     def handle_starting(self):
         # Notice: 不能够在 __init__() 中编写除了定义之外的操作
@@ -23,6 +30,9 @@ class EsSearcher(SearcherInterface):
         Returns:
             List[str]: 文本列表 [text1, text2, text3, ...]
         """
+
+        query = self._process(query)
+
         # dsl = {"query": {"match": {"query": query}}, "size": size}
         dsl = {
             "query": {
@@ -56,6 +66,9 @@ class EsSearcher(SearcherInterface):
         Returns:
             Dict[str, str]: 文本字典 { query1: text1, query2: text2, ...}
         """
+
+        query = self._process(query)
+
         dsl = {"query": {"match": {"query": query}}, "size": size}
         search_res = self._es.search(index=self._es_index, body=dsl)
         res = {}
@@ -88,3 +101,7 @@ class EsSearcher(SearcherInterface):
         return False
 
     def load_config(self): ...
+
+    @property
+    def _caller(self) -> CallerInterface:
+        return self._sub_module("caller")

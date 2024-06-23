@@ -1,12 +1,20 @@
 from abc import ABCMeta, abstractmethod
-from typing import List, Dict
+from typing import List, Dict, Any
 
 from .. import BasicModule
 
 
 class SearcherInterface(BasicModule, metaclass=ABCMeta):
-    def __init__(self):
-        super().__init__()
+    @abstractmethod
+    def _process(self, query: str) -> Any:
+        """对消息进行预处理, 如果不需要进行预处理直接返回即可
+
+        Args:
+            _query (str): 用户消息
+
+        Returns:
+            Any: 预处理结果
+        """
 
     @abstractmethod
     def search(self, query: str, size: int) -> List[str]:
