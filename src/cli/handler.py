@@ -38,31 +38,36 @@ def handle_stop(args: List[str]):
 
 
 def handle_status(args: List[str]):
-    info_list = MANAGER.module_list
+    info_list = MANAGER.module_info_list
+
+    if len(info_list) == 0:
+        print()
+        print("not data")
+        return
 
     # 输入显示的字段名
-    headers = (
-        args[1:] if len(args) > 1 else ["name", "alias", "kind", "kinds", "status"]
-    )
+    keys = list(info_list[0].keys())
+    if len(args) > 1:
+        headers = args[1:]
+
+        # 对输入的头部进行校验
+        for header in headers:
+            if header not in keys:
+                raise CommandHandleError(f"unknown field name '{header}'")
+    else:
+        headers = keys
 
     # 将信息对象处理成行数据
-    rows = []
-    for info in info_list:
-        row = []
-        for header in headers:
-            try:
-                cell = info[header]
-                if header == "status":
-                    cell = moduleStatusMap[cell]
-                if header == "kinds":
-                    cell = ", ".join(cell)
+    def gen_cell(info: dict, header: str):
+        cell = info[header]
+        if header == "status":
+            cell = moduleStatusMap[cell]
+        elif header == "kinds" or header == "submodules":
+            cell = ", ".join(cell)
 
-                row.append(cell)
+        return cell
 
-            except KeyError:
-                raise CommandHandleError(f"unknown field name '{header}'")
-
-        rows.append(row)
+    rows = [[gen_cell(info, header) for header in headers] for info in info_list]
 
     print()
     print(tabulate(rows, headers, tablefmt="github"))

@@ -5,10 +5,7 @@ sys.path.append("src")
 
 
 def main():
-    # 初始化运行指令
-    initial_command = []
-
-    app = CliApp(initial_command)
+    app = CliApp()
     app.handle()
 
 
