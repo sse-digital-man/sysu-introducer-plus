@@ -3,7 +3,7 @@ from typing import Dict, List, Any
 from utils import error
 
 from message import Message
-from .. import BooterInterface
+from .. import RootInterface
 from ..info import ModuleStatus
 
 from .cell import ModuleManageCell
@@ -63,7 +63,7 @@ class ModuleManager:
             return
 
         # 只能通过 booter 进行交互
-        booter: BooterInterface = self.__booter_cell.module
+        booter: RootInterface = self.__booter_cell.module
         booter.send(msg)
 
     def change_module_kind(self, name: str, kind: str):
