@@ -50,21 +50,26 @@ def _process_single_docker_config(instance: dict):
     if GPUS in instance:
         gpus = instance[GPUS]
         if gpus == "all":
-            instance[DEVICE_REQUESTS] = [DeviceRequest(count=-1)]
+            # 必须要设置 capabilities
+            instance[DEVICE_REQUESTS] = [
+                DeviceRequest(count=-1, capabilities=[["gpu"]])
+            ]
 
         instance.pop(GPUS)
 
     if VOLUMES in instance:
-        volumes: List[str] = instance[VOLUMES]
-        for i, volume in enumerate(volumes):
-            [src, dst] = volume.split(":")
+        volumes: dict = instance[VOLUMES]
 
+        volumes_list = []
+        for src, dst in volumes.items():
             src_path = Path(src)
             if src_path.is_absolute():
                 continue
 
             src = str(src_path.absolute())
-            volumes[i] = f"{src}:{dst}"
+            volumes_list.append(f"{src}:{dst}")
+
+        instance[VOLUMES] = volumes_list
 
     return instance
 
@@ -79,8 +84,11 @@ def load_docker_config(
     for name, module in raw_docker.items():
         # 如果模块对应的 Docker 信息为空，则直接跳过
         for kind, instance in module.items():
-            docker_config[to_instance_label(name, kind)] = (
-                _process_single_docker_config(instance)
-            )
+            container_name = to_instance_label(name, kind)
+
+            instance = _process_single_docker_config(instance)
+            instance["name"] = container_name
+
+            docker_config[container_name] = instance
 
     return docker_config

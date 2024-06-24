@@ -12,7 +12,9 @@ speaker:
     bv2:
         image: kingkia/bert-vits2-api
         volumes:
-            - ./sound/bv2:/workspace
+            ./sound/data: /workspace/Data
+            ./sound/bert: /workspace/bert
+            ./sound/config.yml: /workspace/config.yml
         gpus: all
         shm_size: 16G
         ports:

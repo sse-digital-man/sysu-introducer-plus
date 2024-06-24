@@ -45,15 +45,15 @@ class DockerClient:
         except docker.errors.ImageNotFound:
             return False
 
-    def create_container(self, name: str, **kwargs):
+    def create_container(self, name: str, kwargs: dict):
         # 端口映射: https://www.jianshu.com/p/c1bfc14d5c02
         # 环境变量: https://stackoverflow.com/questions/67482434/set-environment-var-to-docker-container-created-in-python
 
-        # 如果要求不存在，此时容器，则不会创建
+        # 如果容器存在则直接返回
         if self.check_container(name):
             return False
 
-        self._client.containers.create(name=name, **kwargs)
+        self._client.containers.create(**kwargs)
 
         return True
 
@@ -111,9 +111,7 @@ class ModuleDockerClient:
         """
         container_name = to_container_name(name, kind)
 
-        self.__client.create_container(
-            container_name, **self.__info_dict[container_name]
-        )
+        self.__client.create_container(container_name, self.__info_dict[container_name])
 
     def start_module_container(
         self, name: str, kind: str, auto_create: bool = True
@@ -133,17 +131,22 @@ class ModuleDockerClient:
         """
         container = to_container_name(name, kind)
 
+        info = self.__info_dict.get(container)
+        if info is None:
+            raise FileNotFoundError(f"instance '{container}' doesn't have docker")
+
         status = self.__client.get_container_status(container)
 
         # 模块运行中则直接返回
-        if status in [DockerContainerStatus.RUNNING, DockerContainerStatus.NOT_LOADED]:
+        if status == DockerContainerStatus.RUNNING:
             return status
 
         if status == DockerContainerStatus.NOT_CREATED:
+            if not self.__client.check_image(info["image"]):
+                return DockerContainerStatus.NOT_LOADED
+
             if not auto_create:
                 return status
-            if not self.check_instance_has_docker(name, kind):
-                raise FileNotFoundError(f"instance '{container}' doesn't have docker")
 
             self.create_module_container(name, kind)
 
@@ -159,7 +162,7 @@ class ModuleDockerClient:
             kind (str): 实现类型
 
         Returns:
-           DockerContainerStatus: 模块容器类型
+            DockerContainerStatus: 模块容器类型
         """
         container = to_container_name(name, kind)
 
