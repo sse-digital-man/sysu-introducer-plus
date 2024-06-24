@@ -1,5 +1,5 @@
 import asyncio
-from typing import Callable, Optional, Awaitable
+from typing import Callable, Optional, Coroutine
 
 from message import MessageKind, Message
 from module.interface.log import LOGGER, MessageLog
@@ -13,7 +13,7 @@ class HandleResult:
         self.sound_path = sound_path
 
 
-HandleCallback = Callable[[HandleResult], Awaitable[None]]
+HandleCallback = Callable[[HandleResult], Coroutine[None, None, None]]
 
 
 class BasicCore(BasicModule):
@@ -25,6 +25,7 @@ class BasicCore(BasicModule):
 
         self.__handle_callback: Optional[HandleCallback] = None
         self.__loop = None
+        self.__callback_task: Optional[asyncio.Task] = None
 
     def load_config(self):
         pass
@@ -63,7 +64,15 @@ class BasicCore(BasicModule):
             # 响应处理结果, 只有对应回调函数非空时, 才进行处理
             if self.__handle_callback is not None:
                 result = HandleResult(sound_path=speech)
-                await self.__handle_callback(result)
+
+                if self.__callback_task is not None and not self.__callback_task.done():
+                    # 如果上一个任务还没完成，等待它完成，设置超时
+                    try:
+                        await asyncio.wait_for(self.__callback_task, timeout=10.0)
+                    except asyncio.TimeoutError:
+                        print("Handle callback task timed out.")
+
+                self.__callback_task = asyncio.create_task(self.__handle_callback(result))
 
         # 核心处理完毕之后 清除消息队列
         self.__msg_queue.clear()
