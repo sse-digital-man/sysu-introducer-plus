@@ -13,9 +13,9 @@ class TAMQueue(DynamicMessageQueue):
         self.lock = threading.Lock()
 
     def calculate_total_priority(self, current_time, last_time, sim):
-        # 相似度计算公式为 sim*(1/(1+e^{(t-t0)/30}))
+        # 相似度计算公式为 - sim * (1/(1+e^{(t-t0)/30}))
         time_factor = 1 / (1 + math.exp((current_time - last_time)/30))
-        return sim* time_factor
+        return -sim*time_factor
     
     # push的时候会引起重排序
     def push(self, message: Message):
