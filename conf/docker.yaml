@@ -1,0 +1,34 @@
+# https://docker-py.readthedocs.io/en/stable/containers.html
+
+searcher:
+    es:
+        image: "elasticsearch:8.13.4"
+        environment:
+            discovery.type: "single-node"
+            xpack.security.enabled: false
+        ports:
+            9200/tcp: 9200
+speaker:
+    bv2:
+        image: kingkia/bert-vits2-api
+        volumes:
+            - ./sound/bv2:/workspace
+        gpus: all
+        shm_size: 16G
+        ports:
+            5000/tcp: 5000
+    gsv:
+        image: kingkia/gpt-sovits-api
+        environment:
+            is_half: False
+        volumes:
+            ./sound/gsv/output: /workspace/output
+            ./sound/gsv/logs: /workspace/logs
+            ./sound/gsv/SoVITS_weights: /workspace/SoVITS_weights
+            ./sound/gsv/GPT_weights: /workspace/GPT_weights
+            ./sound/gsv/reference: /workspace/reference
+            ./sound/gsv/config.py: /workspace/config.py
+        gpus: all
+        shm_size: 16G
+        ports:
+            5000/tcp: 5000

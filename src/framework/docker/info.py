@@ -1,21 +1,4 @@
-from typing import Dict
 from enum import Enum
-
-
-class ModuleDockerInfo:
-    class Port:
-        def __init__(self, in_port: int, out_port: int, protocol: str = "tcp"):
-            self.in_port = in_port
-            self.out_port = out_port
-            self.protocol = protocol
-
-    def __init__(self, image: str, envs: Dict[str, str], ports: Dict[str, Port]):
-        self.image = image
-        self.envs = envs
-        self.ports = ports
-
-    def out_port(self, field: str):
-        return self.ports[field].out_port
 
 
 class DockerContainerStatus(Enum):
@@ -23,3 +6,11 @@ class DockerContainerStatus(Enum):
     NOT_CREATED = 1
     RUNNING = 2
     EXITED = 3
+
+
+dockerStatusMap = {
+    DockerContainerStatus.NOT_LOADED: "未加载",
+    DockerContainerStatus.NOT_CREATED: "未创建",
+    DockerContainerStatus.RUNNING: "运行中",
+    DockerContainerStatus.EXITED: "停止中",
+}

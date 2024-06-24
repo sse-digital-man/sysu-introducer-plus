@@ -1,13 +1,14 @@
 import sys
 from typing import List, Dict, Any
-from time import sleep
 
 import docker
 import docker.errors
 import docker.types
 
-from .info import ModuleDockerInfo, DockerContainerStatus
-from .parser import _parser_docker_info
+from .info import DockerContainerStatus
+from .load import load_docker_config
+
+from ..info import to_instance_label as to_container_name
 
 # Macos Docker 启动配置
 # socat TCP-LISTEN:2375,reuseaddr,fork UNIX-CONNECT:/var/run/docker.sock &
@@ -17,7 +18,7 @@ PORT = 2375
 
 RUNNING = "running"
 
-DOCKER_PATH = "docker.yaml"
+DOCKER_PATH = "conf/docker.yaml"
 
 
 def generate_url(host: str, port: int):
@@ -44,24 +45,15 @@ class DockerClient:
         except docker.errors.ImageNotFound:
             return False
 
-    def create_container(
-        self,
-        image_name: str,
-        name: str,
-        envs: dict | None = None,
-        ports: Dict[str, int] | None = None,
-        no_exists: bool = False,
-    ):
+    def create_container(self, name: str, **kwargs):
         # 端口映射: https://www.jianshu.com/p/c1bfc14d5c02
         # 环境变量: https://stackoverflow.com/questions/67482434/set-environment-var-to-docker-container-created-in-python
 
         # 如果要求不存在，此时容器，则不会创建
-        if no_exists and self.check_container(name):
+        if self.check_container(name):
             return False
 
-        self._client.containers.create(
-            image_name, name=name, environment=envs, ports=ports
-        )
+        self._client.containers.create(name=name, **kwargs)
 
         return True
 
@@ -77,13 +69,6 @@ class DockerClient:
     # 启动容器
     def start_container(self, name: str):
         self._get_container(name).start()
-
-        # TODO: 优化自旋锁逻辑
-        waiting_time = 15
-        cur_time = 0
-        while cur_time < waiting_time:
-            sleep(5)
-            cur_time += 5
 
     # 关闭容器
     def stop_container(self, name: str):
@@ -108,60 +93,87 @@ class DockerClient:
         return DockerContainerStatus.NOT_CREATED
 
 
-def _to_container_name(name: str, kind: str):
-    return f"{name}_{kind}"
-
-
-class ModuleDockerClient(DockerClient):
+class ModuleDockerClient:
     def __init__(self):
-        self.__docker_info_list = _parser_docker_info(DOCKER_PATH)
-
-        super().__init__()
+        self.__client = DockerClient()
+        self.__info_dict = load_docker_config(DOCKER_PATH)
 
     def create_module_container(
         self,
         name: str,
         kind: str,
-        docker_info: ModuleDockerInfo,
-        no_exists: bool = False,
     ):
+        """创建模块容器
 
-        name = _to_container_name(name, kind)
+        Args:
+            name (str): 模块名称
+            kind (str): 模块实现类型
+        """
+        container_name = to_container_name(name, kind)
 
-        # 对端口信息进行封装
-        ports = {}
-        for content in docker_info.ports.values():
-            source = f"{content.in_port}/{content.protocol}"
-            ports[source] = content.out_port
-
-        super().create_container(
-            docker_info.image, name, docker_info.envs, ports, no_exists
+        self.__client.create_container(
+            container_name, **self.__info_dict[container_name]
         )
 
-    def start_module_container(self, name: str, kind: str):
-        container = _to_container_name(name, kind)
+    def start_module_container(
+        self, name: str, kind: str, auto_create: bool = True
+    ) -> DockerContainerStatus:
+        """启动模块容器
+
+        Args:
+            name (str): 模块名称
+            kind (str): 模块试下类型
+            auto_create (bool, optional): 是否自动创建. Defaults to True.
+
+        Raises:
+            FileNotFoundError: 模块容器不存在
+
+        Returns:
+            DockerContainerStatus: 返回当前容器状态
+        """
+        container = to_container_name(name, kind)
+
+        status = self.__client.get_container_status(container)
+
         # 模块运行中则直接返回
-        if self.get_container_status(container) == DockerContainerStatus.RUNNING:
-            return DockerContainerStatus.RUNNING
+        if status in [DockerContainerStatus.RUNNING, DockerContainerStatus.NOT_LOADED]:
+            return status
 
-        super().start_container(container)
+        if status == DockerContainerStatus.NOT_CREATED:
+            if not auto_create:
+                return status
+            if not self.check_instance_has_docker(name, kind):
+                raise FileNotFoundError(f"instance '{container}' doesn't have docker")
 
-        return self.get_container_status(container)
+            self.create_module_container(name, kind)
 
-    def stop_module_container(self, name: str, kind: str):
-        container = _to_container_name(name, kind)
+        self.__client.start_container(container)
 
-        super().stop_container(container)
+        return self.__client.get_container_status(container)
 
-        return self.get_container_status(container)
+    def stop_module_container(self, name: str, kind: str) -> DockerContainerStatus:
+        """停止模块容器
 
-    def get_module_container_status(
-        self, name: str, kind: str, docker_info: ModuleDockerInfo
-    ):
-        if not self.check_image(docker_info.tag):
+        Args:
+            name (str): 模块名称
+            kind (str): 实现类型
+
+        Returns:
+           DockerContainerStatus: 模块容器类型
+        """
+        container = to_container_name(name, kind)
+
+        self.__client.stop_container(container)
+
+        return self.__client.get_container_status(container)
+
+    def get_module_container_status(self, name: str, kind: str):
+        docker_info = self.__info_dict[name][kind]
+
+        if not self.__client.check_image(docker_info.image):
             return DockerContainerStatus.NOT_LOADED
 
-        return self.get_container_status(_to_container_name(name, kind))
+        return self.__client.get_container_status(to_container_name(name, kind))
 
     def check_instance_has_docker(self, name: str, kind: str) -> bool:
         """校验实现实例是否存在 docker
@@ -174,15 +186,10 @@ class ModuleDockerClient(DockerClient):
             bool: 结果
         """
 
-        info_dict = self.__docker_info_list
-
-        if name not in info_dict or kind not in info_dict[name]:
-            return False
-
-        return info_dict[name][kind] is not None
+        return self.__info_dict[to_container_name(name, kind)] is not None
 
     @property
-    def docker_info_list(self) -> List[Dict[str, Any]]:
+    def info_list(self) -> List[Dict[str, Any]]:
         """获取 Docker 信息列表
 
         Returns:
@@ -190,19 +197,17 @@ class ModuleDockerClient(DockerClient):
         """
         result = []
 
-        for name, module in self.__docker_info_list.items():
-            for kind, instance in module.items():
-                container = _to_container_name(name, kind)
-
-                result.append(
-                    {
-                        "moduleName": name,
-                        "moduleKind": kind,
-                        "name": container,
-                        "image": instance.image,
-                        "status": self.get_container_status(container).value,
-                    }
-                )
+        for container_name, instance in self.__info_dict.items():
+            [name, kind] = container_name.split("_")
+            result.append(
+                {
+                    "name": name,
+                    "kind": kind,
+                    "container_name": container_name,
+                    "image": instance["image"],
+                    "status": self.__client.get_container_status(container_name),
+                }
+            )
 
         return result
 
@@ -211,7 +216,6 @@ def __init_docker_client():
     try:
         return ModuleDockerClient()
     except Exception as e:
-        raise e
         print("docker connect error", repr(e))
         sys.exit()
 
