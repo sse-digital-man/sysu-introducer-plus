@@ -55,14 +55,3 @@ class Bv2Speaker(SpeakerInterface):
             return output_path
         else:
             raise RuntimeError()
-
-    def handle_starting(self):
-        '''
-        TODO: 使用DockerSDK for python 启动Docker容器提供服务
-        手动启动命令如下：
-        pull image: `docker pull kingkia/bert-vits2-api`
-        run: `docker run -d --it --gpus=all --shm-size="16G" --name bert-vits2-container -v D:\SIP\BV2\Data:/workspace/Data -v D:\SIP\BV2\bert:/workspace/bert -v D:\SIP\BV2\config.yml:/workspace/config.yml -p 5000:5000 kingkia/bert-vits2-api`
-        
-        > 根据需要修改volume路径，必须写的包括Data、bert两个文件夹以及配置文件config.yml
-        '''
-        pass
