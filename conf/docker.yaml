@@ -12,9 +12,9 @@ speaker:
     bv2:
         image: kingkia/bert-vits2-api
         volumes:
-            ./sound/bv2/data: /workspace/Data
-            ./sound/bv2/bert: /workspace/bert
-            ./sound/bv2/config.yml: /workspace/config.yml
+            ./data/sound/bv2/data: /workspace/Data
+            ./data/sound/bv2/bert: /workspace/bert
+            ./data/sound/bv2/config.yml: /workspace/config.yml
         gpus: all
         shm_size: 16G
         ports:
@@ -24,10 +24,10 @@ speaker:
         environment:
             is_half: False
         volumes:
-            ./sound/gsv/SoVITS_weights: /workspace/SoVITS_weights
-            ./sound/gsv/GPT_weights: /workspace/GPT_weights
-            ./sound/gsv/reference: /workspace/reference
-            ./sound/gsv/config.py: /workspace/config.py
+            ./data/sound/gsv/SoVITS_weights: /workspace/SoVITS_weights
+            ./data/sound/gsv/GPT_weights: /workspace/GPT_weights
+            ./data/sound/gsv/reference: /workspace/reference
+            ./data/sound/gsv/config.py: /workspace/config.py
         gpus: all
         shm_size: 16G
         ports:
