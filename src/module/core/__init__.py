@@ -3,9 +3,8 @@ from typing import Callable
 
 from message import MessageKind, Message
 from module.interface import BasicModule
+from module.queue.interface import QueueInterface
 from framework.log import LOGGER, MessageLog
-
-from .msg_queue.fifo_queue import FIFOQueue as MessageQueue
 
 
 class HandleResult:
@@ -19,9 +18,6 @@ HandleCallback = Callable[[HandleResult], None]
 class BasicCore(BasicModule):
     def __init__(self):
         super().__init__()
-
-        # 初始化消息队列
-        self.__msg_queue = MessageQueue()
 
         self.__handle_callback: HandleCallback | None = None
 
@@ -76,3 +72,7 @@ class BasicCore(BasicModule):
 
     def set_handle_callback(self, callback: HandleCallback):
         self.__handle_callback = callback
+
+    @property
+    def __msg_queue(self) -> QueueInterface:
+        return self._sub_module("queue")

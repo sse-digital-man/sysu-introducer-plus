@@ -7,8 +7,17 @@ booter:
 core:
     alias: "核心"
     modules:
+        - "queue"
         - "bot:*"
         - "speaker:*"
+queue:
+    alias: "消息队列"
+    default: FIFO
+    kinds:
+        - FIFO
+        # - kind: tam
+        #   modules:
+        #       - "searcher"
 bot:
     alias: "大语言模型"
     default: "dense"
