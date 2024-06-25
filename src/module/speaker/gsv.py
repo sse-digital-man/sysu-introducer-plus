@@ -10,7 +10,7 @@ class GsvSpeaker(SpeakerInterface):
         self.__host = "127.0.0.1"
         self.__port = 9880
         self.__url = f"http://{self.__host}:{self.__port}/"
-        self.__output_dir = "./data/sound"
+        self.__output_dir = "./data/sound/output"
 
     def load_config(self):
         pass
