@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any
 from langchain_openai import OpenAIEmbeddings
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
@@ -14,7 +14,11 @@ class VectorSearcher(SearcherInterface):
         # 定义llm_chain和vector_store
         self.__vector_store = None
         self.__prompt_template = """请回答用户关于中山大学信息的查询\n查询: {query}\n回答: {answer}"""
+        # 检索相似度过滤阈值
+        self.__theshold = 0.35
 
+    def _process(self, query: str) -> Any:
+        return query
 
     def handle_starting(self):
         # 获取openai的embedding实例
@@ -30,6 +34,9 @@ class VectorSearcher(SearcherInterface):
     def similarity_search(self, query: str, size: int) -> List[Tuple[Document, float]]:
         
         docs = self.__vector_store.similarity_search_with_score(query, k=size)
+        # 过滤掉相似度大于阈值的文档
+        docs = [(doc, score) for doc, score in docs if score <= self.__theshold]
+
         return docs
 
 
@@ -91,6 +98,8 @@ class VectorSearcher(SearcherInterface):
         if add_doc_count == 0:
             print('No new documents to add to the vector store.')
             return True
+        
+        print(f"Adding {add_doc_count} documents to the vector store...")
         
         # 添加文档到 vector store
         self.__vector_store.add_documents(documents)

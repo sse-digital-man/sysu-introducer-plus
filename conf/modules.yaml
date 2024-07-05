@@ -20,11 +20,11 @@ bot:
         - kind: "dense"
           modules:
               - "caller:![virtual]"
-              - "searcher:es"
+              - "searcher:vector"
         - kind: "sparse"
           modules:
               - "caller:![virtual]"
-              - "searcher:vector"
+              - "searcher:es"
 caller:
     alias: "大模型调用器"
     path: "bot"
