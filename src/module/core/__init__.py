@@ -1,6 +1,6 @@
-import time
+import asyncio
 from typing import Callable
-
+from queue import LifoQueue
 from message import MessageKind, Message
 from module.interface import BasicModule
 from framework.log import LOGGER, MessageLog
@@ -22,21 +22,30 @@ class BasicCore(BasicModule):
 
         # 初始化消息队列
         self.__msg_queue = MessageQueue()
-
         self.__handle_callback: HandleCallback | None = None
+        self.__render_task_queue = LifoQueue(maxsize=1)
 
     def load_config(self):
         pass
 
     def handle_starting(self):
         self._make_thread(self.__handle)
+        self._make_thread(self.__handle_render)
+
+    def __handle_render(self):
+        while self._is_ready:
+            handle_result = self.__render_task_queue.get(block=True, timeout=None)
+            if handle_result is None:
+                continue
+                
+            self.__handle_callback(handle_result)
 
     # 线程循环处理消息队列（需要开启多线程）
-    def __handle(self):
+    async def __handle(self):
 
         # 当 Core 停止后，处理线程也需要停止
         while self._is_ready:
-            time.sleep(0.5)
+            await asyncio.sleep(0.5)
             if self.__msg_queue.empty():
                 continue
 
@@ -61,7 +70,9 @@ class BasicCore(BasicModule):
             # 响应处理结果, 只有对应回调函数非空时, 才进行处理
             if self.__handle_callback is not None:
                 result = HandleResult(sound_path=speech)
-                self.__handle_callback(result)
+                self.__render_task_queue.put(result, block=True)
+                # 添加空，主要是用于占位
+                self.__render_task_queue.put(None, block=True, timeout=30)
 
         # 核心处理完毕之后 清除消息队列
         self.__msg_queue.clear()
