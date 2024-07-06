@@ -92,8 +92,8 @@ class BasicCore(BasicModule):
 
     @property
     def __bot(self) -> BotInterface:
-        return self._sub_module("queue")
+        return self._sub_module("bot")
 
     @property
     def __speaker(self) -> SpeakerInterface:
-        return self._sub_module("queue")
+        return self._sub_module("speaker")
