@@ -208,7 +208,7 @@ class ModuleDockerClient:
                     "kind": kind,
                     "container_name": container_name,
                     "image": instance["image"],
-                    "status": self.__client.get_container_status(container_name),
+                    "status": self.__client.get_container_status(container_name).value,
                 }
             )
 

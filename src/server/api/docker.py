@@ -12,7 +12,7 @@ docker_api = Blueprint("docker_api", __name__)
 
 @docker_api.route("/docker/container/list", methods=["GET"])
 def get_all_docker_container_list():
-    return Result.create({"list": DOCKER_CLIENT.docker_info_list})
+    return Result.create({"list": DOCKER_CLIENT.info_list})
 
 
 @docker_api.route(
