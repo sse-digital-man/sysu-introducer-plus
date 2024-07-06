@@ -1,4 +1,4 @@
-import asyncio
+import time
 from typing import Callable
 from queue import LifoQueue
 from message import MessageKind, Message
@@ -6,6 +6,8 @@ from module.interface import BasicModule
 from framework.log import LOGGER, MessageLog
 
 from .msg_queue.fifo_queue import FIFOQueue as MessageQueue
+from ..bot.interface import BotInterface
+from ..speaker.interface import SpeakerInterface
 
 
 class HandleResult:
@@ -41,11 +43,11 @@ class BasicCore(BasicModule):
             self.__handle_callback(handle_result)
 
     # 线程循环处理消息队列（需要开启多线程）
-    async def __handle(self):
+    def __handle(self):
 
         # 当 Core 停止后，处理线程也需要停止
         while self._is_ready:
-            await asyncio.sleep(0.5)
+            time.sleep(0.5)
             if self.__msg_queue.empty():
                 continue
 
@@ -54,7 +56,7 @@ class BasicCore(BasicModule):
             LOGGER.log(MessageLog.from_message(message))
 
             # 生成回答
-            response = self._sub_module("bot").talk(message.content)
+            response = self.__bot.talk(message.content)
             LOGGER.log(
                 MessageLog(
                     MessageKind.Assistant,
@@ -65,13 +67,13 @@ class BasicCore(BasicModule):
             )
 
             # 生成语音
-            speech = self._sub_module("speaker").speak(response)
+            speech = self.__speaker.speak(response)
 
             # 响应处理结果, 只有对应回调函数非空时, 才进行处理
             if self.__handle_callback is not None:
                 result = HandleResult(sound_path=speech)
                 self.__render_task_queue.put(result, block=True)
-                # 添加空，主要是用于占位
+                # 添加空，主要是用于占位 (超时主要是防止上一条消息播放过久)
                 self.__render_task_queue.put(None, block=True, timeout=30)
 
         # 核心处理完毕之后 清除消息队列
@@ -87,3 +89,11 @@ class BasicCore(BasicModule):
 
     def set_handle_callback(self, callback: HandleCallback):
         self.__handle_callback = callback
+
+    @property
+    def __bot(self) -> BotInterface:
+        return self._sub_module("queue")
+
+    @property
+    def __speaker(self) -> SpeakerInterface:
+        return self._sub_module("queue")
