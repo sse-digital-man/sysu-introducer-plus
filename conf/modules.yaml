@@ -12,12 +12,15 @@ core:
         - "speaker:*"
 queue:
     alias: "消息队列"
-    default: FIFO
+    default: tam
     kinds:
         - FIFO
-        # - kind: tam
-        #   modules:
-        #       - "searcher"
+        - kind: tam
+          modules:
+              - "searcher:vector"
+        - kind: ms
+          modules:
+              - "searcher:vector"
 bot:
     alias: "大语言模型"
     default: "dense"
@@ -63,7 +66,6 @@ crawler:
     default: "virtual"
     kinds:
         - "virtual"
-        - "bilibili"
 renderer:
     alias: "人物渲染器"
     default: "sound"

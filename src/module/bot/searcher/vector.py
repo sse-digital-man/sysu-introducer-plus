@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any
 from langchain_openai import OpenAIEmbeddings
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
@@ -15,7 +15,9 @@ class VectorSearcher(SearcherInterface):
         self.__vector_store = None
         self.__prompt_template = """请回答用户关于中山大学信息的查询\n查询: {query}\n回答: {answer}"""
 
-
+    def _process(self, query: str) -> Any:
+        return query
+    
     def handle_starting(self):
         # 获取openai的embedding实例
         base_embeddings = OpenAIEmbeddings(openai_api_key = self.__openai_api_key, openai_api_base = self.__openai_api_base)
@@ -58,7 +60,17 @@ class VectorSearcher(SearcherInterface):
 
         return {doc[0].metadata['query']: doc[0].metadata['document'] for doc in docs}
 
-
+    def similarity(self, query: str)->float:
+        """计算某个query与主题的相似度,方法是取最相似的文档的相似度
+        Args:
+            query (str): 查找文本
+        Returns:
+            float: 相似度评分
+        """
+        docs = self.__vector_store.similarity_search_with_score(query, k=1)
+        return docs[0][1]
+    
+    
     def build_index(self) -> bool:
         """基于数据库建立Chroma索引
         Returns:
