@@ -12,7 +12,7 @@ class GptCaller(CallerInterface):
         super().__init__()
 
         # 设置超时和重连次数
-        self.__timeout = 2
+        self.__timeout = 3
         self.__retry_n = 2
 
         self.__client = openai.OpenAI(api_key="", base_url=None, timeout=self.__timeout)
@@ -42,9 +42,7 @@ class GptCaller(CallerInterface):
                     stream=False,
                     messages=messages,
                 )
-
+                print(response.choices[0].message.content)
                 return response.choices[0].message.content
             except openai.APITimeoutError:
                 pass
-
-        raise TimeoutError()
