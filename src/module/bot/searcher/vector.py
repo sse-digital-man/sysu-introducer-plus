@@ -44,7 +44,7 @@ class VectorSearcher(SearcherInterface):
         docs = self.__vector_store.similarity_search_with_score(query, k=size)
         # 过滤掉相似度大于阈值的文档
         docs = [(doc, score) for doc, score in docs if score <= self.__theshold]
-
+        # print(len(docs))
         return docs
 
     def search(self, query: str, size: int) -> List[str]:
@@ -69,7 +69,17 @@ class VectorSearcher(SearcherInterface):
         """
         docs = self.similarity_search(query, size)
 
-        return {doc[0].metadata["query"]: doc[0].metadata["document"] for doc in docs}
+        return {doc[0].metadata['query']: doc[0].metadata['document'] for doc in docs}
+
+    def similarity(self, query: str)->float:
+        """计算某个query与主题的相似度,方法是取最相似的文档的相似度
+        Args:
+            query (str): 查找文本
+        Returns:
+            float: 相似度评分
+        """
+        docs = self.__vector_store.similarity_search_with_score(query, k=1)
+        return docs[0][1]
 
     def build_index(self) -> bool:
         """基于数据库建立Chroma索引

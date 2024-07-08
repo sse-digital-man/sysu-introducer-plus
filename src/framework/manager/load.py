@@ -12,9 +12,10 @@ from .check import check_module
 
 def _convert_module_descriptor(raw_descriptor: str) -> Tuple[str, ModuleDescriptor]:
     parts = raw_descriptor.replace(" ", "").split(":")
-    name, expr = parts[0], parts[1]
+    # 兼容语法糖: 当只有模块名时，使用 ALL 通配符
+    name, expr = parts[0], parts[1] if len(parts) == 2 else None
 
-    if len(parts) == 1 or expr == "*":
+    if expr is None or expr == "*":
         descriptor = ModuleDescriptor.new_all(name)
 
     elif expr.startswith("[") or expr.startswith("!["):

@@ -3,11 +3,10 @@ from typing import Callable
 from queue import LifoQueue
 from message import MessageKind, Message
 from module.interface import BasicModule
+from module.queue.interface import QueueInterface
+from module.bot.interface import BotInterface
+from module.speaker.interface import SpeakerInterface
 from framework.log import LOGGER, MessageLog
-
-from .msg_queue.fifo_queue import FIFOQueue as MessageQueue
-from ..bot.interface import BotInterface
-from ..speaker.interface import SpeakerInterface
 
 
 class HandleResult:
@@ -22,8 +21,6 @@ class BasicCore(BasicModule):
     def __init__(self):
         super().__init__()
 
-        # 初始化消息队列
-        self.__msg_queue = MessageQueue()
         self.__handle_callback: HandleCallback | None = None
         self.__render_task_queue = LifoQueue(maxsize=1)
 
@@ -90,6 +87,10 @@ class BasicCore(BasicModule):
     def set_handle_callback(self, callback: HandleCallback):
         self.__handle_callback = callback
 
+    @property
+    def __msg_queue(self) -> QueueInterface:
+        return self._sub_module("queue")
+    
     @property
     def __bot(self) -> BotInterface:
         return self._sub_module("bot")
