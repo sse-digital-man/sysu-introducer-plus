@@ -1,14 +1,15 @@
 from typing import List
-from tabulate import tabulate
 
 from utils.error import ModuleLoadError
 
 from framework.info import moduleStatusMap, ModuleName
 from framework.manager import MANAGER
 from framework.docker.client import DOCKER_CLIENT
+from framework.docker.info import dockerStatusMap
 
 from message import Message, MessageKind
 from .kind import CommandHandleError, CommandUsageError
+from .utils import generate_table
 
 BOOTER = ModuleName.BOOTER.value
 
@@ -45,20 +46,8 @@ def handle_status(args: List[str]):
         print("not data")
         return
 
-    # 输入显示的字段名
-    keys = list(info_list[0].keys())
-    if len(args) > 1:
-        headers = args[1:]
-
-        # 对输入的头部进行校验
-        for header in headers:
-            if header not in keys:
-                raise CommandHandleError(f"unknown field name '{header}'")
-    else:
-        headers = keys
-
     # 将信息对象处理成行数据
-    def gen_cell(info: dict, header: str):
+    def translate_cell(info: dict, header: str):
         cell = info.get(header)
 
         if cell is None:
@@ -70,10 +59,7 @@ def handle_status(args: List[str]):
 
         return cell
 
-    rows = [[gen_cell(info, header) for header in headers] for info in info_list]
-
-    print()
-    print(tabulate(rows, headers, tablefmt="github"))
+    print(generate_table(info_list, args[1:], translate_cell))
 
 
 def handle_exit(_ignored):
@@ -105,13 +91,29 @@ def handle_send(args: List[str]):
 
 
 def handle_docker(args: List[str]):
+    cmd = args[1]
+
+    # 状态显示相关逻辑
+    if cmd == "status":
+
+        def translate_cell(info: dict, header: str):
+            cell = info[header]
+            if header == "status":
+                cell = dockerStatusMap[cell]
+            return cell
+
+        docker_info_list = DOCKER_CLIENT.info_list
+        print(generate_table(docker_info_list, translate_cell=translate_cell))
+        return
+
+    # 控制相关逻辑
+    if cmd not in ["start", "stop"]:
+        raise CommandUsageError(args[0])
+
     if len(args) < 4:
         raise CommandUsageError(args[0])
 
-    [cmd, name, kind] = args[1:]
-
-    if cmd not in ["start", "stop"]:
-        raise CommandUsageError(args[0])
+    [name, kind] = args[2:]
 
     if not DOCKER_CLIENT.check_instance_has_docker(name, kind):
         raise CommandHandleError(

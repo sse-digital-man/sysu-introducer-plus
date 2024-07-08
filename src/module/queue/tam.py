@@ -29,8 +29,8 @@ class TamQueue(QueueInterface):
                 self.queue1.insert(0, message)
             else:
                 message.sim = self._searcher.similarity(message.content)
-                # 只有语义相关的信息(小于0.4)才被放入
-                if message.sim < 0.4:
+                # 只有语义相关的信息(小于 0.35)才被放入
+                if message.sim < 0.35:
                     self.queue2.append(message)
                     # 60s重排序一次
                     current_time = datetime.now().timestamp()

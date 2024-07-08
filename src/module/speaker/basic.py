@@ -10,7 +10,7 @@ class BasicSpeaker(SpeakerInterface):
     def __init__(self):
         super().__init__()
 
-        self.__output_dir = "./data/sound"
+        self.__output_dir = "./data/sound/output"
         self.__speech_config = None
 
         # self.__speech_synthesis_voice_name_list = [
