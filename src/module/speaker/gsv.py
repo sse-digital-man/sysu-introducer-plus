@@ -1,5 +1,4 @@
 import os
-import subprocess
 import requests
 
 from .interface import SpeakerInterface
@@ -11,7 +10,7 @@ class GsvSpeaker(SpeakerInterface):
         self.__host = "127.0.0.1"
         self.__port = 9880
         self.__url = f"http://{self.__host}:{self.__port}/"
-        self.__output_dir = "./data/sound"
+        self.__output_dir = "./data/sound/output"
 
     def load_config(self):
         pass
@@ -41,15 +40,3 @@ class GsvSpeaker(SpeakerInterface):
             return output_path
         else:
             raise RuntimeError()
-
-    def handle_starting(self):
-        root_path = "src/module/speaker/GSV/"
-        program_path = "api.py"
-        interpreter_path = "C:/Users/Student/anaconda3/envs/GSV/python.exe"
-
-        command = [
-            interpreter_path,
-            program_path,
-        ]
-
-        subprocess.Popen(command, cwd=root_path, shell=True, env=os.environ)
