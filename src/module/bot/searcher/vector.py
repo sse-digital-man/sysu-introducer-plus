@@ -80,7 +80,7 @@ class VectorSearcher(SearcherInterface):
         """
         docs = self.__vector_store.similarity_search_with_score(query, k=1)
         return docs[0][1]
-    
+
     def build_index(self) -> bool:
         """基于数据库建立Chroma索引
         Returns:

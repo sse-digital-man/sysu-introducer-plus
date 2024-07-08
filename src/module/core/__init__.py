@@ -98,4 +98,3 @@ class BasicCore(BasicModule):
     @property
     def __speaker(self) -> SpeakerInterface:
         return self._sub_module("speaker")
-    
