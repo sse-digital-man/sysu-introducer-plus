@@ -3,7 +3,8 @@ from enum import Enum, IntEnum, unique
 
 
 def to_instance_label(name: str, kind: str):
-    return f"{name}_{kind}"
+    # instance_label 都是小写字母
+    return f"{name.lower()}_{kind.lower()}"
 
 
 @unique

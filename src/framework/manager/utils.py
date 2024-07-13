@@ -11,11 +11,16 @@ BASIC = "basic"
 # 动态导入模块
 def dynamic_import_module(info: ModuleInfo, kind: str):
     # 生成对应的类的名称
+    # 如果类型是全大写，说明是缩写情况，否则只大写开头字母
     def generate_name(name: str, kind: str):
         if kind is None:
             kind = "basic"
+        elif not kind.isupper():
+            kind = kind.title()
+        else:
+            kind = kind[0].upper() + kind[1:]
 
-        return kind.title() + name.title()
+        return kind + name.title()
 
     if kind == NULL:
         return None
@@ -27,9 +32,9 @@ def dynamic_import_module(info: ModuleInfo, kind: str):
         names.append(info.path)
     names.append(info.name)
 
-    # 如果传输进来的实现类型为空，则读取 kind
+    # 路径只能包含小写字母
     if kind != BASIC:
-        names.append(kind)
+        names.append(kind.lower())
 
     try:
         class_name = generate_name(info.name, kind)

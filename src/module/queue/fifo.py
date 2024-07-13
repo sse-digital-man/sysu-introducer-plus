@@ -1,11 +1,16 @@
 from message import Message, MessageKind
 
-from .dynamic_queue import DynamicMessageQueue
+from .interface import QueueInterface
 
 
-class FIFOQueue(DynamicMessageQueue):
-    def __init__(self) -> None:
+class FIFOQueue(QueueInterface):
+    def __init__(self):
+        super().__init__()
+
         self.queue = []
+
+    def load_config(self):
+        pass
 
     def push(self, message: Message):
         # 介绍到管理员消息时，将其放在第队首
