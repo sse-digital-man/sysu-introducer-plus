@@ -1,11 +1,12 @@
 import time
 from typing import Callable
-
+from queue import LifoQueue
 from message import MessageKind, Message
-from module.interface.log import LOGGER, MessageLog
 from module.interface import BasicModule
-
-from .msg_queue.fifo_queue import FIFOQueue as MessageQueue
+from module.queue.interface import QueueInterface
+from module.bot.interface import BotInterface
+from module.speaker.interface import SpeakerInterface
+from framework.log import LOGGER, MessageLog
 
 
 class HandleResult:
@@ -20,16 +21,23 @@ class BasicCore(BasicModule):
     def __init__(self):
         super().__init__()
 
-        # 初始化消息队列
-        self.__msg_queue = MessageQueue()
-
         self.__handle_callback: HandleCallback | None = None
+        self.__render_task_queue = LifoQueue(maxsize=1)
 
     def load_config(self):
         pass
 
     def handle_starting(self):
         self._make_thread(self.__handle)
+        self._make_thread(self.__handle_render)
+
+    def __handle_render(self):
+        while self._is_ready:
+            handle_result = self.__render_task_queue.get(block=True, timeout=None)
+            if handle_result is None:
+                continue
+
+            self.__handle_callback(handle_result)
 
     # 线程循环处理消息队列（需要开启多线程）
     def __handle(self):
@@ -45,7 +53,7 @@ class BasicCore(BasicModule):
             LOGGER.log(MessageLog.from_message(message))
 
             # 生成回答
-            response = self._sub_module("bot").talk(message.content)
+            response = self.__bot.talk(message.content)
             LOGGER.log(
                 MessageLog(
                     MessageKind.Assistant,
@@ -56,12 +64,14 @@ class BasicCore(BasicModule):
             )
 
             # 生成语音
-            speech = self._sub_module("speaker").speak(response)
+            speech = self.__speaker.speak(response)
 
             # 响应处理结果, 只有对应回调函数非空时, 才进行处理
             if self.__handle_callback is not None:
                 result = HandleResult(sound_path=speech)
-                self.__handle_callback(result)
+                self.__render_task_queue.put(result, block=True)
+                # 添加空，主要是用于占位 (超时主要是防止上一条消息播放过久)
+                self.__render_task_queue.put(None, block=True, timeout=30)
 
         # 核心处理完毕之后 清除消息队列
         self.__msg_queue.clear()
@@ -76,3 +86,15 @@ class BasicCore(BasicModule):
 
     def set_handle_callback(self, callback: HandleCallback):
         self.__handle_callback = callback
+
+    @property
+    def __msg_queue(self) -> QueueInterface:
+        return self._sub_module("queue")
+    
+    @property
+    def __bot(self) -> BotInterface:
+        return self._sub_module("bot")
+
+    @property
+    def __speaker(self) -> SpeakerInterface:
+        return self._sub_module("speaker")

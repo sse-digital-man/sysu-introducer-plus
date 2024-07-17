@@ -1,13 +1,15 @@
 from message import Message, MessageKind
 
+from framework.info import ModuleStatus, ModuleName
+from framework import RootInterface
+
+from .interface import BasicModule
 from .core import BasicCore, HandleResult
-from .interface import BooterInterface
-from .interface.info import ModuleStatus, ModuleName
 from .crawler.interface import CrawlerInterface
 from .renderer.interface import RendererInterface
 
 
-class BasicBooter(BooterInterface):
+class BasicBooter(RootInterface):
     """数字人 Core 的引导程序，用于封装包括 Core，Communicate，Interface 在内的多个组件，并提供以下操作：
     1. 控制各个子部件的运行与停止
     2. 连接组件之间的交互
@@ -17,26 +19,32 @@ class BasicBooter(BooterInterface):
     def load_config(self):
         pass
 
-    def before_starting_submodules(self):
-        # 1. 设置爬虫的接受回调函数
-        def receive_callback(text: str):
-            message = Message(MessageKind.Watcher, text)
-            self._core.send(message)
+    # 接收回调函数
+    def __receive_callback(self, text: str):
+        message = Message(MessageKind.Watcher, text)
+        self._core.send(message)
 
-        self._crawler.set_receive_callback(receive_callback)
+    def __handle_callback(self, result: HandleResult):
+        # TODO: 完善处理核心处理完成后的回调函数
+        if self._renderer is None or self._renderer.status != ModuleStatus.Started:
+            return
 
-        # 2. 设置 处理核心处理完成的回调函数
-        def handle_callback(result: HandleResult):
-            # TODO: 完善处理核心处理完成后的回调函数
-            if self._renderer is None or self._renderer.status != ModuleStatus.Started:
-                return
+        self._renderer.speak(result.sound_path)
 
-            self._renderer.speak(result.sound_path)
-
-        self._core.set_handle_callback(handle_callback)
+    def handle_starting(self):
+        self._crawler.set_receive_callback(self.__receive_callback)
+        self._core.set_handle_callback(self.__handle_callback)
 
     def send(self, msg: Message):
         self._core.send(msg)
+
+    def update_submodule(self, name: str, sub_module: BasicModule):
+        super().update_submodule(name, sub_module)
+
+        if name == ModuleName.CRAWLER:
+            self._crawler.set_receive_callback(self.__receive_callback)
+        elif name == ModuleName.CORE:
+            self._core.set_handle_callback(self.__handle_callback)
 
     @property
     def _core(self) -> BasicCore:

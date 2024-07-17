@@ -1,12 +1,15 @@
 from typing import List
-from tabulate import tabulate
 
 from utils.error import ModuleLoadError
 
-from module.interface.info import moduleStatusMap, ModuleName
-from module.interface.manager import MANAGER
+from framework.info import moduleStatusMap, ModuleName
+from framework.manager import MANAGER
+from framework.docker.client import DOCKER_CLIENT
+from framework.docker.info import dockerStatusMap
+
 from message import Message, MessageKind
 from .kind import CommandHandleError, CommandUsageError
+from .utils import generate_table
 
 BOOTER = ModuleName.BOOTER.value
 
@@ -18,7 +21,7 @@ def handle_start(args: List[str]):
         name = BOOTER
         if length == 2:
             name = args[1]
-        MANAGER.start(name, with_sub=True, with_sup=True)
+        MANAGER.start(name)
     else:
         raise CommandUsageError(args[0])
 
@@ -36,34 +39,27 @@ def handle_stop(args: List[str]):
 
 
 def handle_status(args: List[str]):
-    info_list = MANAGER.module_list
+    info_list = MANAGER.instance_list
 
-    # 输入显示的字段名
-    headers = (
-        args[1:] if len(args) > 1 else ["name", "alias", "kind", "kinds", "status"]
-    )
+    if len(info_list) == 0:
+        print()
+        print("not data")
+        return
 
     # 将信息对象处理成行数据
-    rows = []
-    for info in info_list:
-        row = []
-        for header in headers:
-            try:
-                cell = info[header]
-                if header == "status":
-                    cell = moduleStatusMap[cell]
-                if header == "kinds":
-                    cell = ", ".join(cell)
+    def translate_cell(info: dict, header: str):
+        cell = info.get(header)
 
-                row.append(cell)
+        if cell is None:
+            cell = None
+        elif header == "status":
+            cell = moduleStatusMap[cell]
+        elif header in ("kinds", "modules"):
+            cell = ", ".join(cell)
 
-            except KeyError:
-                raise CommandHandleError(f"unknown field name '{header}'")
+        return cell
 
-        rows.append(row)
-
-    print()
-    print(tabulate(rows, headers, tablefmt="github"))
+    print(generate_table(info_list, args[1:], translate_cell))
 
 
 def handle_exit(_ignored):
@@ -92,6 +88,42 @@ def handle_send(args: List[str]):
 
     # 如果消息未能发送成功，则说明模块未启动
     MANAGER.send(message)
+
+
+def handle_docker(args: List[str]):
+    cmd = args[1]
+
+    # 状态显示相关逻辑
+    if cmd == "status":
+
+        def translate_cell(info: dict, header: str):
+            cell = info[header]
+            if header == "status":
+                cell = dockerStatusMap[cell]
+            return cell
+
+        docker_info_list = DOCKER_CLIENT.info_list
+        print(generate_table(docker_info_list, translate_cell=translate_cell))
+        return
+
+    # 控制相关逻辑
+    if cmd not in ["start", "stop"]:
+        raise CommandUsageError(args[0])
+
+    if len(args) < 4:
+        raise CommandUsageError(args[0])
+
+    [name, kind] = args[2:]
+
+    if not DOCKER_CLIENT.check_instance_has_docker(name, kind):
+        raise CommandHandleError(
+            f"the kind '{kind}' of name '{name}' doesn't have docker"
+        )
+
+    if cmd == "start":
+        DOCKER_CLIENT.start_module_container(name, kind)
+    elif cmd == "stop":
+        DOCKER_CLIENT.stop_module_container(name, kind)
 
 
 def handle_reload(_ignored): ...

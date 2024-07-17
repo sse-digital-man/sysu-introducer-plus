@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect
 from werkzeug.routing import BaseConverter
 
-from module.interface.log import LOGGER
+from framework.log import LOGGER
 
 from .ws import WSServer
 

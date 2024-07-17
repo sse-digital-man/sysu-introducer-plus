@@ -6,6 +6,7 @@ COMMANDS = {
     "change": {"usage": "name kind"},
     "send": {"usage": '"content"'},
     "reload": {"usage": ""},
+    "docker": {"usage": "[start|stop] name kind"},
 }
 
 

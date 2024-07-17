@@ -1,9 +1,8 @@
-from typing import Dict, List, Tuple
-from langchain_openai import OpenAIEmbeddings
+import json
+from typing import Dict, List, Tuple, Any
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain.docstore.document import Document
-import json
 
 from .interface import SearcherInterface
 
@@ -11,30 +10,47 @@ from .interface import SearcherInterface
 class VectorSearcher(SearcherInterface):
     def __init__(self):
         super().__init__()
+
+        self.__openai_api_key = None
+        self.__openai_api_base = None
+
         # 定义llm_chain和vector_store
         self.__vector_store = None
-        self.__prompt_template = """请回答用户关于中山大学信息的查询\n查询: {query}\n回答: {answer}"""
+        self.__prompt_template = (
+            """请回答用户关于中山大学信息的查询\n查询: {query}\n回答: {answer}"""
+        )
+        # 检索相似度过滤阈值
+        self.__theshold = 0.35
 
+    def _process(self, query: str) -> Any:
+        return query
 
     def handle_starting(self):
         # 获取openai的embedding实例
-        base_embeddings = OpenAIEmbeddings(openai_api_key = self.__openai_api_key, openai_api_base = self.__openai_api_base)
-        
+        base_embeddings = OpenAIEmbeddings(
+            openai_api_key=self.__openai_api_key, openai_api_base=self.__openai_api_base
+        )
+
         # vectorstore实例化
-        self.__vector_store = Chroma(persist_directory = 'data/vectorstores', embedding_function = base_embeddings)
+        self.__vector_store = Chroma(
+            persist_directory="data/vectorstores", embedding_function=base_embeddings
+        )
 
         # 建立索引
         self.build_index()
 
+
     def similarity(self, query: str)->float:
         docs = self.__vector_store.similarity_search_with_score(query, k=1)
         return docs[0][1]
-    
-    def similarity_search(self, query: str, size: int) -> List[Tuple[Document, float]]:
-        
-        docs = self.__vector_store.similarity_search_with_score(query, k=size)
-        return docs
 
+    def similarity_search(self, query: str, size: int) -> List[Tuple[Document, float]]:
+
+        docs = self.__vector_store.similarity_search_with_score(query, k=size)
+        # 过滤掉相似度大于阈值的文档
+        docs = [(doc, score) for doc, score in docs if score <= self.__theshold]
+        # print(len(docs))
+        return docs
 
     def search(self, query: str, size: int) -> List[str]:
         """使用elasticsearch搜索返回与 query 相似的文本列表
@@ -46,8 +62,7 @@ class VectorSearcher(SearcherInterface):
         """
         docs = self.similarity_search(query, size)
 
-        return [doc[0].metadata['document'] for doc in docs]
-
+        return [doc[0].metadata["document"] for doc in docs]
 
     def search_with_label(self, query: str, size: int) -> Dict[str, str]:
         """返回与 query 相似的文本列表，以及对应的标签信息(query/id)
@@ -61,6 +76,15 @@ class VectorSearcher(SearcherInterface):
 
         return {doc[0].metadata['query']: doc[0].metadata['document'] for doc in docs}
 
+    def similarity(self, query: str)->float:
+        """计算某个query与主题的相似度,方法是取最相似的文档的相似度
+        Args:
+            query (str): 查找文本
+        Returns:
+            float: 相似度评分
+        """
+        docs = self.__vector_store.similarity_search_with_score(query, k=1)
+        return docs[0][1]
 
     def build_index(self) -> bool:
         """基于数据库建立Chroma索引
@@ -77,30 +101,41 @@ class VectorSearcher(SearcherInterface):
         # 遍历数据字典中的每一项
         for key, value in data.items():
             # 检查当前的键是否已经存在于元数据列表中
-            if not any(item['id'] == str(key) for item in self.__vector_store.get()['metadatas']):
+            if not any(
+                item["id"] == str(key)
+                for item in self.__vector_store.get()["metadatas"]
+            ):
                 # 如果不存在，则创建一个新的Document对象
                 # 对内容添加 prompt
-                page_content = self.__prompt_template.format(query=value['query'], answer=value['document'])
+                page_content = self.__prompt_template.format(
+                    query=value["query"], answer=value["document"]
+                )
                 # 元数据组织
-                metadata = {'id': key, 'query': value['query'], 'document': value['document'], 'keyword': value['metadata']}
+                metadata = {
+                    "id": key,
+                    "query": value["query"],
+                    "document": value["document"],
+                    "keyword": value["metadata"],
+                }
                 # 合成 document
                 document = Document(page_content=page_content, metadata=metadata)
-                
+
                 # 将新创建的Document对象添加到文档列表中
                 documents.append(document)
 
         # 若没有新的数据，不修改 vector store
         add_doc_count = len(documents)
         if add_doc_count == 0:
-            print('No new documents to add to the vector store.')
+            print("No new documents to add to the vector store.")
             return True
-        
+
+        print(f"Adding {add_doc_count} documents to the vector store...")
+
         # 添加文档到 vector store
         self.__vector_store.add_documents(documents)
         print(f"Added {add_doc_count} documents to the vector store.")
 
         return False
-
 
     def load_config(self):
         info = self._read_config()

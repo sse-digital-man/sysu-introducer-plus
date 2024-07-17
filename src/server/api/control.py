@@ -1,8 +1,8 @@
 from typing import Dict
 from flask import Blueprint, request
 
-from module.interface.info import ModuleName
-from module.interface.manager import MANAGER
+from framework.info import ModuleName
+from framework.manager import MANAGER
 
 from .result import Result, ErrorCode
 
@@ -12,13 +12,12 @@ BOOTER = ModuleName.BOOTER.value
 
 
 def check_module_can_control(name: str) -> bool:
-    if MANAGER.check_module_exist(name):
+    if not MANAGER.check_exist(name):
         return Result.create(code=ErrorCode.ModuleNotFound)
-    elif MANAGER.is_controllable(name):
+    if MANAGER.is_controllable(name):
         # 目前只有 booter 与其子模块才可以单独地启动的暂停
         return None
-    else:
-        return Result.create(code=ErrorCode.ModuleUncontrollable)
+    return Result.create(code=ErrorCode.ModuleUncontrollable)
 
 
 @control_api.route("/module/<regex('start|stop'):control>/<name>", methods=["POST"])
@@ -31,7 +30,7 @@ def start(name: str, control: str):
 
     if control == "start":
         # Notice: 启动子模块时，也会递归启动父模块
-        MANAGER.start(name, with_sup=True)
+        MANAGER.start(name)
     elif control == "stop":
         MANAGER.stop(name)
 
@@ -95,14 +94,19 @@ def modify_module_config(name: str):
 
 
 @control_api.route("/module/list/all", methods=["GET"])
-def get_all_module():
-    return Result.create(data={"list": MANAGER.module_list})
+def get_instance_list():
+    return Result.create(data={"list": MANAGER.instance_list})
 
 
-# 直接返回全局信息
-@control_api.route("/module/config/all", methods=["GET"])
-def get_all_config():
-    return Result.create(data={"list": MANAGER.user_config_list})
+@control_api.route("/module/tree/all", methods=["GET"])
+def get_instance_tree():
+    return Result.create(data={"tree": MANAGER.instance_tree})
+
+
+# # 直接返回全局信息
+# @control_api.route("/module/config/all", methods=["GET"])
+# def get_all_config():
+#     return Result.create(data={"list": MANAGER.user_config_list})
 
 
 # @control_api.route("/module/config/<name>", methods=["GET"])

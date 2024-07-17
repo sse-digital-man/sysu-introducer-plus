@@ -7,29 +7,38 @@ from .args import args
 from .kind import check_cmd, CommandHandleError, UnknownCommandError
 from .handler import handle_stop
 
+CMD_SEPARATOR = ","
+
 
 def print_error(e: Exception):
     print(type(e).__name__, ":", e.args[0])
 
 
 class CliApp:
-    def __init__(self, init_cmd: List[List[str]] = None):
+    def __init__(self):
         self.__has_started = False
-        self.__init_cmd = [] if init_cmd is None else init_cmd
+
+        self.__init_cmds: List[str] = []
 
     def __get_input_args(self) -> List[str]:
         # 初次自动运行
         if args.auto and not self.__has_started:
             input_args = ["start"]
         # 是否运行初始化指令
-        if args.init and len(self.__init_cmd) > 0:
-            input_args = self.__init_cmd.pop(0).split()
+        elif len(self.__init_cmds) != 0:
+            return self.__init_cmds.pop(0)
         else:
             input_args = input("> ").split()
 
         return input_args
 
     def handle(self):
+        # 加载初始时指令
+        if args.init is not None:
+            # 同一条命令的的参数使用 | 分割
+            cmds: List[str] = args.init
+            self.__init_cmds = [cmd.split(CMD_SEPARATOR) for cmd in cmds]
+
         while True:
             try:
                 # 1. 读取输入参数

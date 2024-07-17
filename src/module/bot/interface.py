@@ -1,8 +1,8 @@
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict
+from typing import Dict
 from enum import Enum
 
-from module.interface import BasicModule
+from framework import BasicModule
 from .searcher.interface import SearcherInterface
 from .caller.interface import CallerInterface
 from .prompt import DEMONSTRATE_PROMPT, DATA_PROMPT
@@ -29,17 +29,6 @@ class RagBotInterface(BotInterface, metaclass=ABCMeta):
         # 默认使用拒绝操作
         self._last_strategy_kind = LastStrategyKind.REJECT
 
-    @abstractmethod
-    def _preprocess(self, query: str) -> Any:
-        """对消息进行预处理, 如果不需要进行预处理直接返回即可
-
-        Args:
-            _query (str): 用户消息
-
-        Returns:
-            Any: 预处理结果
-        """
-
     def _last_strategy(self, _query: str) -> str:
         """兜底策略，当检索结果不好时执行。
 
@@ -59,18 +48,15 @@ class RagBotInterface(BotInterface, metaclass=ABCMeta):
         if self._searcher is None:
             return self._caller.single_call(query)
 
-        # 1. 对用输入进行预处理
-        process_query = self._preprocess(query)
+        # 1. 使用 searcher 进行向量检索
+        data = self._searcher.search_with_label(query, 3)
 
-        # 2. 使用 searcher 进行向量检索
-        data = self._searcher.search_with_label(process_query, 3)
-
-        # 3. 当效果不好时使用兜底策略
+        # 2. 当效果不好时使用兜底策略
         # TODO: 衡量检索效果
         if len(data) == 0:
             return self._last_strategy(query)
 
-        # 4. prompt 合成并生成
+        # 3. prompt 合成并生成
         return self._caller.single_call(self._generate_prompt(query, data))
 
     def _generate_prompt(self, query, data: Dict[str, str]) -> str:

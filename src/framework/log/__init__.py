@@ -1,5 +1,5 @@
 from message import MessageKind, Message
-from module.interface.info import ModuleStatus, ModuleName
+from framework.info import ModuleStatus, ModuleName
 
 from .interface import ModuleLog, ModuleLogKind
 from .logger import Logger
@@ -8,13 +8,14 @@ LOGGER = Logger()
 
 
 class StatusLog(ModuleLog):
-    def __init__(self, name: str, status: ModuleStatus):
+    def __init__(self, name: str, kind: str, status: ModuleStatus):
         super().__init__(
             ModuleLogKind.STATUS,
             {
                 "status": status,
             },
             name=name,
+            kind=kind,
         )
 
 
