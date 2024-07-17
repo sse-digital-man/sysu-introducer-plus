@@ -39,6 +39,11 @@ class VectorSearcher(SearcherInterface):
         # 建立索引
         self.build_index()
 
+
+    def similarity(self, query: str)->float:
+        docs = self.__vector_store.similarity_search_with_score(query, k=1)
+        return docs[0][1]
+
     def similarity_search(self, query: str, size: int) -> List[Tuple[Document, float]]:
 
         docs = self.__vector_store.similarity_search_with_score(query, k=size)
